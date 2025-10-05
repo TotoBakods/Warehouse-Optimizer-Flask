@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse Optimization System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark-main: #0D1117;
+            --bg-dark-secondary: #161B22;
+            --border-color: #30363D;
+            --text-light: #C9D1D9;
+            --text-dark: #8B949E;
+            --accent-primary: #58A6FF;
+            --accent-hover: #79C0FF;
+            --accent-glow: rgba(88, 166, 255, 0.3);
+            --success: #3FB950;
+            --danger: #F85149;
+            --warning: #D29922;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark-main);
+            color: var(--text-light);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #app-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #three-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Panels */
+        .ui-panel {
+            position: absolute;
+            z-index: 10;
+            top: 70px;
+            background-color: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: calc(100vh - 90px);
+            transform: scale(0.95);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .ui-panel.visible {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .panel-header h2 { font-size: 1rem; font-weight: 600; }
+        .panel-header .icon { width: 20px; height: 20px; transition: transform 0.3s ease; }
+        .panel-content { padding: 16px; overflow-y: auto; }
+        .ui-panel.collapsed .panel-content { display: none; }
+        .ui-panel.collapsed .panel-header .icon { transform: rotate(-90deg); }
+
+        #controls-panel { left: 20px; width: 340px; }
+        #visualization-panel { left: 20px; width: 340px; }
+        #items-panel { left: 20px; width: 340px; }
+        #data-panel { left: 20px; width: 340px; }
+        #warehouse-panel { left: 20px; width: 340px; }
+        #warehouse-manager-panel { left: 20px; width: 340px; }
+
+        /* Fullscreen Analytics Panel */
+        #analytics-panel {
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
+            z-index: 100;
+            background-color: rgba(13, 17, 23, 0.95);
+        }
+        #analytics-panel .panel-content {
+            padding: 2rem 3rem;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px; right: 20px;
+            width: auto;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 8px 12px;
+        }
+        .close-btn:hover { background: var(--bg-dark-secondary); color: var(--text-light); }
+
+        /* Header & Nav */
+        .app-header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-btn {
+            background-color: transparent; border: none; color: var(--text-dark);
+            padding: 8px 12px; border-radius: 8px; font-weight: 500;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-btn:hover { background-color: rgba(139, 148, 158, 0.1); color: var(--text-light); }
+        .nav-btn.active { color: var(--accent-primary); background-color: rgba(88, 166, 255, 0.1); }
+        .nav-btn .icon { width: 18px; height: 18px; }
+
+        /* Warehouse Selector */
+        .warehouse-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+            background-color: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+        }
+
+        .warehouse-selector select {
+            background: var(--bg-dark-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            padding: 4px 8px;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 8px; font-size: 0.875rem; font-weight: 500; color: var(--text-dark); }
+        input, select {
+            width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;
+            background-color: var(--bg-dark-main); color: var(--text-light); font-size: 0.875rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus, select:focus {
+            outline: none; border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+         input[type="file"] { padding: 0; }
+        input[type="file"]::file-selector-button {
+            padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px;
+            background-color: var(--bg-dark-secondary); color: var(--text-light); cursor: pointer;
+            transition: background-color 0.2s; font-weight: 500; margin-right: 10px;
+        }
+        input[type="file"]::file-selector-button:hover { background-color: #30363D; }
+        .label-with-value { display: flex; justify-content: space-between; align-items: center; }
+
+        /* Buttons */
+        button {
+            width: 100%; padding: 10px 15px; border: none; border-radius: 6px;
+            background: var(--accent-primary); color: white; font-weight: 600;
+            font-size: 0.875rem; cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        button:hover { background: var(--accent-hover); }
+        button:disabled { background: #30363D; color: #8B949E; cursor: not-allowed; }
+        #stop-btn { background-color: var(--danger); }
+        .btn-secondary { background-color: #30363D; color: var(--text-light); }
+        .btn-secondary:hover { background-color: #485058; }
+        .btn-small { padding: 6px 10px; font-size: 0.8rem; width: auto; }
+
+        .button-group { display: flex; gap: 12px; margin-top: 10px; }
+        .data-button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Status & Progress */
+        .status-card { background: var(--bg-dark-main); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; margin-top: 20px; }
+        .metric { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.875rem; color: var(--text-dark); }
+        .metric span:last-child { font-weight: 600; color: var(--text-light); }
+        .progress-bar { width: 100%; height: 6px; background: #30363D; border-radius: 3px; overflow: hidden; margin: 16px 0 10px; }
+        .progress-fill { height: 100%; background: var(--success); transition: width 0.4s ease; border-radius: 3px; }
+        .status-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+        .status-running { background: var(--success); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(63, 185, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0); } }
+        .status-stopped { background: var(--danger); }
+
+        /* Analytics & Items */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr;
+            grid-template-rows: auto auto 1fr;
+            gap: 24px;
+            height: calc(100vh - 10rem);
+        }
+        #current-metrics-display {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .main-chart-container {
+            grid-column: 1 / 2;
+            grid-row: 1 / 4;
+            background: var(--bg-dark-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        #last-run-metrics {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+        }
+        #history-table-container {
+            grid-column: 2 / 3;
+            grid-row: 3 / 4;
+            overflow-y: auto;
+            background: var(--bg-dark-secondary);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card { background: var(--bg-dark-secondary); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; }
+        .stat-card-title { font-size: 0.875rem; font-weight: 500; color: var(--text-dark); margin-bottom: 8px; }
+        .stat-card-value { font-size: 1.75rem; font-weight: 700; color: var(--text-light); margin-top: auto; }
+        .progress-bar-wrapper { height: 4px; background: var(--border-color); border-radius: 2px; margin-top: 12px; }
+        .progress-bar-inner { height: 100%; background: var(--accent-primary); border-radius: 2px; }
+
+
+        h3 { font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dark); margin-bottom: 16px; margin-top: 20px; }
+        h3:first-child { margin-top: 0; }
+
+        .item-list { margin-top: 10px; border: 1px solid var(--border-color); border-radius: 8px; max-height: 300px; overflow-y: auto; background-color: var(--bg-dark-main); }
+        .item-entry { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.8rem; line-height: 1.4; color: var(--text-dark); }
+        .item-entry:last-child { border-bottom: none; }
+        .item-entry strong { color: var(--text-light); font-weight: 600; }
+
+        .results-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        .results-table th, .results-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .results-table tr:last-child td { border-bottom: none; }
+        .results-table th { color: var(--text-dark); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+        .results-table td:first-child { color: var(--text-dark); }
+
+        /* Notification */
+        #notification {
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+            padding: 12px 24px; border-radius: 8px; color: white; font-weight: 500;
+            box-shadow: var(--shadow-md); transition: bottom 0.5s ease-in-out; z-index: 1000;
+        }
+        #notification.show { bottom: 20px; }
+        #notification.success { background-color: var(--success); }
+        #notification.error { background-color: var(--danger); }
+        #notification.info { background-color: var(--accent-primary); }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <div id="three-container"></div>
+
+        <!-- Warehouse Selector -->
+        <div class="warehouse-selector">
+            <span>Warehouse:</span>
+            <select id="warehouse-select" onchange="switchWarehouse(this.value)">
+                <option value="1">Loading...</option>
+            </select>
+        </div>
+
+        <header class="app-header">
+            <button id="nav-controls" class="nav-btn active" onclick="toggleMainPanel('controls-panel', this)">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg>
+                <span>Controls</span>
+            </button>
+            <button id="nav-visualization" class="nav-btn" onclick="toggleMainPanel('visualization-panel', this)">
+                 <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3l2.25-1.313M12 12.75l-2.25 1.313M12 12.75V15m0 6.75l2.25-1.313M12 21.75V19.5m0 2.25l-2.25-1.313m0-16.875L12 2.25l2.25 1.313M12 2.25L9.75 3.563M12 2.25v2.25m11.354 4.019l-2.25-1.313M3.646 16.019L5.9 17.332m12.2-.001L15.9 16.02M5.9 17.332l-2.25-1.313m0 0L3.646 13.5m0-2.25L1.5 9.75M12 15V9.75m-4.5-3l-2.25-1.313M15 6.75l2.25-1.313" /></svg>
+                <span>Visualize</span>
+            </button>
+            <button id="nav-analytics" class="nav-btn" onclick="toggleMainPanel('analytics-panel', this)">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12A2.25 2.25 0 0020.25 14.25V3M3.75 21h16.5M16.5 3.75h.008v.008h-.008v-.008z" /></svg>
+                <span>Analytics</span>
+            </button>
+             <button id="nav-items" class="nav-btn" onclick="toggleMainPanel('items-panel', this)">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                <span>Items</span>
+            </button>
+             <button id="nav-data" class="nav-btn" onclick="toggleMainPanel('data-panel', this)">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>Data</span>
+            </button>
+            <button id="nav-warehouse" class="nav-btn" onclick="toggleMainPanel('warehouse-panel', this)">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                </svg>
+                <span>Warehouse</span>
+            </button>
+            <button id="nav-warehouse-manager" class="nav-btn" onclick="toggleMainPanel('warehouse-manager-panel', this)">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+                </svg>
+                <span>Warehouse Manager</span>
+            </button>
+        </header>
+
+        <div id="controls-panel" class="ui-panel visible">
+            <div class="panel-header" onclick="togglePanelContent('controls-panel')">
+                <h2>Optimization Controls</h2>
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+            </div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label>Current Warehouse</label>
+                    <select id="controls-warehouse-select" onchange="switchWarehouse(this.value)">
+                        <option value="1">Loading...</option>
+                    </select>
+                </div>
+
+                <h3>Algorithm</h3>
+                <div class="form-group">
+                    <label>Algorithm</label>
+                    <select id="algorithm-select" onchange="toggleAlgorithmParams()">
+                        <option value="ga">Genetic Algorithm</option>
+                        <option value="eo">Extremal Optimization</option>
+                        <option value="ga-eo">GA → EO Hybrid</option>
+                        <option value="eo-ga">EO → GA Hybrid</option>
+                        <option value="compare">Compare All</option>
+                    </select>
+                </div>
+                <div id="ga-params">
+                    <div class="form-group">
+                        <label>Population Size</label>
+                        <input type="number" id="population-size" value="50" min="10" max="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>Generations</label>
+                        <input type="number" id="generations" value="100" min="10" max="5000">
+                    </div>
+                </div>
+                <div id="eo-params" style="display: none;">
+                    <div class="form-group">
+                        <label>Iterations</label>
+                        <input type="number" id="iterations" value="200" min="10" max="10000">
+                    </div>
+                </div>
+
+                <h3>Fitness Weights</h3>
+                <div id="weights-params">
+                    <div class="form-group">
+                        <label class="label-with-value">
+                            <span>Space Utilization</span>
+                            <span id="weight-space-value">0.6</span>
+                        </label>
+                        <input type="range" id="weight-space" value="0.6" min="0" max="1" step="0.05" oninput="updateWeightValue(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="label-with-value">
+                            <span>Accessibility</span>
+                            <span id="weight-accessibility-value">0.3</span>
+                        </label>
+                        <input type="range" id="weight-accessibility" value="0.3" min="0" max="1" step="0.05" oninput="updateWeightValue(this)">
+                    </div>
+                    <div class="form-group">
+                         <label class="label-with-value">
+                            <span>Stability</span>
+                            <span id="weight-stability-value">0.1</span>
+                        </label>
+                        <input type="range" id="weight-stability" value="0.1" min="0" max="1" step="0.05" oninput="updateWeightValue(this)">
+                    </div>
+                    <div class="form-group">
+                         <label class="label-with-value">
+                            <span>Grouping Strength</span>
+                            <span id="weight-grouping-value">0.1</span>
+                        </label>
+                        <input type="range" id="weight-grouping" value="0.1" min="0" max="1" step="0.05" oninput="updateWeightValue(this)">
+                    </div>
+                    <button class="btn-secondary" onclick="normalizeWeights()">Normalize Weights</button>
+                </div>
+
+                <div class="button-group" style="margin-top: 20px;">
+                    <button id="start-btn" onclick="startOptimization()">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
+                        <span>Start</span>
+                    </button>
+                    <button id="stop-btn" onclick="stopOptimization()" disabled>
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M5.5 3.5A1.5 1.5 0 007 5v10a1.5 1.5 0 01-3 0V5a1.5 1.5 0 011.5-1.5zM12.5 3.5A1.5 1.5 0 0114 5v10a1.5 1.5 0 01-3 0V5a1.5 1.5 0 011.5-1.5z" /></svg>
+                        <span>Stop</span>
+                    </button>
+                </div>
+                <div class="status-card">
+                    <div class="metric">
+                        <span>Status:</span>
+                        <span id="status-text"><span class="status-indicator status-stopped"></span>Stopped</span>
+                    </div>
+                    <div class="metric">
+                        <span>Algorithm:</span>
+                        <span id="current-algorithm">None</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="metric">
+                        <span>Best Fitness:</span>
+                        <span id="best-fitness">0.00</span>
+                    </div>
+                    <div class="metric">
+                        <span>Running Time:</span>
+                        <span id="running-time">00:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="visualization-panel" class="ui-panel">
+            <div class="panel-header" onclick="togglePanelContent('visualization-panel')">
+                <h2>Visualization Options</h2>
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+            </div>
+            <div class="panel-content">
+                <h3>Display Settings</h3>
+                <div class="form-group">
+                    <label>Color Scheme</label>
+                    <select id="color-scheme" onchange="updateVisualization()">
+                        <option value="category">By Category</option>
+                        <option value="weight">By Weight</option>
+                        <option value="priority">By Priority</option>
+                        <option value="access">By Access Frequency</option>
+                    </select>
+                </div>
+                <h3>Camera Controls</h3>
+                 <div class="button-group">
+                    <button onclick="viewTop()">Top</button>
+                    <button onclick="viewFront()">Front</button>
+                    <button onclick="viewSide()">Side</button>
+                    <button onclick="resetCamera()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics-panel" class="ui-panel">
+            <div class="panel-content">
+                 <button class="close-btn" onclick="toggleMainPanel('analytics-panel', document.getElementById('nav-analytics'))">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <span>Close</span>
+                </button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1 style="font-size: 1.75rem;">Analytics Dashboard</h1>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="analytics-warehouse-select" onchange="switchWarehouse(this.value)" style="width: auto;">
+                            <option value="1">Loading...</option>
+                        </select>
+                        <button onclick="loadAnalytics()" style="width: auto; padding: 8px 16px;">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div id="current-metrics-display"></div>
+                    <div class="main-chart-container">
+                        <canvas id="historyChart"></canvas>
+                    </div>
+                    <div id="last-run-metrics"></div>
+                    <div id="history-table-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="items-panel" class="ui-panel">
+            <div class="panel-header" onclick="togglePanelContent('items-panel')">
+                <h2>Item Catalog</h2>
+                 <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+            </div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label>Warehouse</label>
+                    <select id="items-warehouse-select" onchange="switchWarehouse(this.value)">
+                        <option value="1">Loading...</option>
+                    </select>
+                </div>
+                 <button onclick="loadItems()">Refresh Items</button>
+                 <div class="item-list" id="items-list"></div>
+            </div>
+        </div>
+
+        <div id="data-panel" class="ui-panel">
+            <div class="panel-header" onclick="togglePanelContent('data-panel')">
+                <h2>Dataset Management</h2>
+                 <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+            </div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label>Warehouse</label>
+                    <select id="data-warehouse-select" onchange="switchWarehouse(this.value)">
+                        <option value="1">Loading...</option>
+                    </select>
+                </div>
+
+                <h3>Import / Export</h3>
+                <div class="form-group">
+                    <label>Import from CSV</label>
+                    <input type="file" id="csv-upload" accept=".csv">
+                </div>
+                 <div class="button-group">
+                    <button onclick="uploadCSV()">Upload</button>
+                    <button onclick="exportCSV()">Export</button>
+                </div>
+
+                <h3>Manage Data</h3>
+                <div class="data-button-group">
+                    <button onclick="loadSampleData()">Load Sample Data</button>
+                    <button onclick="clearData()" style="background:var(--danger)">Clear All Data</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="warehouse-panel" class="ui-panel">
+            <div class="panel-header" onclick="togglePanelContent('warehouse-panel')">
+                <h2>Warehouse Configuration</h2>
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+            </div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label>Warehouse</label>
+                    <select id="config-warehouse-select" onchange="switchWarehouse(this.value)">
+                        <option value="1">Loading...</option>
+                    </select>
+                </div>
+
+                <h3>Dimensions & Grid</h3>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="warehouse-name" value="Default Warehouse">
+                </div>
+                <div class="form-group">
+                    <label>Length (m)</label>
+                    <input type="number" id="warehouse-length" min="1" max="100" step="0.1" value="10.0">
+                </div>
+                <div class="form-group">
+                    <label>Width (m)</label>
+                    <input type="number" id="warehouse-width" min="1" max="100" step="0.1" value="8.0">
+                </div>
+                <div class="form-group">
+                    <label>Height (m)</label>
+                    <input type="number" id="warehouse-height" min="1" max="50" step="0.1" value="5.0" oninput="distributeLayerHeights()">
+                </div>
+                <div class="form-group">
+                    <label>Grid Size (m)</label>
+                    <input type="number" id="warehouse-grid" min="0.1" max="2" step="0.1" value="0.5">
+                </div>
+                 <div class="status-card" style="margin-top: 10px; margin-bottom: 20px;">
+                    <div class="metric">
+                        <span>Current Volume:</span>
+                        <span id="warehouse-volume">0 m³</span>
+                    </div>
+                    <div class="metric" style="margin-bottom: 0;">
+                        <span>Floor Area:</span>
+                        <span id="warehouse-area">0 m²</span>
+                    </div>
+                </div>
+
+                <h3>Placement Layers</h3>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label>Number of Shelves</label>
+                    <input type="number" id="warehouse-layers" min="0" max="10" step="1" value="0" oninput="generateLayerHeightInputs()">
+                </div>
+                <div id="layer-heights-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                    </div>
+                <button class="btn-secondary" onclick="addLayer()" style="margin-bottom: 20px;">Add Shelf</button>
+
+                 <div class="button-group">
+                    <button onclick="updateWarehouseConfig()">Apply Changes</button>
+                    <button class="btn-secondary" onclick="resetWarehouseConfig()">Reset to Default</button>
+                </div>
+
+                <h3 style="margin-top: 24px;">Exclusion Zones</h3>
+                <div class="form-group" style="background: var(--bg-dark-main); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+                    <input type="text" id="zone-name" placeholder="Zone Name" style="margin-bottom: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <input type="number" id="zone-x1" placeholder="Start X">
+                        <input type="number" id="zone-y1" placeholder="Start Y">
+                        <input type="number" id="zone-x2" placeholder="End X">
+                        <input type="number" id="zone-y2" placeholder="End Y">
+                    </div>
+                    <button onclick="addExclusionZone()" style="margin-top: 12px;">Add Zone</button>
+                </div>
+                <div class="item-list" id="exclusion-zones-list" style="max-height: 150px;"></div>
+
+            </div>
+        </div>
+
+        <div id="warehouse-manager-panel" class="ui-panel">
+            <div class="panel-header" onclick="togglePanelContent('warehouse-manager-panel')">
+                <h2>Warehouse Manager</h2>
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+            </div>
+            <div class="panel-content">
+                <h3>Create New Warehouse</h3>
+                <div class="form-group">
+                    <label>Warehouse Name</label>
+                    <input type="text" id="new-warehouse-name" placeholder="Enter warehouse name">
+                </div>
+                <div class="form-group">
+                    <label>Copy settings from</label>
+                    <select id="copy-from-warehouse">
+                        <option value="0">None (Use Defaults)</option>
+                    </select>
+                </div>
+                <button onclick="createNewWarehouse()">Create Warehouse</button>
+
+                <h3>Manage Warehouses</h3>
+                <div class="item-list" id="warehouses-list" style="max-height: 300px;"></div>
+            </div>
+        </div>
+
+        <div id="notification"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
