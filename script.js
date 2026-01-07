@@ -477,7 +477,6 @@ function getItemColor(item, mode, maxWeight, maxAccess) {
 
 function startOptimization() {
     const algo = document.getElementById('algorithm-select').value;
-    const items = []; // No longer needed as backend handles DB
 
     const params = {
         warehouse_id: currentWarehouseId,
@@ -489,6 +488,23 @@ function startOptimization() {
             stability: parseFloat(document.getElementById('weight-stability').value)
         }
     };
+
+    // Ensure allItemsData is populated before starting optimization
+    fetch(`${API_BASE_URL}/api/items?warehouse_id=${currentWarehouseId}`)
+        .then(res => res.json())
+        .then(items => {
+            // Populate allItemsData to ensure 3D view can render during optimization
+            items.forEach(i => allItemsData[i.id] = i);
+
+            // Now start the optimization
+            startOptimizationRequest(algo, params);
+        })
+        .catch(err => {
+            alert(`Failed to load items: ${err}`);
+        });
+}
+
+function startOptimizationRequest(algo, params) {
 
     // Fix API endpoint logic based on algo
     let endpoint = `/api/optimize/${algo}`;
@@ -562,17 +578,27 @@ function startPolling() {
                 if (progBar) progBar.style.width = progress + '%';
                 if (bestFit) bestFit.textContent = (status.best_fitness || 0).toFixed(4);
 
-                if (status.best_solution) {
+                if (status.best_solution && status.best_solution.length > 0) {
+                    console.log('[DEBUG] best_solution items:', status.best_solution.length);
+                    console.log('[DEBUG] allItemsData keys:', Object.keys(allItemsData).length);
                     // Map solution coordinates back to full item data
                     const solutionItems = status.best_solution.map(sol => {
                         const originalItem = allItemsData[sol.id];
+                        if (!originalItem) {
+                            console.log('[DEBUG] Missing item in allItemsData:', sol.id);
+                        }
                         if (originalItem) {
                             return { ...originalItem, ...sol };
                         }
                         return null;
                     }).filter(item => item !== null);
 
-                    renderItems(solutionItems);
+                    console.log('[DEBUG] solutionItems after mapping:', solutionItems.length);
+
+                    // Only re-render if we have items to show (prevents blank screen)
+                    if (solutionItems.length > 0) {
+                        renderItems(solutionItems);
+                    }
                 }
             });
     }, 200); // Faster polling for smooth updates

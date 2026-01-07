@@ -39,99 +39,213 @@ def calculate_z_for_item(x, y, dim_x, dim_y, other_items_bbox, other_items_z, ot
         
     # Get max Z top of overlapping items
     overlapping_z_tops = other_items_z[overlaps] + other_items_h[overlaps]
-    return np.max(overlapping_z_tops)
+    max_z = np.max(overlapping_z_tops)
+    
+    # Stability Check: Ensure support area is sufficient
+    if max_z > 0:
+        # Identify supporting items (within small tolerance of max_z)
+        is_support = np.abs(overlapping_z_tops - max_z) < 0.01
+        
+        # Get indices of supports relative to the 'overlaps' subset? NO.
+        # 'overlaps' is a boolean mask. 
+        # overlapping_z_tops is filtered by [overlaps].
+        # is_support is boolean mask matching overlapping_z_tops.
+        # We need original indices to get bboxes.
+        
+        all_indices = np.arange(len(other_items_bbox))
+        overlapping_indices = all_indices[overlaps]
+        support_indices = overlapping_indices[is_support]
+        
+        # Calculate intersection area with supporting items
+        sup_min_x = other_items_bbox[support_indices, 0]
+        sup_min_y = other_items_bbox[support_indices, 1]
+        sup_max_x = other_items_bbox[support_indices, 2]
+        sup_max_y = other_items_bbox[support_indices, 3]
+        
+        inter_min_x = np.maximum(new_min_x, sup_min_x)
+        inter_max_x = np.minimum(new_max_x, sup_max_x)
+        inter_min_y = np.maximum(new_min_y, sup_min_y)
+        inter_max_y = np.minimum(new_max_y, sup_max_y)
+        
+        w = np.maximum(0, inter_max_x - inter_min_x)
+        h = np.maximum(0, inter_max_y - inter_min_y)
+        area = w * h
+        supported_area = np.sum(area)
+        
+        item_area = dim_x * dim_y
+        if supported_area < (item_area * 0.2): # 20% Support Threshold
+            return max_z + 100000.0
+            
+    return max_z
 
 
-def repair_solution_gravity(solution, items_props):
+def repair_solution_compact(solution, items_props, warehouse_dims=None, allocation_zones=None, layer_heights=None):
     """
-    Re-calculates Z positions for all items in solution to enforce gravity.
-    Must process items from lowest to highest to ensure support structure is valid.
+    Re-calculates positions to enforce gravity and compactness (Tetris-like).
+    Packs items towards the origin (0,0,0) by sliding them Left and Back.
+    Respects allocation zones and layer heights.
     
     Args:
         solution: (N, 4) array [x, y, z, rotation]
-        items_props: (N, 8) or (N, 7) array
+        items_props: (N, 8) or (N, 7) array [length, width, height, can_rotate, ...]
+        warehouse_dims: tuple (length, width, height, door_x, door_y) or None
+        allocation_zones: list of zone dicts with x1, y1, x2, y2, z1, z2 or None
+        layer_heights: list of valid Z positions for layers or None
     """
     num_items = len(solution)
+    if num_items == 0:
+        return solution
     
-    # Sort indices by current Z position (ascending)
-    # This ensures we settle bottom items first
-    sorted_indices = np.argsort(solution[:, 2])
+    # Default warehouse bounds if not provided
+    wh_len = warehouse_dims[0] if warehouse_dims else 100
+    wh_wid = warehouse_dims[1] if warehouse_dims else 100
+    wh_hgt = warehouse_dims[2] if warehouse_dims else 10
     
-    # We need to update 'solution' in place or create copy. Working on copy is safer but slower.
-    # In-place is fine if we are careful.
+    # Default layer heights (just floor if not specified)
+    if layer_heights is None or len(layer_heights) == 0:
+        layer_heights = [0.0]
+    layer_heights = sorted(layer_heights)
     
-    # We maintain a 'stable' set of items that have been processed
-    # But since we just need "other items" for collision, and "other items" means everything else...
-    # Wait, calculate_z checks against "other_items".
-    # If we update item I, it becomes a support for item J (which is higher).
-    # So we can just update the array in place as we go?
-    # Yes, because sorted_indices[k] depends only on sorted_indices[0...k-1] roughly.
-    # Actually, it depends on anyone below it.
+    # Sort indices by volume (larger items first for better packing)
+    volumes = items_props[:, 0] * items_props[:, 1] * items_props[:, 2]
+    sorted_indices = np.argsort(-volumes)  # Descending by volume
     
-    # But calculate_z checks against ALL items passed to it.
-    # If we pass the whole solution array, it includes items we haven't processed (which might be floating high).
-    # Floating high items are NOT valid supports.
-    # So we should only check against items that are "valid supports".
-    # Or, calculate_z simply finds the highest top below. 
-    # If a high floating item is below us (in XY) but ABOVE us (in Z), calculate_z handles it?
-    # calculate_z finds max(z_top) of items that overlap in XY.
-    # If there is a floating item above us, it shouldn't support us.
-    # But if we are moving UP to sit on it? No, gravity pulls DOWN.
-    # We want to find the highest item *below* our current potential Z?
-    # No, we want to find the highest item in the stack *beneath* us to sit on.
-    # If there is a floating item *above* where we should be, we ignore it.
-    # But calculate_z as written returns `np.max(overlapping_z_tops)`.
-    # If there is a floating item at Z=100, and we are at Z=10. 
-    # calculate_z will return 100+h. We will be placed on top of the floating item!
-    # This is bad. We want to fall PAST the floating item?
-    # No, in `repair`, we assume we are rebuilding strict stability.
-    # So we should only check against "processed" (stable) items.
-    
-    # So:
-    stable_solution = np.zeros_like(solution)
-    stable_solution[:] = -1000 # Initialize far away or handle empty
-    # Actually simpler: Pass only the subset of processed indices to calculate_z
-    
-    # Optimized:
-    # 1. placed_bboxes list
-    # 2. placed_z list
-    # 3. placed_h list
-    
-    placed_bbox = np.zeros((num_items, 4))
+    # Arrays to track placed items
+    placed_bbox = np.zeros((num_items, 4))  # x1, y1, x2, y2
     placed_z = np.zeros(num_items)
     placed_h = np.zeros(num_items)
     
-    # We need real props per item
-    # Map sorted_idx back to props
+    count = 0
     
-    for i, idx in enumerate(sorted_indices):
-        # Item props
-        l = items_props[idx, 0]
-        w = items_props[idx, 1]
-        h = items_props[idx, 2]
-        rot = solution[idx, 3]
+    for idx in sorted_indices:
+        l, w, h = items_props[idx, 0:3]
+        can_rotate = items_props[idx, 3]
         
-        # Dimensions based on rotation
-        if int(rot) % 180 == 0:
-            dim_x, dim_y = l, w
-        else:
-            dim_x, dim_y = w, l
+        # Try all rotation options if rotation is allowed (0, 90 degrees)
+        orientations_to_try = [0.0, 90.0] if can_rotate else [solution[idx, 3]]
+        
+        best_state = None
+        best_score = float('inf')
+        
+        # Get zone bounds for this item (use first valid zone or full warehouse)
+        zone_x1, zone_y1, zone_z1 = 0.0, 0.0, 0.0
+        zone_x2, zone_y2, zone_z2 = wh_len, wh_wid, wh_hgt
+        
+        if allocation_zones and len(allocation_zones) > 0:
+            # Try to find a zone that fits this item
+            for zone in allocation_zones:
+                zw = zone['x2'] - zone['x1']
+                zh = zone['y2'] - zone['y1']
+                if min(l, w) <= max(zw, zh) and max(l, w) <= max(zw, zh):
+                    zone_x1 = zone['x1']
+                    zone_y1 = zone['y1']
+                    zone_x2 = zone['x2']
+                    zone_y2 = zone['y2']
+                    zone_z1 = zone.get('z1', 0.0)
+                    zone_z2 = zone.get('z2', wh_hgt)
+                    break
+        
+        for rot in orientations_to_try:
+            # Calculate Dimensions based on rotation
+            if int(rot) % 180 == 0:
+                dx, dy = l, w
+            else:
+                dx, dy = w, l
             
-        x = solution[idx, 0]
-        y = solution[idx, 1]
+            # Skip if item doesn't fit in zone at all
+            if dx > (zone_x2 - zone_x1) or dy > (zone_y2 - zone_y1):
+                continue
+            
+            # Try each layer, starting from bottom
+            for layer_z in layer_heights:
+                if layer_z < zone_z1 or layer_z >= zone_z2:
+                    continue
+                
+                # Calculate layer ceiling (next layer height or zone top)
+                layer_ceiling = zone_z2
+                for next_lz in layer_heights:
+                    if next_lz > layer_z:
+                        layer_ceiling = next_lz
+                        break
+                
+                # Check if item fits within layer height
+                if layer_z + h > layer_ceiling + 0.01:  # Small tolerance
+                    continue  # Item too tall for this layer, try next layer
+                
+                # --- Tetris-like placement: scan for first open position ---
+                # Strategy: Try positions in a grid pattern from zone origin
+                step_x = max(0.5, dx / 2)
+                step_y = max(0.5, dy / 2)
+                
+                # Start from zone corner
+                test_x = zone_x1 + dx / 2
+                found_position = False
+                
+                while test_x + dx / 2 <= zone_x2 + 0.01:
+                    test_y = zone_y1 + dy / 2
+                    
+                    while test_y + dy / 2 <= zone_y2 + 0.01:
+                        # Check Z at this position
+                        z = calculate_z_for_item(test_x, test_y, dx, dy, 
+                                                 placed_bbox[:count], placed_z[:count], placed_h[:count])
+                        
+                        # Apply layer floor constraint
+                        z = max(z, layer_z)
+                        
+                        # Check if item fits within layer ceiling
+                        if z + h <= layer_ceiling + 0.01:
+                            # Valid position found!
+                            # Calculate score: prefer lower Z, then closer to origin
+                            score = z * 10000.0 + test_x + test_y
+                            
+                            if score < best_score:
+                                best_score = score
+                                best_state = (test_x, test_y, z, rot, dx, dy)
+                                found_position = True
+                        
+                        test_y += step_y
+                    
+                    test_x += step_x
+                
+                # If we found a valid position on this layer, no need to check higher layers
+                if found_position:
+                    break
         
-        # Calculate Z against ONLY the items we have already processed (0 to i-1)
-        # processed items are stored in placed_bbox[:i]
-        z = calculate_z_for_item(x, y, dim_x, dim_y, placed_bbox[:i], placed_z[:i], placed_h[:i])
+        # If no valid position found, use fallback (original position clamped to zone)
+        if best_state is None:
+            fallback_rot = solution[idx, 3]
+            if int(fallback_rot) % 180 == 0:
+                dx, dy = l, w
+            else:
+                dx, dy = w, l
+            
+            fallback_x = max(zone_x1 + dx/2, min(zone_x2 - dx/2, solution[idx, 0]))
+            fallback_y = max(zone_y1 + dy/2, min(zone_y2 - dy/2, solution[idx, 1]))
+            fallback_z = max(zone_z1, min(zone_z2 - h, solution[idx, 2]))
+            best_state = (fallback_x, fallback_y, fallback_z, fallback_rot, dx, dy)
         
-        # Update solution
-        solution[idx, 2] = z
+        # Apply Best State
+        b_x, b_y, b_z, b_rot, b_dx, b_dy = best_state
         
-        # Add to processed
-        placed_bbox[i] = [x - dim_x/2, y - dim_y/2, x + dim_x/2, y + dim_y/2]
-        placed_z[i] = z
-        placed_h[i] = h
-
+        # Handle any remaining penalty Z positions
+        if b_z > 50000:
+            b_z -= 100000.0
+            b_z = max(0.0, b_z)
+        
+        # Ensure Z is never negative
+        b_z = max(0.0, b_z)
+        
+        solution[idx, 0] = b_x
+        solution[idx, 1] = b_y
+        solution[idx, 2] = b_z
+        solution[idx, 3] = b_rot
+        
+        # Track placed item
+        placed_bbox[count] = [b_x - b_dx/2, b_y - b_dy/2, b_x + b_dx/2, b_y + b_dy/2]
+        placed_z[count] = b_z
+        placed_h[count] = items_props[idx, 2]  # Use original height
+        count += 1
+        
     return solution
 
 
@@ -164,7 +278,9 @@ class GeneticAlgorithm:
         # Population shape: (pop_size, num_items, 4) -> x, y, z, rotation
         population = []
         for _ in range(self.population_size):
-             population.append(self.create_random_solution_array(num_items, warehouse_dims, items_props, allocation_zones))
+             sol = self.create_random_solution_array(num_items, warehouse_dims, items_props, allocation_zones)
+             sol = repair_solution_compact(sol, items_props, warehouse_dims, allocation_zones, valid_z)
+             population.append(sol)
         return np.array(population)
 
     def _get_rotated_bounding_box_dims(self, length, width, rotation):
@@ -204,20 +320,27 @@ class GeneticAlgorithm:
             item_hgt = items_props[i, 2]
             can_rotate = items_props[i, 3]
             
-            rotation = 0
-            if can_rotate and random.random() > 0.5:
-                rotation = random.choice([0, 90, 180, 270])
-            
-            # Simple assumption: rotation only affects bounding box swap for 90 deg steps
-            if int(rotation) % 180 == 0:
-                dim_x, dim_y = item_len, item_wid
-            else:
-                dim_x, dim_y = item_wid, item_len
+            # Retry for floor priority
+            best_x, best_y, best_z = 0, 0, float('inf')
             
             # Retry logic for floor priority (try to find Z=0)
             best_x, best_y, best_z = 0, 0, float('inf')
             
-            for attempt in range(10):
+            # Retry for floor priority
+            best_x, best_y, best_z = 0, 0, float('inf')
+            best_rotation = 0
+            
+            for attempt in range(50):
+                # Dynamic Rotation: Randomize orientation per attempt
+                rotation = 0
+                if can_rotate and random.random() > 0.5:
+                     rotation = random.choice([0, 90, 180, 270])
+                
+                if int(rotation) % 180 == 0:
+                    dim_x, dim_y = item_len, item_wid
+                else:
+                    dim_x, dim_y = item_wid, item_len
+                
                 # --- Position Selection Logic ---
                 valid_zones = []
                 if has_allocation_zones:
@@ -227,8 +350,24 @@ class GeneticAlgorithm:
                         if dim_x <= zone_width and dim_y <= zone_depth:
                             valid_zones.append(zone)
                 
+                zone_z1 = 0
+                zone_z2 = wh_hgt
                 if valid_zones:
-                    zone = random.choice(valid_zones)
+                    # Sort zones by Z height (Bottom Shelf First)
+                    valid_zones.sort(key=lambda z: z.get('z1', 0))
+                    
+                    # Zone Selection Heuristic:
+                    # Strictly Sequential: 0, 1, 2, ... looping if needed
+                    # This ensures we try bottom, then next up, then next up...
+                    zone_idx = attempt % len(valid_zones)
+                    
+                    # Safety clamp
+                    zone_idx = min(zone_idx, len(valid_zones) - 1)
+                    zone = valid_zones[zone_idx]
+                    
+                    zone_z1 = zone.get('z1', 0)
+                    zone_z2 = zone.get('z2', wh_hgt)
+                    
                     min_x = zone['x1'] + dim_x / 2
                     max_x = zone['x2'] - dim_x / 2
                     min_y = zone['y1'] + dim_y / 2
@@ -237,8 +376,35 @@ class GeneticAlgorithm:
                     if max_x < min_x: max_x = min_x = (zone['x1'] + zone['x2']) / 2
                     if max_y < min_y: max_y = min_y = (zone['y1'] + zone['y2']) / 2
                     
-                    x = random.uniform(min_x, max_x)
-                    y = random.uniform(min_y, max_y)
+                    # Dense Pact Heuristic
+                    if attempt < 5:
+                        # Strategy: Bottom-Left Corner Bias
+                        x = min_x
+                        y = min_y
+                    elif attempt < 45 and i > 0:
+                        # Strategy: Adjacent to existing item
+                        rand_idx = random.randint(0, i-1)
+                        ref_box = placed_bboxes[rand_idx]
+                        # Try to place to the right, or above (in Y)
+                        if random.random() < 0.5:
+                            x = ref_box[2] + dim_x / 2 # Right
+                            y = ref_box[1] + dim_y / 2 # Align Y center
+                        else:
+                            x = ref_box[0] + dim_x / 2 # Align X center
+                            y = ref_box[3] + dim_y / 2 # Top
+                        
+                        # Perturb slightly to allow sliding
+                        x += random.uniform(-1, 1)
+                        y += random.uniform(-1, 1)
+                        
+                        # Clamp
+                        x = max(min_x, min(max_x, x))
+                        y = max(min_y, min(max_y, y))
+                    else:
+                        # Strategy: Random Fallback
+                        x = random.uniform(min_x, max_x)
+                        y = random.uniform(min_y, max_y)
+                        
                 else:
                     min_x = dim_x / 2
                     max_x = wh_len - dim_x / 2
@@ -248,19 +414,52 @@ class GeneticAlgorithm:
                     if max_x < min_x: max_x = min_x
                     if max_y < min_y: max_y = min_y
                     
-                    x = random.uniform(min_x, max_x)
-                    y = random.uniform(min_y, max_y)
+                    # Dense Pact Heuristic (Global)
+                    if attempt < 3:
+                         x = min_x
+                         y = min_y
+                    elif attempt < 6 and i > 0:
+                         rand_idx = random.randint(0, i-1)
+                         ref_box = placed_bboxes[rand_idx]
+                         if random.random() < 0.5:
+                             x = ref_box[2] + dim_x / 2
+                             y = ref_box[1] + dim_y / 2
+                         else:
+                             x = ref_box[0] + dim_x / 2
+                             y = ref_box[3] + dim_y / 2
+                         x = max(min_x, min(max_x, x))
+                         y = max(min_y, min(max_y, y))
+                    else:
+                         x = round(random.uniform(min_x, max_x))
+                         y = round(random.uniform(min_y, max_y))
                 
                 # Check Z immediately
                 z = calculate_z_for_item(x, y, dim_x, dim_y, placed_bboxes[:i], placed_z[:i], placed_h[:i])
                 
-                if z < best_z:
-                    best_x, best_y, best_z = x, y, z
+                # Enforce Layer Floor (cannot fall below zone_z1)
+                z = max(z, zone_z1)
                 
-                if z == 0:
+                # Layer Snap: If item protrudes through ceiling of current layer, snap to next layer floor
+                if z + item_hgt > zone_z2 and zone_z2 < wh_hgt:
+                    z = zone_z2
+                
+                if z < best_z:
+                    best_x, best_y, best_z, best_rotation = x, y, z, rotation
+                
+                if z == zone_z1:
                     break
             
+            if best_z > 50000:
+                best_z -= 100000.0
+            
             x, y, z = best_x, best_y, best_z
+            rotation = best_rotation
+            
+            # Recalculate dims for best rotation
+            if int(rotation) % 180 == 0:
+                dim_x, dim_y = item_len, item_wid
+            else:
+                dim_x, dim_y = item_wid, item_len
             
             # Store
             solution[i] = [x, y, z, rotation]
@@ -281,6 +480,7 @@ class GeneticAlgorithm:
         # exclusion_zones_arr: (K, 4) -> x1, y1, x2, y2
         
         # Calculate Space Utilization
+        grouping = 0.0 # Initialize early to avoid NameError
         total_vol = np.sum(items_props[:, 0] * items_props[:, 1] * items_props[:, 2])
         wh_vol = warehouse_dims[0] * warehouse_dims[1] * warehouse_dims[2]
         space_util = total_vol / wh_vol if wh_vol > 0 else 0
@@ -606,15 +806,6 @@ class GeneticAlgorithm:
             item_hgt = items_props[idx, 2]
             can_rotate = items_props[idx, 3]
             
-            rotation = solution[idx, 3]
-            if can_rotate and random.random() > 0.5:
-                rotation = random.choice([0, 90, 180, 270])
-                
-            if int(rotation) % 180 == 0:
-                dim_x, dim_y = item_len, item_wid
-            else:
-                dim_x, dim_y = item_wid, item_len
-            
             wh_len, wh_wid, wh_hgt = warehouse_dims[0], warehouse_dims[1], warehouse_dims[2]
             
             # --- Gravity Calculation Prep ---
@@ -645,25 +836,50 @@ class GeneticAlgorithm:
             
             # Retry loop for floor priority
             best_x, best_y, best_z = 0, 0, float('inf')
+            best_rotation = 0
             
-            for attempt in range(10):
+            for attempt in range(50):
+                # Dynamic Rotation: Randomize orientation per attempt
+                rotation = solution[idx, 3] # Default to current
+                if can_rotate and random.random() > 0.5:
+                     rotation = random.choice([0, 90, 180, 270])
+                
+                if int(rotation) % 180 == 0:
+                    dim_x, dim_y = item_len, item_wid
+                else:
+                    dim_x, dim_y = item_wid, item_len
                 # Check if we should use allocation zones
                 has_allocation_zones = allocation_zones is not None and len(allocation_zones) > 0
                 
+                zone_z1 = 0
+                zone_z2 = wh_hgt
                 if has_allocation_zones:
                     # Find zones that can fit this item
                     valid_zones = []
                     for zone in allocation_zones:
                         zone_width = zone['x2'] - zone['x1']
                         zone_depth = zone['y2'] - zone['y1']
-                        zone_z1 = zone.get('z1', 0)
+                        zone_z1_val = zone.get('z1', 0)
                         zone_z2 = zone.get('z2', wh_hgt)
                         
-                        if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2 - zone_z1):
+                        if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2 - zone_z1_val):
                             valid_zones.append(zone)
                     
                     if valid_zones:
-                        zone = random.choice(valid_zones)
+                        # Sort zones by Z height (Bottom Shelf First)
+                        valid_zones.sort(key=lambda z: z.get('z1', 0))
+                        
+                        # Zone Selection Heuristic:
+                        # Strictly Sequential: 0, 1, 2, ... looping if needed
+                        zone_idx = attempt % len(valid_zones)
+                        
+                        # Safety clamp
+                        zone_idx = min(zone_idx, len(valid_zones) - 1)
+                        zone = valid_zones[zone_idx]
+                        
+                        zone_z1 = zone.get('z1', 0)
+                        zone_z2 = zone.get('z2', wh_hgt)
+                        
                         min_x = zone['x1'] + dim_x / 2
                         max_x = zone['x2'] - dim_x / 2
                         min_y = zone['y1'] + dim_y / 2
@@ -672,8 +888,26 @@ class GeneticAlgorithm:
                         if max_x < min_x: max_x = min_x = (zone['x1'] + zone['x2']) / 2
                         if max_y < min_y: max_y = min_y = (zone['y1'] + zone['y2']) / 2
                         
-                        x = random.uniform(min_x, max_x)
-                        y = random.uniform(min_y, max_y)
+                        # Dense Pact Heuristic (Zone)
+                        if attempt < 5:
+                            x = min_x
+                            y = min_y
+                        elif attempt < 45 and len(other_bbox) > 0:
+                            rand_idx = random.randint(0, len(other_bbox)-1)
+                            ref_box = other_bbox[rand_idx]
+                            if random.random() < 0.5:
+                                x = ref_box[2] + dim_x / 2
+                                y = ref_box[1] + dim_y / 2
+                            else:
+                                x = ref_box[0] + dim_x / 2
+                                y = ref_box[3] + dim_y / 2
+                            x += random.uniform(-1, 1)
+                            y += random.uniform(-1, 1)
+                            x = max(min_x, min(max_x, x))
+                            y = max(min_y, min(max_y, y))
+                        else:
+                            x = round(random.uniform(min_x, max_x))
+                            y = round(random.uniform(min_y, max_y))
                     else:
                         min_x = dim_x / 2
                         max_x = wh_len - dim_x / 2
@@ -683,8 +917,25 @@ class GeneticAlgorithm:
                         if max_x < min_x: max_x = min_x
                         if max_y < min_y: max_y = min_y
                         
-                        x = random.uniform(min_x, max_x)
-                        y = random.uniform(min_y, max_y)
+                        # Dense Pact Heuristic (Global)
+                        if attempt < 3:
+                             x = min_x
+                             y = min_y
+                        elif attempt < 6 and len(other_bbox) > 0:
+                             rand_idx = random.randint(0, len(other_bbox)-1)
+                             ref_box = other_bbox[rand_idx]
+                             if random.random() < 0.5:
+                                 x = ref_box[2] + dim_x / 2
+                                 y = ref_box[1] + dim_y / 2
+                             else:
+                                 x = ref_box[0] + dim_x / 2
+                                 y = ref_box[3] + dim_y / 2
+
+                             x = max(min_x, min(max_x, x))
+                             y = max(min_y, min(max_y, y))
+                        else:
+                             x = round(random.uniform(min_x, max_x))
+                             y = round(random.uniform(min_y, max_y))
                 else:
                     min_x = dim_x / 2
                     max_x = wh_len - dim_x / 2
@@ -694,18 +945,29 @@ class GeneticAlgorithm:
                     if max_x < min_x: max_x = min_x
                     if max_y < min_y: max_y = min_y
                     
-                    x = random.uniform(min_x, max_x)
-                    y = random.uniform(min_y, max_y)
+                    x = round(random.uniform(min_x, max_x))
+                    y = round(random.uniform(min_y, max_y))
                 
                 z = calculate_z_for_item(x, y, dim_x, dim_y, other_bbox, other_z, other_h)
                 
-                if z < best_z:
-                    best_x, best_y, best_z = x, y, z
+                # Enforce Layer Floor
+                z = max(z, zone_z1)
                 
-                if z == 0:
+                # Layer Snap: If item protrudes through ceiling of current layer, snap to next layer floor
+                if z + item_hgt > zone_z2 and zone_z2 < wh_hgt:
+                    z = zone_z2
+                
+                if z < best_z:
+                    best_x, best_y, best_z, best_rotation = x, y, z, rotation
+                
+                if z == zone_z1:
                     break
             
+            if best_z > 50000:
+                best_z -= 100000.0
+            
             x, y, z = best_x, best_y, best_z
+            rotation = best_rotation
             solution[item_to_mutate] = [x, y, z, rotation]
             
         return solution
@@ -714,6 +976,9 @@ class GeneticAlgorithm:
         num_items = len(items)
         if num_items == 0:
             return [], 0, 0
+        
+        import time
+        start_time = time.time()
             
         # Get zones
         zones = get_exclusion_zones(warehouse['id'])
@@ -801,14 +1066,14 @@ class GeneticAlgorithm:
                     m2 = self.mutation(c2, wh_dims, items_props, valid_z, allocation_zones)
                     
                     # Apply gravity repair to ensure no floating items
-                    m1 = repair_solution_gravity(m1, items_props)
-                    m2 = repair_solution_gravity(m2, items_props)
+                    m1 = repair_solution_compact(m1, items_props, wh_dims, allocation_zones, valid_z)
+                    m2 = repair_solution_compact(m2, items_props, wh_dims, allocation_zones, valid_z)
                     
                     new_pop.append(m1)
                     new_pop.append(m2)
                 else:
                     m = self.mutation(selected_pop[i], wh_dims, items_props, valid_z, allocation_zones)
-                    m = repair_solution_gravity(m, items_props)
+                    m = repair_solution_compact(m, items_props, wh_dims, allocation_zones, valid_z)
                     new_pop.append(m)
             
             population = np.array(new_pop)
@@ -922,6 +1187,9 @@ class ExtremalOptimization:
         if num_items == 0:
             return [], 0, 0
             
+        import time
+        start_time = time.time()
+        
         # Get zones
         zones = get_exclusion_zones(warehouse['id'])
         exclusion_zones_arr = None
@@ -954,6 +1222,7 @@ class ExtremalOptimization:
         # Initialize single solution using GA's helper
         ga_helper = GeneticAlgorithm()
         solution = ga_helper.create_random_solution_array(num_items, wh_dims, items_props, allocation_zones)
+        solution = repair_solution_compact(solution, items_props, wh_dims, allocation_zones, valid_z)
         
         best_solution = solution.copy()
         current_weights = weights if weights else {'space': 0.5, 'accessibility': 0.4, 'stability': 0.1}
@@ -1037,11 +1306,24 @@ class ExtremalOptimization:
             
             # Retry loop for floor priority
             best_x, best_y, best_z = 0, 0, float('inf')
+            best_rotation = 0
             
-            for attempt in range(10):
+            for attempt in range(50):
+                # Dynamic Rotation
+                rotation = solution[item_to_mutate, 3]
+                can_rotate = items_props[item_to_mutate, 3]
+                if can_rotate and random.random() > 0.5:
+                    rotation = random.choice([0, 90, 180, 270])
+                
+                if int(rotation) % 180 == 0:
+                    dim_x, dim_y = item_len, item_wid
+                else:
+                    dim_x, dim_y = item_wid, item_len
                 # Check if we should use allocation zones
                 has_allocation_zones = allocation_zones is not None and len(allocation_zones) > 0
                 
+                zone_z1 = 0
+                zone_z2 = wh_hgt
                 if has_allocation_zones:
                     # Find zones that can fit this item
                     item_hgt = items_props[item_to_mutate, 2]
@@ -1049,14 +1331,27 @@ class ExtremalOptimization:
                     for zone in allocation_zones:
                         zone_width = zone['x2'] - zone['x1']
                         zone_depth = zone['y2'] - zone['y1']
-                        zone_z1 = zone.get('z1', 0)
+                        zone_z1_val = zone.get('z1', 0)
                         zone_z2 = zone.get('z2', wh_hgt)
                         
-                        if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2 - zone_z1):
+                        if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2 - zone_z1_val):
                             valid_zones.append(zone)
                     
                     if valid_zones:
-                        zone = random.choice(valid_zones)
+                        # Sort zones by Z height (Bottom Shelf First)
+                        valid_zones.sort(key=lambda z: z.get('z1', 0))
+                        
+                        # Zone Selection Heuristic:
+                        # Strictly Sequential: 0, 1, 2, ... looping if needed
+                        zone_idx = attempt % len(valid_zones)
+                        
+                        # Safety clamp
+                        zone_idx = min(zone_idx, len(valid_zones) - 1)
+                        zone = valid_zones[zone_idx]
+                        
+                        zone_z1 = zone.get('z1', 0)
+                        zone_z2 = zone.get('z2', wh_hgt)
+                        
                         min_x = zone['x1'] + dim_x / 2
                         max_x = zone['x2'] - dim_x / 2
                         min_y = zone['y1'] + dim_y / 2
@@ -1065,8 +1360,25 @@ class ExtremalOptimization:
                         if max_x < min_x: max_x = min_x = (zone['x1'] + zone['x2']) / 2
                         if max_y < min_y: max_y = min_y = (zone['y1'] + zone['y2']) / 2
                         
-                        x = random.uniform(min_x, max_x)
-                        y = random.uniform(min_y, max_y)
+                        # Dense Pact Heuristic (Zone)
+                        if attempt < 5:
+                            x = min_x
+                            y = min_y
+                        elif attempt < 45 and len(other_bbox) > 0:
+                            rand_idx = random.randint(0, len(other_bbox)-1)
+                            ref_box = other_bbox[rand_idx]
+                            if random.random() < 0.5:
+                                x = ref_box[2] + dim_x / 2
+                                y = ref_box[1] + dim_y / 2
+                            else:
+                                x = ref_box[0] + dim_x / 2
+                                y = ref_box[3] + dim_y / 2
+
+                            x = max(min_x, min(max_x, x))
+                            y = max(min_y, min(max_y, y))
+                        else:
+                            x = round(random.uniform(min_x, max_x))
+                            y = round(random.uniform(min_y, max_y))
                     else:
                         min_x = dim_x / 2
                         max_x = wh_len - dim_x / 2
@@ -1076,8 +1388,25 @@ class ExtremalOptimization:
                         if max_x < min_x: max_x = min_x
                         if max_y < min_y: max_y = min_y
                         
-                        x = random.uniform(min_x, max_x)
-                        y = random.uniform(min_y, max_y)
+                        # Dense Pact Heuristic (Global)
+                        if attempt < 3:
+                             x = min_x
+                             y = min_y
+                        elif attempt < 6 and len(other_bbox) > 0:
+                             rand_idx = random.randint(0, len(other_bbox)-1)
+                             ref_box = other_bbox[rand_idx]
+                             if random.random() < 0.5:
+                                 x = ref_box[2] + dim_x / 2
+                                 y = ref_box[1] + dim_y / 2
+                             else:
+                                 x = ref_box[0] + dim_x / 2
+                                 y = ref_box[3] + dim_y / 2
+
+                             x = max(min_x, min(max_x, x))
+                             y = max(min_y, min(max_y, y))
+                        else:
+                             x = round(random.uniform(min_x, max_x))
+                             y = round(random.uniform(min_y, max_y))
                 else:
                     min_x = dim_x / 2
                     max_x = wh_len - dim_x / 2
@@ -1087,22 +1416,32 @@ class ExtremalOptimization:
                     if max_x < min_x: max_x = min_x
                     if max_y < min_y: max_y = min_y
                     
-                    x = random.uniform(min_x, max_x)
-                    y = random.uniform(min_y, max_y)
+                    x = round(random.uniform(min_x, max_x))
+                    y = round(random.uniform(min_y, max_y))
                 
                 z = calculate_z_for_item(x, y, dim_x, dim_y, other_bbox, other_z, other_h)
+                
+                # Enforce Layer Floor
+                z = max(z, zone_z1)
+                
+                # Layer Snap: If item protrudes through ceiling of current layer, snap to next layer floor
+                if z + item_hgt > zone_z2 and zone_z2 < wh_hgt:
+                    z = zone_z2
                 
                 if z < best_z:
                     best_x, best_y, best_z = x, y, z
                 
-                if z == 0:
+                if z == zone_z1:
                     break
+            
+            if best_z > 50000:
+                best_z -= 100000.0
             
             x, y, z = best_x, best_y, best_z
             solution[item_to_mutate] = [x, y, z, rotation]
             
             # Apply gravity repair to ensure no floating items
-            solution = repair_solution_gravity(solution, items_props)
+            solution = repair_solution_compact(solution, items_props)
             
             # Evaluate new solution
             new_fitness, su, acc, sta, grp = ga_helper.fitness_function_numpy(
@@ -1161,6 +1500,7 @@ class HybridOptimizer:
         if num_items == 0:
             return [], 0, 0
         
+        import time
         start_time = time.time()
         
         # Phase 1: Run GA for global exploration (70% of progress)
@@ -1290,10 +1630,12 @@ class HybridOptimizer:
             # Retry loop for floor priority
             best_x, best_y, best_z = 0, 0, float('inf')
             
-            for attempt in range(10):
+            for attempt in range(50):
                 # Check if we should use allocation zones
                 has_allocation_zones = allocation_zones is not None and len(allocation_zones) > 0
                 
+                zone_z1 = 0
+                zone_z2 = wh_hgt
                 if has_allocation_zones:
                     # Find zones that can fit this item
                     item_hgt = items_props[item_to_mutate, 2]
@@ -1301,14 +1643,27 @@ class HybridOptimizer:
                     for zone in allocation_zones:
                         zone_width = zone['x2'] - zone['x1']
                         zone_depth = zone['y2'] - zone['y1']
-                        zone_z1 = zone.get('z1', 0)
+                        zone_z1_val = zone.get('z1', 0)
                         zone_z2 = zone.get('z2', wh_hgt)
                         
-                        if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2 - zone_z1):
+                        if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2 - zone_z1_val):
                             valid_zones.append(zone)
                     
                     if valid_zones:
-                        zone = random.choice(valid_zones)
+                        # Sort zones by Z height (Bottom Shelf First)
+                        valid_zones.sort(key=lambda z: z.get('z1', 0))
+                        
+                        # Zone Selection Heuristic:
+                        # Strictly Sequential: 0, 1, 2, ... looping if needed
+                        zone_idx = attempt % len(valid_zones)
+                        
+                        # Safety clamp
+                        zone_idx = min(zone_idx, len(valid_zones) - 1)
+                        zone = valid_zones[zone_idx]
+                        
+                        zone_z1 = zone.get('z1', 0)
+                        zone_z2 = zone.get('z2', wh_hgt)
+                        
                         min_x = zone['x1'] + dim_x / 2
                         max_x = zone['x2'] - dim_x / 2
                         min_y = zone['y1'] + dim_y / 2
@@ -1317,8 +1672,26 @@ class HybridOptimizer:
                         if max_x < min_x: max_x = min_x = (zone['x1'] + zone['x2']) / 2
                         if max_y < min_y: max_y = min_y = (zone['y1'] + zone['y2']) / 2
                         
-                        x = random.uniform(min_x, max_x)
-                        y = random.uniform(min_y, max_y)
+                        # Dense Pact Heuristic (Zone)
+                        if attempt < 5:
+                            x = min_x
+                            y = min_y
+                        elif attempt < 45 and len(other_bbox) > 0:
+                            rand_idx = random.randint(0, len(other_bbox)-1)
+                            ref_box = other_bbox[rand_idx]
+                            if random.random() < 0.5:
+                                x = ref_box[2] + dim_x / 2
+                                y = ref_box[1] + dim_y / 2
+                            else:
+                                x = ref_box[0] + dim_x / 2
+                                y = ref_box[3] + dim_y / 2
+                            x += random.uniform(-1, 1)
+                            y += random.uniform(-1, 1)
+                            x = max(min_x, min(max_x, x))
+                            y = max(min_y, min(max_y, y))
+                        else:
+                            x = round(random.uniform(min_x, max_x))
+                            y = round(random.uniform(min_y, max_y))
                     else:
                         min_x = dim_x / 2
                         max_x = wh_len - dim_x / 2
@@ -1328,8 +1701,25 @@ class HybridOptimizer:
                         if max_x < min_x: max_x = min_x
                         if max_y < min_y: max_y = min_y
                         
-                        x = random.uniform(min_x, max_x)
-                        y = random.uniform(min_y, max_y)
+                        # Dense Pact Heuristic (Global)
+                        if attempt < 3:
+                             x = min_x
+                             y = min_y
+                        elif attempt < 6 and len(other_bbox) > 0:
+                             rand_idx = random.randint(0, len(other_bbox)-1)
+                             ref_box = other_bbox[rand_idx]
+                             if random.random() < 0.5:
+                                 x = ref_box[2] + dim_x / 2
+                                 y = ref_box[1] + dim_y / 2
+                             else:
+                                 x = ref_box[0] + dim_x / 2
+                                 y = ref_box[3] + dim_y / 2
+
+                             x = max(min_x, min(max_x, x))
+                             y = max(min_y, min(max_y, y))
+                        else:
+                             x = round(random.uniform(min_x, max_x))
+                             y = round(random.uniform(min_y, max_y))
                 else:
                     min_x = dim_x / 2
                     max_x = wh_len - dim_x / 2
@@ -1339,22 +1729,32 @@ class HybridOptimizer:
                     if max_x < min_x: max_x = min_x
                     if max_y < min_y: max_y = min_y
                     
-                    x = random.uniform(min_x, max_x)
-                    y = random.uniform(min_y, max_y)
+                    x = round(random.uniform(min_x, max_x))
+                    y = round(random.uniform(min_y, max_y))
                 
                 z = calculate_z_for_item(x, y, dim_x, dim_y, other_bbox, other_z, other_h)
+                
+                # Enforce Layer Floor
+                z = max(z, zone_z1)
+                
+                # Layer Snap: If item protrudes through ceiling of current layer, snap to next layer floor
+                if z + item_hgt > zone_z2 and zone_z2 < wh_hgt:
+                    z = zone_z2
                 
                 if z < best_z:
                     best_x, best_y, best_z = x, y, z
                 
-                if z == 0:
+                if z == zone_z1:
                     break
+            
+            if best_z > 50000:
+                best_z -= 100000.0
             
             x, y, z = best_x, best_y, best_z
             solution[item_to_mutate] = [x, y, z, rotation]
             
             # Apply gravity repair to ensure no floating items
-            solution = repair_solution_gravity(solution, items_props)
+            solution = repair_solution_compact(solution, items_props, wh_dims, allocation_zones, valid_z)
             
             new_fitness, su, acc, sta, grp = ga_helper.fitness_function_numpy(
                 solution=solution, items_props=items_props, warehouse_dims=wh_dims, 
@@ -1398,3 +1798,40 @@ class HybridOptimizer:
             })
         
         return final_sol_list, best_fitness, time_to_best
+
+    def optimize_eo_ga(self, items, warehouse, weights=None, callback=None, optimization_state=None):
+        num_items = len(items)
+        if num_items == 0:
+            return [], 0, 0
+        
+        import time
+        start_time = time.time()
+        
+        # Phase 1: Run EO for initial solution (70% of progress)
+        def eo_callback(progress, avg_fit, best_fit, solution, space, access, stability):
+            if callback:
+                # Scale EO progress to 0-70%
+                callback(progress * 0.7, avg_fit, best_fit, solution, space, access, stability)
+                
+        eo = ExtremalOptimization(iterations=self.eo_iterations)
+        eo_solution_list, eo_fitness, eo_time = eo.optimize(
+            items, warehouse, weights, eo_callback, optimization_state
+        )
+        
+        if optimization_state and not optimization_state['running']:
+            return eo_solution_list, eo_fitness, eo_time
+            
+        # Phase 2: Run GA for refinement using EO solution as seed (30% of progress)
+        def ga_callback(progress, avg_fit, best_fit, solution, space, access, stability):
+            if callback:
+                # Scale GA progress to 70-100%
+                total = 70 + (progress * 0.3)
+                callback(total, avg_fit, best_fit, solution, space, access, stability)
+        
+        ga = GeneticAlgorithm(generations=self.ga_generations)
+        final_solution, final_fitness, final_time = ga.optimize(
+             items, warehouse, weights, ga_callback, optimization_state, initial_solution=eo_solution_list
+        )
+        
+        total_time = time.time() - start_time
+        return final_solution, final_fitness, total_time

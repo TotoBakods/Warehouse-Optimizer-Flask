@@ -530,54 +530,25 @@ def optimize_hybrid_eo_ga():
     optimization_state['current_warehouse_id'] = warehouse_id
 
     def run_optimization():
+        optimizer = HybridOptimizer(
+            ga_generations=data.get('generations', 100),
+            eo_iterations=data.get('iterations', 1000)
+        )
         try:
-            # Phase 1: Run EO for initial exploration (50% progress)
-            eo = ExtremalOptimization(iterations=data.get('iterations', 500))
-            
-            def eo_callback(progress, avg_fit, best_fit, solution, space, access, stability):
-                update_progress(progress * 0.5, avg_fit, best_fit, solution, space, access, stability)
-            
-            eo_solution, eo_fitness, eo_time = eo.optimize(
-                items, warehouse, weights, eo_callback, optimization_state
+            best_solution, best_fitness, time_to_best = optimizer.optimize_eo_ga(
+                items, warehouse, weights, callback=update_progress, optimization_state=optimization_state
             )
-            
-            if not optimization_state['running']:
-                return
-            
-            # Phase 2: Run GA for refinement using EO's solution as seed (50-100% progress)
-            # We need to load EO solution into items first
-            for item in items:
-                for sol in eo_solution:
-                    if sol['id'] == item['id']:
-                        item['x'] = sol['x']
-                        item['y'] = sol['y']
-                        item['z'] = sol['z']
-                        item['rotation'] = sol['rotation']
-                        break
-            
-            ga = GeneticAlgorithm(
-                population_size=data.get('population_size', 50),
-                generations=data.get('generations', 100)
-            )
-            
-            def ga_callback(progress, avg_fit, best_fit, solution, space, access, stability):
-                update_progress(50 + progress * 0.5, avg_fit, best_fit, solution, space, access, stability)
-            
-            best_solution, best_fitness, ga_time = ga.optimize(
-                items, warehouse, weights, ga_callback, optimization_state,
-                initial_solution=eo_solution
-            )
-            
-            finalize_optimization(best_solution, 'Hybrid EO-GA', weights, optimization_state['start_time'], warehouse_id, eo_time + ga_time)
+            finalize_optimization(best_solution, 'Hybrid EO-GA', weights, optimization_state['start_time'], warehouse_id, time_to_best)
             optimization_state['running'] = False
         except Exception as e:
-            import traceback
-            print(f"Optimization failed: {e}")
-            traceback.print_exc()
-            optimization_state['running'] = False
+             print(f"Optimization failed: {e}")
+             optimization_state['running'] = False
 
     optimization_thread = threading.Thread(target=run_optimization)
     optimization_thread.start()
+
+    return jsonify({'success': True})
+
 
     return jsonify({'success': True})
 
