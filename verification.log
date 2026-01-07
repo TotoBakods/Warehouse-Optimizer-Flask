@@ -1,0 +1,61 @@
+
+--- Testing Data Loading ---
+Successfully loaded 50 items.
+Initial state verified: All items at (0,0,0).
+Item 0 types: Length=<class 'float'>, Width=<class 'float'>
+
+--- Running Genetic Algorithm (Fast Mode) ---
+
+--- Verifying Solution ---
+Checking placement: {'id': 'SYN-8d01d3ec', 'x': 4.0454852790344535, 'y': 0.13893097351822314, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-73c8f0ec', 'x': 5.449553637947024, 'y': 5.2335210116952835, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-61ccd413', 'x': 8.022962723126899, 'y': 2.9313965472279477, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-3ba9cde6', 'x': 7.6197639815941764, 'y': 5.704593940340603, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-b156c86a', 'x': 5.225621834038755, 'y': 4.152770360128391, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-b3a7201b', 'x': 5.29159063679898, 'y': 3.631272641004883, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-a5d8ab2e', 'x': 4.5857162251487935, 'y': 2.382717249004436, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-bda8e4cb', 'x': 3.6405853466104325, 'y': 0.5442115064403645, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-9e7eda91', 'x': 0.592311563751453, 'y': 0.6009508342561386, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-c15367c1', 'x': 0.5240007313626591, 'y': 7.6526054731230495, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-f3d06869', 'x': 1.6716134087252403, 'y': 7.149716124382229, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-f4643ad3', 'x': 7.693715377360892, 'y': 5.167529314443728, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-9df0f1c6', 'x': 2.885798575985639, 'y': 7.506677430960879, 'z': 0.0, 'rotation': 180}
+Checking placement: {'id': 'SYN-f4cc9414', 'x': 8.71753976690051, 'y': 7.370673742598459, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-c3faca91', 'x': 4.0044872223396695, 'y': 3.5536159702929035, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-09e0d3a0', 'x': 7.115126894314106, 'y': 0.4633517749404744, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-03b8d27f', 'x': 2.5272639285142966, 'y': 1.6859595961688307, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-fa0453b6', 'x': 4.769326630708199, 'y': 3.676121275499454, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-fbfb6361', 'x': 7.089478828180787, 'y': 2.4426228232183402, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-670134a3', 'x': 5.513912370691243, 'y': 5.607635731528599, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-a94ad59c', 'x': 3.5194794706493946, 'y': 4.845390096989924, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-19d57454', 'x': 6.527895642614884, 'y': 3.8397129454127397, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-bef0954f', 'x': 4.923740131554922, 'y': 2.9707044191658496, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-a7de9b67', 'x': 9.869387819499833, 'y': 1.5907659020142142, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-b8a886dd', 'x': 2.278028639722633, 'y': 4.335366718663294, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-8e96f6ff', 'x': 0.9340545676791274, 'y': 2.223162264271013, 'z': 0.0, 'rotation': 180}
+Checking placement: {'id': 'SYN-97310e9d', 'x': 3.7270240230281053, 'y': 1.6679114933294363, 'z': 0.0, 'rotation': 270}
+Checking placement: {'id': 'SYN-270bd244', 'x': 6.639095449823774, 'y': 1.7614630109561333, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-87db5857', 'x': 0.6519888582765871, 'y': 3.3828490336334953, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-342badab', 'x': 3.2792679967545504, 'y': 6.441035681443892, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-b8438ebc', 'x': 5.286193278519852, 'y': 3.2645113342250807, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-6ed0bf14', 'x': 9.813275315238549, 'y': 0.25607867273316465, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-947ed22a', 'x': 7.372917004082649, 'y': 4.527541074234496, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-e9f98332', 'x': 0.6018095453795358, 'y': 4.069930318264091, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-11db0263', 'x': 8.439132524665345, 'y': 1.4123616963564438, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-19b8524d', 'x': 0.997188766139067, 'y': 6.594555748753226, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-be2de81d', 'x': 7.537554697230124, 'y': 2.427761506828108, 'z': 0.0, 'rotation': 270}
+Checking placement: {'id': 'SYN-42b6b0b8', 'x': 5.23793654642963, 'y': 3.0360370131449654, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-2d60754e', 'x': 9.584956445028931, 'y': 3.658512789329399, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-5fa44ff3', 'x': 2.183490786548934, 'y': 0.6346738373627652, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-4fec6704', 'x': 2.5720301693928085, 'y': 6.044648197204974, 'z': 0.0, 'rotation': 90}
+Checking placement: {'id': 'SYN-45affea0', 'x': 7.41485496643227, 'y': 0.1737569906706699, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-98b462ce', 'x': 8.752792178738236, 'y': 2.4216094466243714, 'z': 0, 'rotation': 270}
+Checking placement: {'id': 'SYN-e716e524', 'x': 5.165629583688005, 'y': 6.017771321251414, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-6b2abf8c', 'x': 5.166040933462947, 'y': 4.846964423934345, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-014cad06', 'x': 9.581298320185683, 'y': 7.6386722087518, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-61b9fc7d', 'x': 2.9353015360562433, 'y': 5.5011913940044, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-b7c91361', 'x': 7.393600548344672, 'y': 6.341811819710629, 'z': 0, 'rotation': 0}
+Checking placement: {'id': 'SYN-00c90ae1', 'x': 5.3730569842328215, 'y': 2.228553391063629, 'z': 0.0, 'rotation': 0}
+Checking placement: {'id': 'SYN-e51053c9', 'x': 9.64071229489733, 'y': 1.0455860933205767, 'z': 0.0, 'rotation': 0}
+Optimization successful! Fitness: 0.9065227997273094
+Double check passed.
