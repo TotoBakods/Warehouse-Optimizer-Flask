@@ -382,9 +382,9 @@ function renderItems(items) {
 
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(
-            item.x - warehouseConfig.length / 2 + item.length / 2, // Adjust for center origin
+            item.x - warehouseConfig.length / 2, // Adjust for center origin
             item.z + item.height / 2,
-            item.y - warehouseConfig.width / 2 + item.width / 2
+            item.y - warehouseConfig.width / 2
         );
         mesh.rotation.y = -item.rotation * (Math.PI / 180); // Database stores degrees
 
@@ -409,8 +409,8 @@ function renderPickerPath(items) {
     let remaining = [...items].map(i => ({
         ...i,
         // Calculate center for distance
-        cx: i.x + i.length / 2,
-        cy: i.y + i.width / 2
+        cx: i.x,
+        cy: i.y
     }));
 
     const points = [];
@@ -566,6 +566,7 @@ function startPolling() {
                     if (statusText) statusText.textContent = "COMPLETED";
                     if (statusDot) statusDot.classList.remove('active');
                     loadAnalytics(); // Refresh stats
+                    updateVisualization(); // Reload items from DB to ensure view matches final result
                 }
 
                 // Update UI
@@ -577,6 +578,19 @@ function startPolling() {
                 if (progPct) progPct.textContent = Math.round(progress) + '%';
                 if (progBar) progBar.style.width = progress + '%';
                 if (bestFit) bestFit.textContent = (status.best_fitness || 0).toFixed(4);
+
+                // Update Status Text with detailed message
+                const statusText = document.getElementById('status-text');
+                if (statusText) {
+                    if (status.message) {
+                        statusText.textContent = status.message;
+                        // Optional: Add tooltip or title for very long messages
+                        statusText.title = status.message;
+                    } else {
+                        statusText.textContent = "OPTIMIZING...";
+                    }
+                }
+
 
                 if (status.best_solution && status.best_solution.length > 0) {
                     console.log('[DEBUG] best_solution items:', status.best_solution.length);

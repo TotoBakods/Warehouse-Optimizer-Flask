@@ -92,5 +92,10 @@ def test_hybrid_integration():
         print(item)
 
 if __name__ == "__main__":
-    test_tetris_repair()
-    test_hybrid_integration()
+    try:
+        test_tetris_repair()
+        test_hybrid_integration()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

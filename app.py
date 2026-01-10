@@ -2,6 +2,7 @@ import flask
 import pandas as pd
 import numpy as np
 import json
+# Trigger reload again 6
 import math
 import random
 import threading
@@ -25,6 +26,7 @@ from database import (
 from optimizer import (
     GeneticAlgorithm, ExtremalOptimization, HybridOptimizer, get_valid_z_positions
 )
+from optimizer_physics import physics_settle
 
 app = Flask(__name__)
 CORS(app)
@@ -38,7 +40,9 @@ optimization_state = {
     'best_fitness': 0,
     'best_solution': None,
     'start_time': None,
-    'current_warehouse_id': 1  # Default warehouse
+    'current_warehouse_id': 1,  # Default warehouse
+    'message': 'Idle'
+
 }
 
 def finalize_optimization(solution, algorithm, weights, start_time, warehouse_id=1, time_to_best=0):
@@ -56,6 +60,38 @@ def finalize_optimization(solution, algorithm, weights, start_time, warehouse_id
         
         with open('thread_debug.log', 'a') as f:
             f.write("Loaded items and warehouse config\n")
+
+        with open('thread_debug.log', 'a') as f:
+            f.write("Loaded items and warehouse config\n")
+            
+        # --- PyBullet Physics Refinement ---
+        try:
+             # Prepare props for physics engine
+            num_items = len(items)
+            items_props = np.zeros((num_items, 8), dtype=np.float32)
+            for i, item in enumerate(items):
+                items_props[i] = [
+                    item['length'], item['width'], item['height'],
+                    item['can_rotate'], item['stackable'],
+                    item['access_freq'], item.get('weight', 0),
+                    hash(item.get('category', '')) % 10000 
+                ]
+            wh_dims = (warehouse['length'], warehouse['width'], warehouse['height'], 
+                       warehouse.get('door_x', 0), warehouse.get('door_y', 0))
+            layer_heights = warehouse.get('layer_heights', [])
+            
+            print(f"Running PyBullet Physics Settlement with Layers: {layer_heights}...")
+            with open('thread_debug.log', 'a') as f: f.write(f"Running PyBullet Physics Settlement with Layers: {layer_heights}...\n")
+
+            # Update solution with physically settled coordinates
+            # Only do this if we have a valid numpy solution array
+            if isinstance(solution, np.ndarray) and len(solution) > 0:
+                solution = physics_settle(solution, items_props, wh_dims, layer_heights)
+                print("PyBullet Settlement Complete.")
+        except Exception as e:
+            print(f"Physics Integration Error: {e}")
+            with open('thread_debug.log', 'a') as f: f.write(f"Physics Integration Error: {e}\n")
+        # -----------------------------------
 
         calculator = GeneticAlgorithm()
         final_fitness, space_util, accessibility, stability, grouping = calculator.fitness_function(
@@ -360,10 +396,14 @@ def delete_all_items_endpoint():
         return jsonify({'success': False, 'error': str(e)})
 
 
-def update_progress(progress, avg_fitness, best_fitness, best_solution, space, access, stability):
+def update_progress(progress, avg_fitness, best_fitness, best_solution, space, access, stability, message=None):
     optimization_state['progress'] = progress
     optimization_state['best_fitness'] = best_fitness
-    optimization_state['best_solution'] = best_solution
+    if message:
+        optimization_state['message'] = message
+    # Only update best_solution if a new valid solution is provided (optimizer throttles updates)
+    if best_solution is not None:
+        optimization_state['best_solution'] = best_solution
 
 @app.route('/api/optimize/ga', methods=['POST'])
 def optimize_ga():

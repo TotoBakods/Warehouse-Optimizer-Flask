@@ -126,18 +126,17 @@ def generate(n_items=100, warehouse_length=20.0, warehouse_width=15.0, scale_fac
             'stackable': is_stackable,
             'access_freq': access_freq,
             'can_rotate': can_rotate,
-            'x': x,
-            'y': y,
-            'z': z_pos,
-            'rotation': rotation
+            #'x': x,
+            #'y': y,
+            #'z': z_pos,
+            #'rotation': rotation
         })
         
     df = pd.DataFrame(items)
     
-    # Reorder columns to include x, y, z, rotation
+    # Reorder columns to include standard item props
     cols = ['id', 'name', 'length', 'width', 'height', 'weight', 'category', 
-            'priority', 'fragility', 'stackable', 'access_freq', 'can_rotate',
-            'x', 'y', 'z', 'rotation']
+            'priority', 'fragility', 'stackable', 'access_freq', 'can_rotate']
     df = df[cols]
     
     df.to_csv(OUTPUT_FILE, index=False)
@@ -145,7 +144,7 @@ def generate(n_items=100, warehouse_length=20.0, warehouse_width=15.0, scale_fac
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--n', type=int, default=200, help='Number of items to generate')
+    parser.add_argument('--n', type=int, default=800, help='Number of items to generate')
     args = parser.parse_args()
     
     generate(args.n)
