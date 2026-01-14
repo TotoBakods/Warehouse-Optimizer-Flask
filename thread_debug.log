@@ -80,3 +80,24 @@ Starting thread...
 Thread started
 GA Init: pop_size=5, generations=10
 DEBUG: Unstackable Items Count: 332 / 600
+Zero Fit: Overlap=0.0000, Zone=0.0000, Stack=0.3583
+Finalizing optimization...
+Loaded items and warehouse config
+Loaded items and warehouse config
+Converted list solution to numpy array (600 items)
+Running PyBullet Physics Settlement with Layers: [0.0, 3.0]...
+Skipping PyBullet Physics Settlement (Bypassed)...
+Calculated fitness: 0.0
+Saved solution to DB
+Starting thread...
+Thread started
+GA Init: pop_size=50, generations=100
+DEBUG: Unstackable Items Count: 332 / 600
+Zero Fit: Overlap=0.0000, Zone=0.0000, Stack=0.3583
+Zero Fit: Overlap=0.0000, Zone=0.0000, Stack=0.3583
+Zero Fit: Overlap=0.0000, Zone=0.0000, Stack=0.3583
+Zero Fit: Overlap=0.0000, Zone=0.0000, Stack=0.3583
+Starting thread...
+Thread started
+GA Init: pop_size=3, generations=10
+DEBUG: Unstackable Items Count: 316 / 550

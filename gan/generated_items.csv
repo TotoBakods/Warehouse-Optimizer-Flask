@@ -1,601 +1,551 @@
 id,name,length,width,height,weight,category,priority,fragility,stackable,access_freq,can_rotate
-SYN-ccf10d22,Synthetic potatoe products 1,1.18,0.79,0.45,15.07,potatoe products,3,0,1,6,1
-SYN-28f66e1e,Synthetic candy 2,0.74,0.48,0.63,15.15,candy,2,0,1,4,1
-SYN-004dba85,Synthetic bakery products 3,1.17,0.8,0.43,13.41,bakery products,3,1,0,2,1
-SYN-157efa38,Synthetic bakery products 4,0.81,0.32,0.31,15.1,bakery products,2,1,0,9,1
-SYN-e9ef6c88,Synthetic instant meals 5,0.78,0.41,0.52,5.48,instant meals,3,0,1,3,1
-SYN-5daea110,Synthetic bakery products 6,0.8,0.37,0.4,17.42,bakery products,1,1,0,9,1
-SYN-06a8ed60,Synthetic instant meals 7,0.67,0.41,0.61,10.94,instant meals,3,0,1,9,1
-SYN-528e6aea,Synthetic confectionery 8,1.17,0.4,0.47,14.06,confectionery,2,1,0,10,1
-SYN-5eb6fb84,Synthetic fish 9,1.13,0.44,0.47,15.01,fish,2,0,1,7,1
-SYN-f315b91e,Synthetic snack 10,0.66,0.42,0.61,10.46,snack,1,0,1,2,1
-SYN-3c9b14de,Synthetic ice cream 11,0.73,0.44,0.53,7.53,ice cream,1,1,0,2,1
-SYN-86bac0c0,Synthetic bakery products 12,1.14,0.47,0.64,10.98,bakery products,2,1,0,2,1
-SYN-9d74b59a,Synthetic side dish 13,0.69,0.31,0.24,2.98,side dish,3,0,1,6,1
-SYN-18338c27,Synthetic snack 14,0.91,0.54,0.55,17.92,snack,1,0,1,1,1
-SYN-6711b9fc,Synthetic bakery products 15,0.81,0.49,0.49,9.39,bakery products,3,1,0,5,1
-SYN-aafe3707,Synthetic bakery products 16,0.8,0.55,0.54,20.23,bakery products,3,1,0,1,1
-SYN-48379704,Synthetic confectionery 17,0.97,0.31,0.46,10.89,confectionery,2,1,0,1,1
-SYN-f2186d60,Synthetic seafood 18,0.73,0.52,0.39,18.34,seafood,1,0,1,5,1
-SYN-96483e8d,Synthetic confectionery 19,0.67,0.42,0.62,11.57,confectionery,2,1,0,8,1
-SYN-30f07df0,Synthetic dairy products 20,1.14,0.4,0.5,13.27,dairy products,1,0,1,1,1
-SYN-13791c9e,Synthetic confectionery 21,1.19,0.8,0.6,14.06,confectionery,3,1,0,4,1
-SYN-3a33418f,Synthetic bakery products 22,0.79,0.55,0.54,20.9,bakery products,1,1,0,7,1
-SYN-fb895fcc,Synthetic fish 23,0.79,0.55,0.3,7.11,fish,3,0,1,7,1
-SYN-d963213f,Synthetic vegetables 24,0.81,0.47,0.29,9.5,vegetables,2,1,0,7,1
-SYN-f9365ecd,Synthetic meat 25,1.17,0.78,0.16,22.16,meat,2,0,1,5,1
-SYN-d587c00c,Synthetic snack 26,0.81,0.59,0.5,19.8,snack,3,0,1,5,1
-SYN-a6490144,Synthetic fish 27,0.69,0.41,0.58,12.1,fish,2,0,1,10,1
-SYN-4fcdbe68,Synthetic candy 28,0.52,0.34,0.47,6.45,candy,2,0,1,1,1
-SYN-69d12e3d,Synthetic bakery products 29,0.81,0.32,0.33,16.01,bakery products,2,1,0,6,1
-SYN-3fae8d36,Synthetic instant meals 30,1.18,0.8,0.5,14.96,instant meals,3,0,1,9,1
-SYN-7d6f5507,Synthetic dairy products 31,1.17,0.4,0.48,14.11,dairy products,3,0,1,9,1
-SYN-9d0211e5,Synthetic fish 32,0.78,0.54,0.56,20.13,fish,1,0,0,10,1
-SYN-dbc93779,Synthetic instant meals 33,1.18,0.79,0.42,16.66,instant meals,2,0,1,1,1
-SYN-ed03bba4,Synthetic ice cream 34,0.6,0.4,0.46,6.64,ice cream,2,1,0,10,1
-SYN-82d05480,Synthetic bakery products 35,0.67,0.41,0.41,5.94,bakery products,1,1,0,5,1
-SYN-d13d2a6a,Synthetic fruit 36,0.64,0.35,0.37,4.64,fruit,2,1,0,4,1
-SYN-fdb883d2,Synthetic red meat 37,0.73,0.45,0.51,6.64,red meat,1,0,1,5,1
-SYN-eb718ace,Synthetic fish 38,0.75,0.53,0.56,5.15,fish,1,0,1,2,1
-SYN-977cd20c,Synthetic candy 39,0.77,0.45,0.32,6.31,candy,1,0,1,1,1
-SYN-9beaa977,Synthetic bakery products 40,1.15,0.42,0.48,10.99,bakery products,3,1,0,6,1
-SYN-cdb472e4,Synthetic bakery products 41,1.18,0.78,0.62,15.72,bakery products,2,1,0,5,1
-SYN-85fcfffb,Synthetic confectionery 42,1.08,0.55,0.5,18.86,confectionery,1,1,0,10,1
-SYN-fdeeda06,Synthetic instant meals 43,1.08,0.55,0.43,17.54,instant meals,3,0,1,10,1
-SYN-722c111e,Synthetic seafood 44,0.67,0.42,0.61,10.77,seafood,1,0,1,4,1
-SYN-dfe436b5,Synthetic bakery products 45,1.17,0.78,0.3,16.91,bakery products,2,1,0,4,1
-SYN-40566f18,Synthetic confectionery 46,0.77,0.69,0.49,17.47,confectionery,3,1,0,1,1
-SYN-4b76dce2,Synthetic pizza 47,1.11,0.56,0.2,13.92,pizza,1,0,1,7,1
-SYN-ec3378db,Synthetic fish 48,0.66,0.41,0.61,10.0,fish,2,0,1,5,1
-SYN-94888186,Synthetic candy 49,1.18,0.78,0.43,15.93,candy,2,0,1,4,1
-SYN-8385cc1a,Synthetic bakery products 50,0.67,0.41,0.6,10.85,bakery products,1,1,0,9,1
-SYN-8216e774,Synthetic confectionery 51,1.13,0.46,0.39,15.53,confectionery,3,1,0,10,1
-SYN-b87dc613,Synthetic bakery products 52,0.75,0.25,0.4,7.28,bakery products,1,1,0,7,1
-SYN-0c412f64,Synthetic fruit 53,1.1,0.5,0.59,17.47,fruit,3,1,0,4,1
-SYN-c6505260,Synthetic bakery products 54,1.13,0.36,0.49,12.03,bakery products,1,1,0,1,1
-SYN-c7a657e1,Synthetic fish 55,1.11,0.35,0.49,12.41,fish,2,0,1,5,1
-SYN-d7d94daf,Synthetic potatoe products 56,1.14,0.39,0.5,12.37,potatoe products,3,0,1,10,1
-SYN-c7f87b48,Synthetic confectionery 57,1.18,0.8,0.54,14.27,confectionery,1,1,0,3,1
-SYN-aef125eb,Synthetic potatoe products 58,0.79,0.55,0.52,21.75,potatoe products,1,0,1,10,1
-SYN-12574227,Synthetic candy 59,1.16,0.41,0.48,14.37,candy,3,0,1,2,1
-SYN-5d080776,Synthetic dairy products 60,0.8,0.57,0.5,17.67,dairy products,1,0,1,4,1
-SYN-641e154f,Synthetic ice cream 61,0.91,0.25,0.43,9.33,ice cream,2,1,0,5,1
-SYN-1d58efe5,Synthetic bakery products 62,0.84,0.37,0.33,11.18,bakery products,1,1,0,5,1
-SYN-ac3e7e9a,Synthetic bakery products 63,1.18,0.79,0.56,14.62,bakery products,1,1,0,2,1
-SYN-94435a89,Synthetic ice cream 64,1.19,0.77,0.16,28.14,ice cream,3,1,0,8,1
-SYN-9d858922,Synthetic ice cream 65,0.62,0.42,0.33,7.03,ice cream,1,1,0,5,1
-SYN-ad13f1d9,Synthetic potatoe products 66,0.77,0.57,0.33,7.04,potatoe products,3,0,0,9,1
-SYN-8f375f8e,Synthetic pizza 67,0.66,0.42,0.6,10.73,pizza,3,0,1,3,1
-SYN-94c95f09,Synthetic confectionery 68,0.78,0.54,0.56,20.25,confectionery,2,1,0,6,1
-SYN-2114f113,Synthetic fish 69,0.51,0.39,0.52,6.83,fish,3,0,0,1,1
-SYN-808251c3,Synthetic confectionery 70,1.15,0.4,0.48,14.25,confectionery,1,1,0,5,1
-SYN-368dfe65,Synthetic confectionery 71,0.93,0.27,0.43,9.27,confectionery,3,1,0,6,1
-SYN-3cb965a5,Synthetic pizza 72,0.55,0.35,0.36,7.12,pizza,3,0,1,1,1
-SYN-a92af0b4,Synthetic pizza 73,1.18,0.79,0.62,15.07,pizza,3,0,1,9,1
-SYN-6d18b46c,Synthetic confectionery 74,1.13,0.53,0.59,8.83,confectionery,2,1,0,6,1
-SYN-274e66bc,Synthetic fish 75,1.1,0.48,0.42,12.38,fish,1,0,1,10,1
-SYN-1f17447e,Synthetic pizza 76,0.91,0.4,0.44,8.55,pizza,3,0,1,5,1
-SYN-99aec389,Synthetic confectionery 77,1.15,0.4,0.47,12.94,confectionery,2,1,0,3,1
-SYN-e8bf976e,Synthetic bakery products 78,1.13,0.48,0.32,15.69,bakery products,1,1,0,10,1
-SYN-7e04f936,Synthetic confectionery 79,1.15,0.4,0.48,12.64,confectionery,2,1,0,6,1
-SYN-802e96fe,Synthetic fish 80,0.62,0.42,0.57,11.21,fish,1,0,0,3,1
-SYN-eec8faae,Synthetic bakery products 81,0.79,0.56,0.52,19.78,bakery products,2,1,0,10,1
-SYN-759bd666,Synthetic non-food products 82,0.57,0.38,0.41,10.23,non-food products,1,0,0,9,1
-SYN-45296f8d,Synthetic potatoe products 83,0.79,0.62,0.3,14.65,potatoe products,2,0,1,5,1
-SYN-750d9cde,Synthetic fish 84,1.16,0.4,0.49,13.75,fish,3,0,0,9,1
-SYN-e7bdd096,Synthetic poultry 85,1.14,0.46,0.61,19.83,poultry,2,0,1,9,1
-SYN-669d3031,Synthetic ice cream 86,0.66,0.41,0.59,10.52,ice cream,2,1,0,8,1
-SYN-ca7a701e,Synthetic confectionery 87,1.0,0.43,0.4,7.75,confectionery,3,1,0,8,1
-SYN-620e98d0,Synthetic ice cream 88,0.84,0.53,0.56,19.29,ice cream,3,1,0,2,1
-SYN-66945a27,Synthetic confectionery 89,0.64,0.39,0.45,11.88,confectionery,2,1,0,3,1
-SYN-098b94e0,Synthetic candy 90,1.15,0.4,0.48,13.85,candy,1,0,1,10,1
-SYN-9b9298d7,Synthetic vegetables 91,1.11,0.52,0.26,15.56,vegetables,1,1,0,7,1
-SYN-ca24e95f,Synthetic bakery products 92,1.08,0.58,0.32,16.0,bakery products,1,1,0,7,1
-SYN-e005f1e8,Synthetic confectionery 93,1.18,0.8,0.58,14.95,confectionery,1,1,0,4,1
-SYN-77ab944d,Synthetic confectionery 94,0.77,0.53,0.63,19.14,confectionery,3,1,0,7,1
-SYN-0681f84d,Synthetic non-food products 95,1.16,0.77,0.61,11.83,non-food products,2,0,1,7,1
-SYN-5e8bfb20,Synthetic pizza 96,0.78,0.53,0.59,20.5,pizza,1,0,1,2,1
-SYN-bd7d2aca,Synthetic fruit 97,1.11,0.46,0.54,10.03,fruit,1,1,0,7,1
-SYN-c7c5240e,Synthetic bakery products 98,1.14,0.44,0.4,14.81,bakery products,3,1,0,6,1
-SYN-1b5e49b8,Synthetic bakery products 99,1.16,0.72,0.18,19.88,bakery products,3,1,0,1,1
-SYN-a2e9baed,Synthetic confectionery 100,1.08,0.5,0.51,14.93,confectionery,1,1,0,3,1
-SYN-046d2fe6,Synthetic ice cream 101,0.72,0.38,0.54,13.08,ice cream,3,1,0,9,1
-SYN-bad92efa,Synthetic ice cream 102,0.76,0.48,0.64,18.01,ice cream,1,1,0,10,1
-SYN-967cbd9a,Synthetic poultry 103,0.78,0.52,0.59,20.2,poultry,1,0,1,4,1
-SYN-af87623d,Synthetic ice cream 104,0.51,0.35,0.51,6.02,ice cream,3,1,0,1,1
-SYN-fb80c28b,Synthetic poultry 105,1.18,0.79,0.36,14.79,poultry,1,0,1,9,1
-SYN-b1f9a3a8,Synthetic confectionery 106,0.83,0.3,0.3,14.0,confectionery,3,1,0,6,1
-SYN-d5598b8a,Synthetic pizza 107,0.75,0.51,0.61,19.04,pizza,2,0,1,1,1
-SYN-be87dfce,Synthetic fruit 108,0.52,0.29,0.42,4.53,fruit,3,1,0,6,1
-SYN-1bfc9916,Synthetic vegetables 109,1.17,0.41,0.47,13.87,vegetables,2,1,0,3,1
-SYN-78e30756,Synthetic red meat 110,0.66,0.41,0.61,10.46,red meat,3,0,1,5,1
-SYN-362cb97c,Synthetic side dish 111,0.6,0.43,0.59,10.12,side dish,3,0,1,2,1
-SYN-3529e59e,Synthetic bakery products 112,1.18,0.8,0.53,14.62,bakery products,3,1,0,4,1
-SYN-0671b0be,Synthetic snack 113,0.67,0.41,0.59,10.61,snack,1,0,1,3,1
-SYN-4a07eea3,Synthetic bakery products 114,0.82,0.74,0.49,15.77,bakery products,2,1,0,8,1
-SYN-79d533a3,Synthetic poultry 115,1.19,0.76,0.15,22.0,poultry,1,0,1,7,1
-SYN-3088f125,Synthetic ice cream 116,1.11,0.49,0.54,15.87,ice cream,1,1,0,3,1
-SYN-9c9c3c95,Synthetic red meat 117,0.82,0.41,0.49,8.38,red meat,2,0,1,6,1
-SYN-a9e1485a,Synthetic candy 118,1.04,0.57,0.24,12.96,candy,3,0,1,6,1
-SYN-0e84d2ad,Synthetic red meat 119,1.09,0.33,0.47,12.09,red meat,2,0,1,7,1
-SYN-ca198a6b,Synthetic confectionery 120,0.78,0.53,0.57,20.0,confectionery,3,1,0,7,1
-SYN-6630e342,Synthetic confectionery 121,1.18,0.79,0.57,13.65,confectionery,2,1,0,7,1
-SYN-295fedd7,Synthetic bakery products 122,0.79,0.37,0.54,16.33,bakery products,1,1,0,6,1
-SYN-bbc0c88c,Synthetic confectionery 123,0.74,0.5,0.59,7.2,confectionery,3,1,0,5,1
-SYN-ecf0ad10,Synthetic ice cream 124,0.67,0.41,0.6,10.43,ice cream,3,1,0,7,1
-SYN-32b29c20,Synthetic seafood 125,0.78,0.55,0.54,20.16,seafood,2,0,1,1,1
-SYN-13fbb103,Synthetic candy 126,1.15,0.4,0.47,13.1,candy,1,0,1,5,1
-SYN-dbf3e9f3,Synthetic bakery products 127,0.62,0.4,0.59,8.71,bakery products,1,1,0,1,1
-SYN-906596b8,Synthetic ice cream 128,1.16,0.4,0.46,15.06,ice cream,2,1,0,5,1
-SYN-db9aff58,Synthetic herbs/spice 129,0.9,0.43,0.41,8.57,herbs/spice,3,0,1,5,1
-SYN-92b9ef90,Synthetic bakery products 130,0.96,0.61,0.26,14.16,bakery products,3,1,0,5,1
-SYN-e419663a,Synthetic ice cream 131,1.16,0.39,0.48,13.31,ice cream,3,1,0,7,1
-SYN-db2a75ed,Synthetic ice cream 132,0.76,0.4,0.61,14.77,ice cream,3,1,0,8,1
-SYN-a35c0b1b,Synthetic snack 133,1.16,0.38,0.52,15.21,snack,3,0,1,9,1
-SYN-b3575e1c,Synthetic bakery products 134,0.79,0.56,0.53,19.79,bakery products,1,1,0,6,1
-SYN-f7c27bf6,Synthetic dairy products 135,0.8,0.58,0.25,10.39,dairy products,2,0,0,4,1
-SYN-3d1bb37d,Synthetic confectionery 136,1.14,0.43,0.43,15.05,confectionery,1,1,0,10,1
-SYN-7b92e8dc,Synthetic candy 137,0.82,0.61,0.56,18.41,candy,2,0,1,6,1
-SYN-b66450eb,Synthetic instant meals 138,0.78,0.43,0.55,18.88,instant meals,3,0,1,4,1
-SYN-ab6efd05,Synthetic instant meals 139,0.94,0.67,0.48,13.13,instant meals,3,0,1,6,1
-SYN-0114c45c,Synthetic confectionery 140,1.16,0.72,0.64,17.12,confectionery,2,1,0,6,1
-SYN-8a99ae8a,Synthetic candy 141,1.14,0.39,0.5,13.19,candy,2,0,1,8,1
-SYN-d17a5832,Synthetic candy 142,1.17,0.51,0.63,9.28,candy,1,0,1,1,1
-SYN-2e366ae2,Synthetic snack 143,1.08,0.51,0.46,17.07,snack,1,0,1,6,1
-SYN-22f3d7b5,Synthetic bakery products 144,0.65,0.41,0.59,10.93,bakery products,2,1,0,7,1
-SYN-436e8cd4,Synthetic ice cream 145,0.75,0.51,0.63,18.19,ice cream,2,1,0,3,1
-SYN-dc771c55,Synthetic pizza 146,0.71,0.37,0.39,15.31,pizza,2,0,1,1,1
-SYN-8353337e,Synthetic instant meals 147,0.79,0.57,0.51,19.02,instant meals,3,0,1,6,1
-SYN-54bcd6a3,Synthetic non-food products 148,1.12,0.44,0.47,12.45,non-food products,2,0,1,1,1
-SYN-b6f0c004,Synthetic bakery products 149,0.66,0.38,0.56,8.44,bakery products,2,1,0,1,1
-SYN-d30c381b,Synthetic vegetables 150,1.18,0.76,0.19,22.8,vegetables,2,1,0,5,1
-SYN-9922a9a3,Synthetic vegetables 151,0.81,0.6,0.41,15.34,vegetables,3,1,0,9,1
-SYN-747219fa,Synthetic confectionery 152,0.79,0.59,0.28,11.06,confectionery,3,1,0,7,1
-SYN-846c3953,Synthetic bakery products 153,1.13,0.44,0.59,16.7,bakery products,3,1,0,10,1
-SYN-1abbc2f0,Synthetic instant meals 154,0.67,0.41,0.6,11.06,instant meals,2,0,1,5,1
-SYN-fd101473,Synthetic potatoe products 155,1.17,0.64,0.67,17.62,potatoe products,1,0,1,4,1
-SYN-ecda27fd,Synthetic potatoe products 156,1.08,0.58,0.22,14.07,potatoe products,1,0,0,7,1
-SYN-49027ab6,Synthetic confectionery 157,1.09,0.59,0.16,14.65,confectionery,1,1,0,8,1
-SYN-49702dce,Synthetic confectionery 158,1.18,0.77,0.23,16.13,confectionery,2,1,0,2,1
-SYN-aeb2bedb,Synthetic candy 159,1.18,0.8,0.52,14.08,candy,2,0,1,3,1
-SYN-7b70283e,Synthetic seafood 160,0.65,0.41,0.51,12.14,seafood,1,0,0,8,1
-SYN-e6de4a43,Synthetic candy 161,0.72,0.45,0.62,13.32,candy,3,0,1,2,1
-SYN-4bc81081,Synthetic confectionery 162,0.78,0.55,0.3,12.12,confectionery,1,1,0,5,1
-SYN-ceaec6fb,Synthetic confectionery 163,0.73,0.36,0.48,12.16,confectionery,3,1,0,5,1
-SYN-46908ea7,Synthetic bakery products 164,1.12,0.47,0.48,16.29,bakery products,1,1,0,4,1
-SYN-225b1d81,Synthetic bakery products 165,0.78,0.55,0.5,21.05,bakery products,3,1,0,8,1
-SYN-e676484d,Synthetic candy 166,0.78,0.56,0.22,7.77,candy,2,0,1,7,1
-SYN-956f991c,Synthetic bakery products 167,1.18,0.77,0.25,21.94,bakery products,3,1,0,8,1
-SYN-4f067357,Synthetic vegetables 168,0.66,0.4,0.59,9.77,vegetables,1,1,0,8,1
-SYN-a4122329,Synthetic confectionery 169,0.62,0.44,0.34,8.48,confectionery,3,1,0,3,1
-SYN-4a08308c,Synthetic pizza 170,0.76,0.54,0.45,20.87,pizza,3,0,1,7,1
-SYN-7bad9397,Synthetic seafood 171,1.11,0.45,0.42,12.44,seafood,1,0,1,3,1
-SYN-c3b646a5,Synthetic fruit 172,1.1,0.44,0.5,11.59,fruit,1,1,0,1,1
-SYN-061d3aaa,Synthetic bakery products 173,0.67,0.42,0.62,11.02,bakery products,3,1,0,5,1
-SYN-e17c7b62,Synthetic pizza 174,0.71,0.43,0.58,9.67,pizza,1,0,1,6,1
-SYN-af4e0ee5,Synthetic dairy products 175,1.03,0.48,0.47,11.88,dairy products,3,0,1,8,1
-SYN-826361fc,Synthetic pizza 176,1.11,0.48,0.52,16.7,pizza,3,0,1,4,1
-SYN-b0cbfe31,Synthetic pizza 177,0.67,0.41,0.59,11.08,pizza,1,0,1,6,1
-SYN-d860bd7b,Synthetic confectionery 178,0.74,0.76,0.39,13.75,confectionery,1,1,0,1,1
-SYN-c1a88a85,Synthetic ice cream 179,1.12,0.36,0.5,12.76,ice cream,2,1,0,10,1
-SYN-19790c78,Synthetic vegetables 180,1.15,0.39,0.47,13.87,vegetables,2,1,0,3,1
-SYN-5add0137,Synthetic vegetables 181,0.94,0.52,0.54,16.24,vegetables,3,1,0,1,1
-SYN-77dceb54,Synthetic poultry 182,1.18,0.78,0.35,17.48,poultry,2,0,1,8,1
-SYN-990c3dcc,Synthetic pizza 183,0.69,0.38,0.35,14.12,pizza,1,0,1,3,1
-SYN-975f802d,Synthetic confectionery 184,0.76,0.34,0.34,15.03,confectionery,1,1,0,7,1
-SYN-1c12f780,Synthetic confectionery 185,0.68,0.42,0.62,11.28,confectionery,2,1,0,9,1
-SYN-25d0f0c7,Synthetic side dish 186,0.66,0.42,0.62,10.77,side dish,1,0,1,2,1
-SYN-c7519521,Synthetic confectionery 187,1.11,0.47,0.5,16.04,confectionery,3,1,0,3,1
-SYN-bca4af93,Synthetic ice cream 188,0.68,0.41,0.59,11.2,ice cream,3,1,0,1,1
-SYN-1ba10329,Synthetic confectionery 189,0.57,0.43,0.36,11.14,confectionery,2,1,0,8,1
-SYN-71b16891,Synthetic bakery products 190,1.16,0.4,0.46,13.98,bakery products,3,1,0,10,1
-SYN-0d36b2f2,Synthetic instant meals 191,0.77,0.53,0.6,19.74,instant meals,1,0,1,1,1
-SYN-8ca545a1,Synthetic vegetables 192,0.53,0.41,0.54,7.82,vegetables,1,1,0,10,1
-SYN-b8ad7f27,Synthetic bakery products 193,1.14,0.41,0.48,13.04,bakery products,1,1,0,3,1
-SYN-4b48f17b,Synthetic instant meals 194,0.8,0.57,0.28,9.97,instant meals,2,0,1,7,1
-SYN-d4cf2713,Synthetic pizza 195,0.76,0.53,0.62,18.38,pizza,3,0,1,5,1
-SYN-82307060,Synthetic fish 196,0.66,0.4,0.58,10.43,fish,1,0,1,7,1
-SYN-ed187c41,Synthetic dairy products 197,1.08,0.49,0.51,13.58,dairy products,3,0,0,5,1
-SYN-b3a61789,Synthetic confectionery 198,1.13,0.43,0.61,15.45,confectionery,1,1,0,8,1
-SYN-cdd2dd89,Synthetic vegetables 199,1.04,0.29,0.49,12.37,vegetables,1,1,0,9,1
-SYN-21488ad7,Synthetic dairy products 200,1.12,0.46,0.59,14.58,dairy products,3,0,0,5,1
-SYN-1eaee6cd,Synthetic fruit 201,0.77,0.48,0.46,20.96,fruit,2,1,0,7,1
-SYN-785d4ae9,Synthetic side dish 202,0.78,0.53,0.55,20.61,side dish,1,0,1,2,1
-SYN-67520fe1,Synthetic pizza 203,0.81,0.59,0.42,15.34,pizza,3,0,1,2,1
-SYN-3c9a7657,Synthetic potatoe products 204,0.79,0.53,0.26,10.99,potatoe products,1,0,0,2,1
-SYN-0ee94033,Synthetic instant meals 205,0.67,0.41,0.58,11.06,instant meals,3,0,1,3,1
-SYN-3c03cc09,Synthetic vegetables 206,0.74,0.56,0.6,7.47,vegetables,2,1,0,2,1
-SYN-c179581b,Synthetic dairy products 207,1.1,0.48,0.45,16.35,dairy products,3,0,1,6,1
-SYN-f3e3cbf1,Synthetic dairy products 208,1.17,0.8,0.42,14.66,dairy products,3,0,1,4,1
-SYN-ab3827f8,Synthetic fish 209,0.58,0.41,0.4,11.86,fish,3,0,1,10,1
-SYN-5f7ca44d,Synthetic meat 210,1.18,0.8,0.55,14.35,meat,3,0,1,6,1
-SYN-b8149f0c,Synthetic red meat 211,1.18,0.79,0.59,14.39,red meat,2,0,1,8,1
-SYN-d7de7f83,Synthetic confectionery 212,0.77,0.45,0.56,12.07,confectionery,3,1,0,1,1
-SYN-76eed4ea,Synthetic vegetables 213,0.75,0.51,0.51,5.35,vegetables,1,1,0,6,1
-SYN-1fbfedd4,Synthetic vegetables 214,1.08,0.51,0.54,15.64,vegetables,1,1,0,4,1
-SYN-fa3694b1,Synthetic poultry 215,1.18,0.8,0.45,16.62,poultry,3,0,1,6,1
-SYN-b27eb560,Synthetic vegetables 216,0.68,0.4,0.6,11.51,vegetables,1,1,0,5,1
-SYN-08639bce,Synthetic ice cream 217,0.8,0.56,0.54,19.37,ice cream,2,1,0,6,1
-SYN-a93e48cc,Synthetic bakery products 218,0.65,0.42,0.58,11.39,bakery products,2,1,0,9,1
-SYN-574b47a2,Synthetic fish 219,1.15,0.44,0.32,14.4,fish,1,0,1,10,1
-SYN-819c5d5b,Synthetic potatoe products 220,1.06,0.73,0.53,13.0,potatoe products,3,0,1,10,1
-SYN-1afa9c86,Synthetic bakery products 221,1.14,0.4,0.49,13.68,bakery products,3,1,0,6,1
-SYN-6a3ed3cf,Synthetic dairy products 222,0.77,0.53,0.63,18.89,dairy products,3,0,1,7,1
-SYN-f6a76eac,Synthetic bakery products 223,0.6,0.42,0.43,11.7,bakery products,1,1,0,1,1
-SYN-908deb8c,Synthetic instant meals 224,1.07,0.53,0.54,17.71,instant meals,3,0,1,5,1
-SYN-2cb783ce,Synthetic vegetables 225,1.19,0.72,0.15,17.05,vegetables,1,1,0,2,1
-SYN-6ed7f23f,Synthetic instant meals 226,0.77,0.34,0.34,15.83,instant meals,2,0,1,9,1
-SYN-f95af665,Synthetic vegetables 227,0.74,0.49,0.64,16.54,vegetables,3,1,0,5,1
-SYN-098c9731,Synthetic instant meals 228,1.15,0.4,0.49,13.65,instant meals,3,0,1,3,1
-SYN-0659e2b5,Synthetic pizza 229,0.58,0.43,0.38,12.49,pizza,3,0,1,6,1
-SYN-751f879d,Synthetic candy 230,1.15,0.41,0.48,13.72,candy,1,0,1,5,1
-SYN-bf97756b,Synthetic bakery products 231,1.18,0.8,0.48,14.61,bakery products,3,1,0,5,1
-SYN-89f43796,Synthetic snack 232,0.75,0.49,0.57,7.39,snack,3,0,1,9,1
-SYN-3e40b31c,Synthetic poultry 233,1.17,0.59,0.62,18.63,poultry,3,0,1,4,1
-SYN-1e3305c6,Synthetic confectionery 234,1.09,0.54,0.55,18.96,confectionery,3,1,0,5,1
-SYN-05ab1425,Synthetic pizza 235,1.13,0.46,0.54,15.17,pizza,3,0,1,8,1
-SYN-aa7febe0,Synthetic confectionery 236,1.18,0.8,0.58,14.55,confectionery,3,1,0,9,1
-SYN-c9805542,Synthetic red meat 237,0.78,0.54,0.59,19.88,red meat,2,0,1,5,1
-SYN-25afe428,Synthetic pizza 238,1.15,0.42,0.41,14.87,pizza,1,0,1,2,1
-SYN-91cb72dd,Synthetic pizza 239,0.73,0.39,0.58,12.42,pizza,3,0,1,7,1
-SYN-3140e54a,Synthetic herbs/spice 240,1.17,0.4,0.48,13.42,herbs/spice,3,0,1,2,1
-SYN-921711c2,Synthetic vegetables 241,0.72,0.42,0.55,8.56,vegetables,1,1,0,10,1
-SYN-0f3625eb,Synthetic pizza 242,1.18,0.79,0.4,14.96,pizza,2,0,1,5,1
-SYN-07330c5b,Synthetic side dish 243,0.76,0.55,0.46,21.56,side dish,3,0,1,5,1
-SYN-209bd10f,Synthetic pizza 244,1.17,0.76,0.18,14.0,pizza,2,0,1,6,1
-SYN-f0126c7c,Synthetic confectionery 245,0.75,0.51,0.64,17.97,confectionery,2,1,0,2,1
-SYN-bdf4b53d,Synthetic snack 246,0.78,0.53,0.55,20.3,snack,2,0,1,3,1
-SYN-7579068a,Synthetic confectionery 247,0.75,0.39,0.28,3.75,confectionery,1,1,0,6,1
-SYN-c855538e,Synthetic confectionery 248,1.16,0.4,0.47,13.72,confectionery,1,1,0,9,1
-SYN-b761fea5,Synthetic candy 249,0.68,0.42,0.61,11.61,candy,2,0,1,4,1
-SYN-fc6cf04c,Synthetic ice cream 250,0.78,0.54,0.59,19.56,ice cream,2,1,0,8,1
-SYN-881edd6c,Synthetic potatoe products 251,0.77,0.53,0.58,19.62,potatoe products,3,0,1,1,1
-SYN-1654318d,Synthetic candy 252,1.11,0.48,0.38,11.18,candy,3,0,0,7,1
-SYN-eb51a114,Synthetic instant meals 253,0.65,0.42,0.58,10.42,instant meals,1,0,1,4,1
-SYN-d8ec333c,Synthetic instant meals 254,0.75,0.52,0.48,21.14,instant meals,2,0,1,10,1
-SYN-6788857c,Synthetic vegetables 255,1.19,0.77,0.28,14.36,vegetables,1,1,0,5,1
-SYN-8cee351c,Synthetic side dish 256,1.12,0.37,0.48,12.38,side dish,1,0,1,4,1
-SYN-27f3a1db,Synthetic ice cream 257,0.5,0.29,0.45,3.6,ice cream,1,1,0,1,1
-SYN-3fb51d81,Synthetic confectionery 258,0.67,0.41,0.6,10.55,confectionery,2,1,0,9,1
-SYN-a81a81d8,Synthetic fruit 259,1.01,0.53,0.56,19.0,fruit,3,1,0,4,1
-SYN-250f358b,Synthetic pizza 260,1.18,0.8,0.54,14.45,pizza,3,0,1,4,1
-SYN-6936ca13,Synthetic pizza 261,1.18,0.79,0.58,14.5,pizza,1,0,1,7,1
-SYN-d2e167fa,Synthetic pizza 262,1.17,0.74,0.54,16.56,pizza,1,0,1,1,1
-SYN-3b57598b,Synthetic confectionery 263,0.78,0.53,0.55,20.27,confectionery,3,1,0,1,1
-SYN-c2ecc8be,Synthetic confectionery 264,0.74,0.45,0.53,6.82,confectionery,3,1,0,6,1
-SYN-c62dd55b,Synthetic confectionery 265,0.58,0.41,0.53,9.75,confectionery,3,1,0,4,1
-SYN-cf047aad,Synthetic instant meals 266,0.79,0.57,0.5,19.75,instant meals,2,0,1,4,1
-SYN-753f0ead,Synthetic confectionery 267,1.18,0.81,0.52,15.2,confectionery,3,1,0,10,1
-SYN-46ec75f6,Synthetic dairy products 268,1.15,0.38,0.49,13.24,dairy products,1,0,0,3,1
-SYN-fab883e6,Synthetic confectionery 269,1.13,0.77,0.5,14.98,confectionery,1,1,0,3,1
-SYN-cc0745a0,Synthetic ice cream 270,1.03,0.47,0.42,10.95,ice cream,1,1,0,5,1
-SYN-33d47f08,Synthetic instant meals 271,1.09,0.37,0.49,11.48,instant meals,3,0,1,6,1
-SYN-924c9c38,Synthetic confectionery 272,0.84,0.55,0.21,9.99,confectionery,1,1,0,7,1
-SYN-8154f60c,Synthetic candy 273,1.13,0.44,0.47,15.23,candy,3,0,1,3,1
-SYN-2ba902a3,Synthetic fruit 274,1.09,0.33,0.5,12.03,fruit,3,1,0,2,1
-SYN-89e33cbd,Synthetic dairy products 275,0.67,0.41,0.61,11.13,dairy products,2,0,1,10,1
-SYN-a4426212,Synthetic poultry 276,0.68,0.4,0.58,10.75,poultry,3,0,1,4,1
-SYN-1cc6a650,Synthetic pizza 277,0.73,0.43,0.57,9.11,pizza,3,0,1,7,1
-SYN-064c2566,Synthetic confectionery 278,0.66,0.41,0.6,10.84,confectionery,2,1,0,1,1
-SYN-1f318b03,Synthetic confectionery 279,1.17,0.77,0.23,18.29,confectionery,3,1,0,7,1
-SYN-0715d42a,Synthetic poultry 280,0.76,0.53,0.6,19.53,poultry,3,0,1,3,1
-SYN-01492978,Synthetic side dish 281,0.74,0.55,0.37,17.47,side dish,1,0,1,7,1
-SYN-b72e9caa,Synthetic confectionery 282,1.18,0.8,0.55,14.93,confectionery,2,1,0,6,1
-SYN-d5461b02,Synthetic confectionery 283,1.15,0.41,0.41,14.57,confectionery,2,1,0,2,1
-SYN-15b83e43,Synthetic seafood 284,1.18,0.79,0.31,14.5,seafood,2,0,1,8,1
-SYN-63e1b731,Synthetic instant meals 285,0.72,0.55,0.62,8.66,instant meals,2,0,1,9,1
-SYN-c0f06d6f,Synthetic ice cream 286,1.04,0.33,0.47,11.5,ice cream,3,1,0,10,1
-SYN-bf0ed0bc,Synthetic confectionery 287,1.18,0.79,0.6,14.64,confectionery,1,1,0,3,1
-SYN-09e32489,Synthetic snack 288,0.78,0.57,0.59,6.1,snack,2,0,1,6,1
-SYN-bba32e09,Synthetic non-food products 289,1.18,0.78,0.47,16.4,non-food products,1,0,1,2,1
-SYN-e47393d1,Synthetic bakery products 290,0.77,0.53,0.56,20.48,bakery products,3,1,0,9,1
-SYN-52806548,Synthetic confectionery 291,1.11,0.51,0.55,17.06,confectionery,3,1,0,10,1
-SYN-de24c529,Synthetic vegetables 292,0.72,0.53,0.41,20.99,vegetables,2,1,0,10,1
-SYN-490ad02f,Synthetic bakery products 293,1.18,0.8,0.55,14.9,bakery products,1,1,0,5,1
-SYN-de3d9f03,Synthetic ice cream 294,0.7,0.46,0.62,14.24,ice cream,2,1,0,3,1
-SYN-d3570764,Synthetic instant meals 295,1.06,0.35,0.46,12.21,instant meals,2,0,1,6,1
-SYN-2b79450b,Synthetic bakery products 296,0.76,0.69,0.6,15.99,bakery products,1,1,0,6,1
-SYN-dd4e25c2,Synthetic seafood 297,1.18,0.8,0.58,14.1,seafood,2,0,1,1,1
-SYN-26bc48b9,Synthetic bakery products 298,1.1,0.36,0.48,11.43,bakery products,2,1,0,5,1
-SYN-e9690244,Synthetic pizza 299,1.1,0.49,0.48,16.19,pizza,1,0,1,5,1
-SYN-b39273ac,Synthetic confectionery 300,1.12,0.38,0.47,11.77,confectionery,3,1,0,4,1
-SYN-5f9ba210,Synthetic confectionery 301,0.48,0.37,0.55,5.1,confectionery,1,1,0,1,1
-SYN-d07ea3ab,Synthetic red meat 302,0.77,0.53,0.58,20.02,red meat,1,0,1,4,1
-SYN-36fc3554,Synthetic confectionery 303,0.79,0.36,0.34,13.3,confectionery,1,1,0,5,1
-SYN-69448b38,Synthetic herbs/spice 304,1.06,0.55,0.47,18.78,herbs/spice,1,0,1,10,1
-SYN-8f624237,Synthetic confectionery 305,1.06,0.36,0.46,13.68,confectionery,3,1,0,6,1
-SYN-34a84816,Synthetic dairy products 306,0.97,0.51,0.56,18.31,dairy products,3,0,1,4,1
-SYN-f9b46f1a,Synthetic bakery products 307,1.17,0.73,0.65,11.7,bakery products,2,1,0,4,1
-SYN-4a516d98,Synthetic side dish 308,1.16,0.41,0.46,14.64,side dish,1,0,1,4,1
-SYN-b63a6174,Synthetic pizza 309,0.67,0.41,0.59,10.91,pizza,3,0,1,6,1
-SYN-5af818b4,Synthetic candy 310,0.74,0.34,0.34,14.86,candy,1,0,0,2,1
-SYN-1ad470c0,Synthetic poultry 311,1.16,0.45,0.65,19.61,poultry,1,0,1,2,1
-SYN-ef5d67e1,Synthetic dairy products 312,0.56,0.33,0.37,7.23,dairy products,2,0,1,2,1
-SYN-96d0cde0,Synthetic confectionery 313,0.82,0.53,0.55,5.67,confectionery,1,1,0,3,1
-SYN-6b37f1b7,Synthetic ice cream 314,0.82,0.31,0.31,14.95,ice cream,2,1,0,9,1
-SYN-bbc5347d,Synthetic fish 315,1.15,0.4,0.47,13.84,fish,2,0,1,3,1
-SYN-43c8d5b9,Synthetic vegetables 316,1.17,0.75,0.17,19.42,vegetables,3,1,0,9,1
-SYN-0b63908b,Synthetic ice cream 317,1.19,0.79,0.44,14.36,ice cream,1,1,0,10,1
-SYN-3530d9e1,Synthetic potatoe products 318,0.79,0.54,0.31,12.29,potatoe products,3,0,1,10,1
-SYN-5292ec55,Synthetic non-food products 319,1.14,0.38,0.49,12.68,non-food products,1,0,1,2,1
-SYN-2e5bfaa0,Synthetic dairy products 320,1.16,0.41,0.51,17.51,dairy products,2,0,1,3,1
-SYN-7567d1d4,Synthetic bakery products 321,0.66,0.35,0.38,4.89,bakery products,1,1,0,10,1
-SYN-b39d3fe1,Synthetic bakery products 322,0.78,0.53,0.59,19.86,bakery products,2,1,0,9,1
-SYN-5aa3c546,Synthetic dairy products 323,0.78,0.54,0.53,21.16,dairy products,1,0,1,4,1
-SYN-6f33209d,Synthetic red meat 324,0.96,0.3,0.47,9.77,red meat,3,0,0,1,1
-SYN-d1c8e397,Synthetic poultry 325,1.02,0.48,0.51,12.97,poultry,1,0,1,4,1
-SYN-751a76b7,Synthetic bakery products 326,1.13,0.43,0.64,12.89,bakery products,1,1,0,6,1
-SYN-06ded4ef,Synthetic confectionery 327,0.94,0.6,0.28,8.89,confectionery,2,1,0,4,1
-SYN-b0990b76,Synthetic instant meals 328,0.65,0.26,0.23,2.71,instant meals,1,0,1,8,1
-SYN-ed8913f1,Synthetic confectionery 329,0.72,0.41,0.61,11.84,confectionery,1,1,0,1,1
-SYN-6021673d,Synthetic side dish 330,1.11,0.47,0.48,14.57,side dish,2,0,1,3,1
-SYN-81fb28c2,Synthetic pizza 331,0.81,0.58,0.5,7.75,pizza,3,0,1,5,1
-SYN-dc75afc8,Synthetic confectionery 332,0.61,0.41,0.53,11.26,confectionery,1,1,0,2,1
-SYN-1add313e,Synthetic instant meals 333,0.74,0.51,0.46,20.74,instant meals,1,0,1,1,1
-SYN-0192ad7e,Synthetic dairy products 334,0.73,0.52,0.43,21.01,dairy products,3,0,1,1,1
-SYN-700cd4a0,Synthetic bakery products 335,1.12,0.46,0.48,12.15,bakery products,1,1,0,1,1
-SYN-849e2dbb,Synthetic bakery products 336,0.57,0.44,0.53,10.34,bakery products,3,1,0,2,1
-SYN-c79f8c03,Synthetic vegetables 337,0.58,0.38,0.5,6.71,vegetables,2,1,0,8,1
-SYN-b0532072,Synthetic herbs/spice 338,1.13,0.67,0.63,16.36,herbs/spice,3,0,1,1,1
-SYN-c60c9c42,Synthetic bakery products 339,0.79,0.54,0.53,20.95,bakery products,3,1,0,10,1
-SYN-21c61de7,Synthetic seafood 340,1.08,0.48,0.52,13.13,seafood,1,0,1,1,1
-SYN-b6213cd9,Synthetic candy 341,0.7,0.46,0.62,14.12,candy,2,0,1,7,1
-SYN-ff88c42e,Synthetic pizza 342,0.5,0.36,0.53,5.78,pizza,3,0,1,6,1
-SYN-1c2dd858,Synthetic instant meals 343,0.87,0.26,0.44,8.66,instant meals,3,0,1,6,1
-SYN-1c986e79,Synthetic confectionery 344,0.81,0.57,0.28,9.15,confectionery,1,1,0,6,1
-SYN-a5ad343d,Synthetic bakery products 345,0.76,0.51,0.61,17.88,bakery products,2,1,0,2,1
-SYN-fe6b5029,Synthetic bakery products 346,1.07,0.58,0.26,14.72,bakery products,2,1,0,1,1
-SYN-91cc4992,Synthetic red meat 347,1.07,0.56,0.43,17.63,red meat,2,0,1,9,1
-SYN-c8fec360,Synthetic confectionery 348,0.55,0.4,0.54,8.32,confectionery,3,1,0,3,1
-SYN-23b304b1,Synthetic potatoe products 349,1.09,0.74,0.22,15.62,potatoe products,1,0,1,10,1
-SYN-2e9893af,Synthetic fruit 350,0.53,0.39,0.46,8.69,fruit,1,1,0,3,1
-SYN-6e5cd9c4,Synthetic confectionery 351,0.68,0.41,0.61,11.12,confectionery,1,1,0,7,1
-SYN-0aec7282,Synthetic snack 352,0.8,0.58,0.5,17.96,snack,1,0,1,2,1
-SYN-2c0c9223,Synthetic ice cream 353,1.01,0.31,0.48,10.63,ice cream,3,1,0,4,1
-SYN-e035cf4a,Synthetic fish 354,0.66,0.41,0.59,10.63,fish,2,0,1,4,1
-SYN-a27ba1e9,Synthetic bakery products 355,0.78,0.57,0.34,13.19,bakery products,3,1,0,8,1
-SYN-ddd9ab83,Synthetic pizza 356,1.03,0.31,0.48,10.95,pizza,2,0,1,7,1
-SYN-46b7e618,Synthetic confectionery 357,0.78,0.53,0.55,20.37,confectionery,1,1,0,9,1
-SYN-beeea47f,Synthetic confectionery 358,1.18,0.77,0.28,14.34,confectionery,1,1,0,1,1
-SYN-729919e0,Synthetic confectionery 359,0.66,0.42,0.6,10.65,confectionery,1,1,0,3,1
-SYN-39b98361,Synthetic bakery products 360,1.13,0.46,0.32,14.8,bakery products,2,1,0,10,1
-SYN-74923767,Synthetic bakery products 361,1.12,0.46,0.46,15.64,bakery products,2,1,0,9,1
-SYN-f3f941e9,Synthetic pizza 362,0.66,0.43,0.62,11.16,pizza,2,0,1,4,1
-SYN-943eb42f,Synthetic red meat 363,1.19,0.74,0.16,24.86,red meat,1,0,1,4,1
-SYN-7b5caa18,Synthetic instant meals 364,0.75,0.71,0.52,16.3,instant meals,1,0,1,10,1
-SYN-12af528d,Synthetic poultry 365,0.55,0.39,0.5,5.89,poultry,2,0,0,9,1
-SYN-e4c5e369,Synthetic fish 366,0.8,0.45,0.56,11.71,fish,2,0,1,3,1
-SYN-69fbf9ed,Synthetic pizza 367,1.12,0.42,0.48,14.1,pizza,2,0,1,3,1
-SYN-96b90eef,Synthetic confectionery 368,1.16,0.4,0.48,14.19,confectionery,1,1,0,1,1
-SYN-c411df77,Synthetic bakery products 369,0.68,0.4,0.61,11.27,bakery products,3,1,0,3,1
-SYN-a18ff345,Synthetic confectionery 370,0.73,0.41,0.55,8.86,confectionery,3,1,0,7,1
-SYN-be473fa3,Synthetic bakery products 371,0.73,0.48,0.55,6.41,bakery products,3,1,0,5,1
-SYN-4ad7bcce,Synthetic confectionery 372,0.78,0.36,0.44,16.68,confectionery,3,1,0,2,1
-SYN-42c223a3,Synthetic confectionery 373,0.55,0.42,0.5,6.07,confectionery,2,1,0,9,1
-SYN-14ce8586,Synthetic confectionery 374,0.62,0.41,0.53,11.17,confectionery,3,1,0,9,1
-SYN-74551beb,Synthetic vegetables 375,1.1,0.36,0.49,12.16,vegetables,2,1,0,7,1
-SYN-a765f181,Synthetic candy 376,0.76,0.49,0.23,4.99,candy,2,0,1,2,1
-SYN-b79b8c12,Synthetic bakery products 377,0.69,0.43,0.62,11.86,bakery products,3,1,0,5,1
-SYN-961d03e4,Synthetic dairy products 378,0.81,0.34,0.45,15.97,dairy products,1,0,1,4,1
-SYN-680eb9f6,Synthetic red meat 379,1.09,0.33,0.54,13.94,red meat,2,0,1,2,1
-SYN-f3b74773,Synthetic confectionery 380,0.76,0.52,0.49,21.14,confectionery,2,1,0,2,1
-SYN-f0c5e9ca,Synthetic pizza 381,0.76,0.58,0.58,7.25,pizza,2,0,0,1,1
-SYN-e15b848e,Synthetic seafood 382,0.48,0.33,0.51,4.9,seafood,2,0,1,7,1
-SYN-6c873bc9,Synthetic dairy products 383,0.81,0.55,0.23,9.71,dairy products,1,0,1,8,1
-SYN-e280fa77,Synthetic candy 384,1.01,0.47,0.4,10.43,candy,2,0,0,9,1
-SYN-64088f48,Synthetic seafood 385,1.14,0.42,0.41,14.54,seafood,1,0,1,3,1
-SYN-b087db6a,Synthetic dairy products 386,1.12,0.36,0.55,13.16,dairy products,1,0,1,10,1
-SYN-28aab3d1,Synthetic instant meals 387,0.55,0.44,0.51,9.66,instant meals,1,0,1,4,1
-SYN-85bdb50c,Synthetic bakery products 388,0.69,0.43,0.61,12.34,bakery products,2,1,0,1,1
-SYN-a91b6a33,Synthetic confectionery 389,1.06,0.53,0.57,18.89,confectionery,1,1,0,7,1
-SYN-cbebc115,Synthetic herbs/spice 390,0.75,0.38,0.43,5.27,herbs/spice,2,0,1,2,1
-SYN-e2ec6a91,Synthetic candy 391,1.12,0.47,0.5,15.68,candy,3,0,0,10,1
-SYN-d0401973,Synthetic bakery products 392,1.07,0.54,0.51,18.8,bakery products,1,1,0,1,1
-SYN-b41904aa,Synthetic potatoe products 393,1.15,0.41,0.47,13.78,potatoe products,3,0,1,4,1
-SYN-79ce21ac,Synthetic ice cream 394,0.52,0.34,0.5,6.02,ice cream,1,1,0,6,1
-SYN-5eece2b9,Synthetic vegetables 395,0.79,0.71,0.45,18.35,vegetables,1,1,0,7,1
-SYN-01657ec7,Synthetic dairy products 396,0.79,0.59,0.44,12.11,dairy products,1,0,1,6,1
-SYN-9255e84e,Synthetic vegetables 397,1.07,0.54,0.55,18.99,vegetables,1,1,0,7,1
-SYN-07fe2794,Synthetic red meat 398,0.77,0.79,0.33,9.29,red meat,1,0,1,3,1
-SYN-c99bb196,Synthetic poultry 399,0.83,0.31,0.31,14.24,poultry,1,0,1,8,1
-SYN-23bf94e7,Synthetic confectionery 400,0.83,0.35,0.28,10.0,confectionery,3,1,0,9,1
-SYN-10888ddd,Synthetic confectionery 401,1.13,0.4,0.49,13.31,confectionery,2,1,0,2,1
-SYN-416a1785,Synthetic bakery products 402,0.91,0.57,0.21,13.99,bakery products,1,1,0,6,1
-SYN-abfbacdc,Synthetic instant meals 403,0.77,0.36,0.47,14.77,instant meals,2,0,1,9,1
-SYN-d23659d5,Synthetic bakery products 404,0.8,0.58,0.51,18.48,bakery products,1,1,0,4,1
-SYN-1c3cecac,Synthetic fish 405,0.75,0.53,0.4,18.51,fish,2,0,1,3,1
-SYN-6a005b1d,Synthetic red meat 406,1.18,0.79,0.24,14.63,red meat,1,0,1,4,1
-SYN-f2817c1f,Synthetic bakery products 407,1.17,0.75,0.64,17.21,bakery products,2,1,0,2,1
-SYN-f1d521ee,Synthetic confectionery 408,0.77,0.43,0.42,7.64,confectionery,1,1,0,9,1
-SYN-24e5f370,Synthetic instant meals 409,0.58,0.42,0.43,11.72,instant meals,2,0,1,4,1
-SYN-fbc0c028,Synthetic dairy products 410,0.77,0.53,0.6,19.57,dairy products,2,0,1,2,1
-SYN-cd3e4931,Synthetic candy 411,1.12,0.46,0.45,15.29,candy,2,0,1,9,1
-SYN-50067565,Synthetic seafood 412,1.19,0.75,0.18,24.21,seafood,1,0,1,6,1
-SYN-7cb2256a,Synthetic ice cream 413,0.91,0.55,0.54,19.16,ice cream,1,1,0,10,1
-SYN-d21421d1,Synthetic ice cream 414,1.17,0.8,0.59,14.61,ice cream,1,1,0,3,1
-SYN-4d356073,Synthetic bakery products 415,0.74,0.48,0.55,6.49,bakery products,1,1,0,8,1
-SYN-cd88fdd8,Synthetic bakery products 416,1.08,0.52,0.42,17.1,bakery products,1,1,0,9,1
-SYN-be21d918,Synthetic pizza 417,0.81,0.58,0.29,10.58,pizza,2,0,0,4,1
-SYN-c2669e64,Synthetic non-food products 418,0.56,0.43,0.39,12.24,non-food products,2,0,1,5,1
-SYN-f0034517,Synthetic seafood 419,1.13,0.45,0.47,15.18,seafood,3,0,1,7,1
-SYN-cec11a50,Synthetic dairy products 420,0.78,0.56,0.44,18.89,dairy products,3,0,1,7,1
-SYN-07a6af84,Synthetic poultry 421,0.67,0.41,0.61,10.94,poultry,2,0,1,3,1
-SYN-11e3dcaf,Synthetic confectionery 422,0.74,0.5,0.63,17.09,confectionery,2,1,0,7,1
-SYN-fdd8373e,Synthetic candy 423,0.73,0.38,0.6,12.57,candy,1,0,1,1,1
-SYN-dd749610,Synthetic confectionery 424,0.52,0.35,0.49,6.71,confectionery,3,1,0,1,1
-SYN-29ba6252,Synthetic bakery products 425,0.79,0.53,0.58,20.25,bakery products,3,1,0,9,1
-SYN-a4c00b48,Synthetic seafood 426,1.07,0.55,0.35,16.02,seafood,3,0,1,7,1
-SYN-dda7806b,Synthetic bakery products 427,1.13,0.38,0.5,12.1,bakery products,3,1,0,10,1
-SYN-552fb0e8,Synthetic instant meals 428,0.9,0.44,0.39,8.84,instant meals,2,0,1,1,1
-SYN-745756f4,Synthetic bakery products 429,0.53,0.38,0.53,6.69,bakery products,2,1,0,7,1
-SYN-66e871f1,Synthetic bakery products 430,1.16,0.69,0.64,18.84,bakery products,3,1,0,2,1
-SYN-d95e930b,Synthetic candy 431,1.17,0.46,0.68,19.31,candy,1,0,1,5,1
-SYN-f04cdade,Synthetic bakery products 432,0.56,0.28,0.37,4.16,bakery products,2,1,0,3,1
-SYN-b7af7f73,Synthetic pizza 433,0.78,0.54,0.53,19.99,pizza,1,0,1,8,1
-SYN-a26704bb,Synthetic candy 434,1.16,0.76,0.14,17.4,candy,3,0,1,2,1
-SYN-b80d591b,Synthetic bakery products 435,1.12,0.38,0.49,12.71,bakery products,2,1,0,5,1
-SYN-76580bcb,Synthetic ice cream 436,0.52,0.33,0.47,5.75,ice cream,3,1,0,8,1
-SYN-8aebd1bb,Synthetic side dish 437,0.48,0.34,0.51,4.25,side dish,3,0,1,4,1
-SYN-eab28844,Synthetic side dish 438,0.79,0.54,0.55,20.26,side dish,1,0,1,5,1
-SYN-5acba0b9,Synthetic red meat 439,0.77,0.54,0.59,19.71,red meat,3,0,1,2,1
-SYN-68c12a01,Synthetic instant meals 440,0.67,0.4,0.6,10.1,instant meals,3,0,1,5,1
-SYN-1657c83e,Synthetic pizza 441,0.54,0.42,0.52,9.09,pizza,3,0,1,10,1
-SYN-92d5f7b1,Synthetic ice cream 442,1.13,0.72,0.41,14.68,ice cream,3,1,0,9,1
-SYN-53c1db26,Synthetic red meat 443,1.1,0.52,0.25,15.32,red meat,2,0,1,4,1
-SYN-087b8ef2,Synthetic non-food products 444,0.75,0.53,0.37,16.46,non-food products,3,0,1,1,1
-SYN-5e36e18f,Synthetic confectionery 445,0.79,0.58,0.45,16.0,confectionery,2,1,0,9,1
-SYN-1793635e,Synthetic side dish 446,0.85,0.55,0.54,19.31,side dish,2,0,1,6,1
-SYN-0a37f408,Synthetic ice cream 447,0.76,0.72,0.36,15.36,ice cream,2,1,0,5,1
-SYN-7e61fbef,Synthetic dairy products 448,1.01,0.33,0.47,9.69,dairy products,1,0,1,4,1
-SYN-c98a5694,Synthetic vegetables 449,1.18,0.79,0.47,14.25,vegetables,3,1,0,3,1
-SYN-a9eee9f0,Synthetic poultry 450,0.93,0.52,0.57,18.62,poultry,3,0,1,3,1
-SYN-b9d64398,Synthetic potatoe products 451,1.12,0.46,0.54,16.49,potatoe products,1,0,1,2,1
-SYN-ab112972,Synthetic confectionery 452,0.79,0.56,0.52,19.94,confectionery,1,1,0,6,1
-SYN-d7e45c2c,Synthetic pizza 453,0.68,0.41,0.63,10.96,pizza,1,0,1,10,1
-SYN-bd9a55b2,Synthetic ice cream 454,0.78,0.53,0.56,20.08,ice cream,1,1,0,8,1
-SYN-4eb44cae,Synthetic fruit 455,0.56,0.42,0.44,11.08,fruit,1,1,0,8,1
-SYN-5639d06c,Synthetic bakery products 456,1.09,0.36,0.5,11.1,bakery products,2,1,0,9,1
-SYN-a4db3b45,Synthetic instant meals 457,1.14,0.43,0.52,16.1,instant meals,2,0,1,1,1
-SYN-d34cec21,Synthetic snack 458,1.01,0.55,0.54,19.39,snack,2,0,1,9,1
-SYN-e7595569,Synthetic confectionery 459,1.07,0.54,0.56,19.05,confectionery,1,1,0,8,1
-SYN-209af659,Synthetic fish 460,0.77,0.52,0.58,20.27,fish,3,0,1,10,1
-SYN-a8b216a3,Synthetic fish 461,1.01,0.33,0.48,10.32,fish,1,0,1,5,1
-SYN-05954cd7,Synthetic red meat 462,1.17,0.73,0.67,16.85,red meat,2,0,1,8,1
-SYN-f1495d5c,Synthetic confectionery 463,1.08,0.46,0.48,12.33,confectionery,1,1,0,9,1
-SYN-f6c86b0e,Synthetic instant meals 464,1.17,0.78,0.3,19.46,instant meals,1,0,1,7,1
-SYN-aa57ae5e,Synthetic confectionery 465,1.12,0.78,0.23,14.01,confectionery,3,1,0,8,1
-SYN-a434f0fc,Synthetic confectionery 466,1.1,0.68,0.47,11.67,confectionery,2,1,0,5,1
-SYN-cd688f5a,Synthetic pizza 467,1.03,0.51,0.51,15.49,pizza,1,0,0,8,1
-SYN-ce29b07e,Synthetic confectionery 468,1.13,0.37,0.49,12.98,confectionery,2,1,0,8,1
-SYN-cfd04e84,Synthetic vegetables 469,1.18,0.79,0.47,14.94,vegetables,1,1,0,1,1
-SYN-d1fbdae6,Synthetic confectionery 470,0.48,0.32,0.51,3.58,confectionery,1,1,0,1,1
-SYN-24709a88,Synthetic potatoe products 471,1.16,0.4,0.47,13.86,potatoe products,2,0,1,8,1
-SYN-2ad50239,Synthetic confectionery 472,0.8,0.36,0.49,16.63,confectionery,1,1,0,4,1
-SYN-adb53abe,Synthetic dairy products 473,0.86,0.3,0.32,13.28,dairy products,3,0,1,4,1
-SYN-56ad19a2,Synthetic confectionery 474,0.7,0.46,0.62,13.94,confectionery,1,1,0,10,1
-SYN-9e3aa039,Synthetic poultry 475,0.71,0.39,0.61,12.35,poultry,2,0,1,1,1
-SYN-577d34c3,Synthetic potatoe products 476,1.07,0.64,0.6,18.22,potatoe products,2,0,1,8,1
-SYN-21b5bafd,Synthetic side dish 477,1.07,0.52,0.59,8.7,side dish,1,0,1,5,1
-SYN-cd4eac92,Synthetic confectionery 478,1.18,0.72,0.18,17.72,confectionery,3,1,0,7,1
-SYN-d795447e,Synthetic ice cream 479,0.59,0.45,0.58,10.57,ice cream,1,1,0,10,1
-SYN-d92fd593,Synthetic red meat 480,0.99,0.59,0.37,15.59,red meat,3,0,1,2,1
-SYN-7cf22e9c,Synthetic confectionery 481,0.69,0.41,0.58,9.78,confectionery,3,1,0,10,1
-SYN-24777082,Synthetic snack 482,0.59,0.43,0.37,11.72,snack,3,0,1,3,1
-SYN-5047d130,Synthetic ice 483,1.08,0.53,0.57,19.37,ice,2,0,1,2,1
-SYN-869b3389,Synthetic potatoe products 484,0.72,0.54,0.41,20.97,potatoe products,2,0,1,8,1
-SYN-298d8eea,Synthetic snack 485,0.78,0.54,0.55,20.63,snack,1,0,1,2,1
-SYN-f343e110,Synthetic potatoe products 486,0.77,0.53,0.59,19.82,potatoe products,3,0,1,5,1
-SYN-78b6e22d,Synthetic ice cream 487,0.83,0.65,0.23,12.59,ice cream,1,1,0,8,1
-SYN-c757f9d5,Synthetic side dish 488,0.67,0.41,0.6,10.72,side dish,1,0,1,7,1
-SYN-91c973ab,Synthetic instant meals 489,0.78,0.51,0.62,20.41,instant meals,1,0,1,9,1
-SYN-dfdcfff0,Synthetic bakery products 490,1.1,0.55,0.23,14.67,bakery products,2,1,0,5,1
-SYN-30c5ac1e,Synthetic confectionery 491,0.79,0.62,0.42,19.29,confectionery,1,1,0,4,1
-SYN-a1deb92f,Synthetic side dish 492,1.18,0.8,0.55,15.73,side dish,2,0,0,8,1
-SYN-b43c2610,Synthetic bakery products 493,1.08,0.48,0.51,12.25,bakery products,1,1,0,9,1
-SYN-9df13e43,Synthetic ice cream 494,1.17,0.42,0.43,13.88,ice cream,1,1,0,5,1
-SYN-d61f6790,Synthetic bakery products 495,0.8,0.47,0.5,4.85,bakery products,1,1,0,5,1
-SYN-e7c444d8,Synthetic vegetables 496,1.12,0.46,0.48,12.66,vegetables,2,1,0,10,1
-SYN-2271f4a3,Synthetic poultry 497,1.14,0.43,0.45,15.15,poultry,3,0,1,4,1
-SYN-95cba242,Synthetic candy 498,0.78,0.53,0.59,20.06,candy,2,0,1,10,1
-SYN-bfa08b44,Synthetic candy 499,1.18,0.8,0.53,14.48,candy,3,0,1,9,1
-SYN-bfe7208f,Synthetic confectionery 500,0.78,0.61,0.57,18.09,confectionery,1,1,0,1,1
-SYN-2a423fc5,Synthetic bakery products 501,1.18,0.6,0.58,9.17,bakery products,2,1,0,4,1
-SYN-c1b8cbaf,Synthetic potatoe products 502,0.76,0.54,0.47,21.53,potatoe products,1,0,1,1,1
-SYN-4d7be9d7,Synthetic red meat 503,1.17,0.64,0.14,16.0,red meat,2,0,0,3,1
-SYN-9e19c8be,Synthetic confectionery 504,1.08,0.55,0.53,19.19,confectionery,3,1,0,4,1
-SYN-7564018d,Synthetic poultry 505,1.1,0.5,0.33,15.41,poultry,1,0,1,2,1
-SYN-be3e2b1e,Synthetic vegetables 506,1.18,0.78,0.62,14.96,vegetables,2,1,0,3,1
-SYN-6ff80641,Synthetic ice cream 507,1.15,0.54,0.63,15.54,ice cream,2,1,0,3,1
-SYN-a74610a8,Synthetic dairy products 508,1.05,0.46,0.46,11.41,dairy products,2,0,1,5,1
-SYN-8f4bc31d,Synthetic candy 509,1.13,0.45,0.44,12.43,candy,3,0,1,1,1
-SYN-40471adc,Synthetic red meat 510,1.18,0.78,0.36,15.34,red meat,1,0,1,5,1
-SYN-752180c8,Synthetic pizza 511,0.78,0.53,0.55,20.73,pizza,2,0,1,4,1
-SYN-876971b7,Synthetic confectionery 512,0.51,0.33,0.5,5.12,confectionery,2,1,0,9,1
-SYN-82a6b8ab,Synthetic ice cream 513,0.61,0.42,0.48,11.86,ice cream,1,1,0,8,1
-SYN-cd5ad4ce,Synthetic ice cream 514,1.18,0.75,0.19,18.49,ice cream,2,1,0,2,1
-SYN-d359ae45,Synthetic potatoe products 515,1.14,0.61,0.66,19.91,potatoe products,2,0,1,2,1
-SYN-aed4369f,Synthetic side dish 516,1.14,0.48,0.62,10.52,side dish,1,0,0,2,1
-SYN-82fd42eb,Synthetic vegetables 517,1.15,0.44,0.44,12.89,vegetables,2,1,0,3,1
-SYN-8b328e50,Synthetic ice cream 518,1.14,0.48,0.63,16.61,ice cream,2,1,0,10,1
-SYN-94e0e2ed,Synthetic bakery products 519,1.08,0.53,0.52,18.04,bakery products,1,1,0,3,1
-SYN-bd1f63fc,Synthetic confectionery 520,0.77,0.38,0.23,3.45,confectionery,3,1,0,5,1
-SYN-0164fff5,Synthetic instant meals 521,1.11,0.47,0.5,7.04,instant meals,2,0,1,1,1
-SYN-877d67e2,Synthetic confectionery 522,0.66,0.41,0.6,10.42,confectionery,3,1,0,7,1
-SYN-303283ee,Synthetic confectionery 523,0.66,0.4,0.59,10.13,confectionery,1,1,0,10,1
-SYN-9efe9720,Synthetic bakery products 524,0.8,0.33,0.34,16.01,bakery products,2,1,0,10,1
-SYN-963d0bb9,Synthetic confectionery 525,0.82,0.59,0.43,16.68,confectionery,3,1,0,8,1
-SYN-0591108c,Synthetic candy 526,0.78,0.53,0.58,19.6,candy,1,0,0,2,1
-SYN-fc53deef,Synthetic confectionery 527,0.67,0.41,0.61,10.79,confectionery,3,1,0,4,1
-SYN-6ccf2765,Synthetic seafood 528,1.13,0.48,0.6,19.27,seafood,1,0,1,7,1
-SYN-7296a9ec,Synthetic vegetables 529,0.61,0.41,0.42,12.37,vegetables,2,1,0,8,1
-SYN-7020a718,Synthetic confectionery 530,0.58,0.44,0.57,10.08,confectionery,3,1,0,6,1
-SYN-a22d8160,Synthetic herbs/spice 531,0.68,0.41,0.56,9.38,herbs/spice,2,0,1,1,1
-SYN-fee16226,Synthetic poultry 532,0.8,0.35,0.45,16.13,poultry,2,0,1,7,1
-SYN-5282c012,Synthetic red meat 533,0.79,0.35,0.47,15.65,red meat,1,0,1,1,1
-SYN-a89493c0,Synthetic bakery products 534,0.5,0.25,0.44,2.62,bakery products,1,1,0,5,1
-SYN-79426906,Synthetic ice cream 535,0.74,0.74,0.46,15.53,ice cream,1,1,0,4,1
-SYN-f0216d30,Synthetic snack 536,1.13,0.44,0.42,14.79,snack,2,0,1,2,1
-SYN-53e8df6a,Synthetic poultry 537,1.15,0.56,0.67,20.57,poultry,2,0,1,1,1
-SYN-9ff3547c,Synthetic side dish 538,0.78,0.51,0.28,5.07,side dish,2,0,0,2,1
-SYN-f43d765e,Synthetic confectionery 539,1.11,0.53,0.26,15.44,confectionery,2,1,0,8,1
-SYN-130bafe1,Synthetic ice cream 540,1.17,0.78,0.58,14.77,ice cream,3,1,0,4,1
-SYN-e4ceb38b,Synthetic confectionery 541,1.12,0.49,0.66,13.59,confectionery,1,1,0,6,1
-SYN-c1347b7c,Synthetic meat 542,0.92,0.31,0.44,8.77,meat,1,0,1,2,1
-SYN-65c39f59,Synthetic bakery products 543,1.06,0.53,0.54,18.89,bakery products,2,1,0,8,1
-SYN-ce55247a,Synthetic bakery products 544,0.84,0.59,0.37,12.57,bakery products,1,1,0,4,1
-SYN-e86a8eca,Synthetic confectionery 545,1.07,0.47,0.5,11.61,confectionery,2,1,0,4,1
-SYN-e35eb25c,Synthetic confectionery 546,0.52,0.44,0.53,8.7,confectionery,3,1,0,3,1
-SYN-c6125fb7,Synthetic poultry 547,1.18,0.8,0.57,14.77,poultry,2,0,1,2,1
-SYN-85daab24,Synthetic vegetables 548,1.07,0.57,0.36,16.65,vegetables,3,1,0,3,1
-SYN-1cfcdf6f,Synthetic instant meals 549,0.77,0.5,0.53,21.19,instant meals,3,0,1,1,1
-SYN-f4658002,Synthetic fish 550,0.78,0.53,0.56,19.88,fish,3,0,1,7,1
-SYN-863ec97c,Synthetic bakery products 551,0.78,0.54,0.55,20.75,bakery products,3,1,0,7,1
-SYN-c73335df,Synthetic confectionery 552,1.09,0.47,0.53,10.77,confectionery,1,1,0,1,1
-SYN-bd6186f5,Synthetic confectionery 553,0.69,0.44,0.63,12.24,confectionery,2,1,0,4,1
-SYN-2389d56f,Synthetic vegetables 554,0.7,0.46,0.62,13.53,vegetables,2,1,0,4,1
-SYN-f1126dc8,Synthetic potatoe products 555,1.15,0.38,0.48,13.27,potatoe products,3,0,1,2,1
-SYN-06c8048c,Synthetic confectionery 556,0.75,0.55,0.44,21.21,confectionery,1,1,0,7,1
-SYN-2824b409,Synthetic instant meals 557,0.57,0.43,0.55,9.45,instant meals,2,0,1,7,1
-SYN-9c253a20,Synthetic bakery products 558,1.17,0.77,0.34,13.45,bakery products,2,1,0,7,1
-SYN-23646ede,Synthetic confectionery 559,0.78,0.54,0.58,19.92,confectionery,2,1,0,1,1
-SYN-6cc9470c,Synthetic poultry 560,0.81,0.31,0.3,14.7,poultry,2,0,1,1,1
-SYN-d8bec491,Synthetic bakery products 561,1.1,0.48,0.45,15.79,bakery products,1,1,0,3,1
-SYN-d1115ce1,Synthetic seafood 562,0.68,0.43,0.62,11.61,seafood,1,0,1,7,1
-SYN-e05949b8,Synthetic potatoe products 563,1.13,0.33,0.51,14.03,potatoe products,2,0,1,7,1
-SYN-9de29725,Synthetic candy 564,0.78,0.54,0.53,20.87,candy,3,0,1,1,1
-SYN-35c40c9f,Synthetic pizza 565,0.55,0.31,0.36,5.68,pizza,3,0,1,3,1
-SYN-5f13cb87,Synthetic bakery products 566,1.11,0.66,0.19,16.95,bakery products,3,1,0,5,1
-SYN-c0cefc68,Synthetic side dish 567,0.77,0.54,0.3,12.07,side dish,3,0,1,3,1
-SYN-c7c04ae5,Synthetic seafood 568,0.76,0.45,0.54,5.73,seafood,1,0,1,2,1
-SYN-31dd98fb,Synthetic confectionery 569,1.13,0.36,0.5,12.49,confectionery,1,1,0,6,1
-SYN-f324fcd4,Synthetic fish 570,1.1,0.37,0.49,12.86,fish,1,0,1,1,1
-SYN-8fcfbf81,Synthetic confectionery 571,0.73,0.63,0.63,11.14,confectionery,3,1,0,6,1
-SYN-f787c05c,Synthetic vegetables 572,0.71,0.48,0.64,14.97,vegetables,1,1,0,9,1
-SYN-6e35a230,Synthetic vegetables 573,0.8,0.58,0.48,16.76,vegetables,2,1,0,7,1
-SYN-a5a831be,Synthetic candy 574,1.19,0.78,0.63,14.93,candy,1,0,1,5,1
-SYN-f8aac478,Synthetic vegetables 575,0.79,0.6,0.54,20.68,vegetables,3,1,0,7,1
-SYN-c3c00a53,Synthetic confectionery 576,0.74,0.5,0.62,17.76,confectionery,1,1,0,7,1
-SYN-80d8b854,Synthetic potatoe products 577,0.68,0.37,0.38,13.59,potatoe products,2,0,1,8,1
-SYN-e872cd8a,Synthetic bakery products 578,1.17,0.7,0.64,11.7,bakery products,3,1,0,10,1
-SYN-fb445fc2,Synthetic confectionery 579,0.75,0.34,0.22,2.61,confectionery,1,1,0,8,1
-SYN-756e8df8,Synthetic confectionery 580,0.76,0.53,0.6,19.22,confectionery,1,1,0,5,1
-SYN-2d0632dd,Synthetic ice 581,0.78,0.54,0.55,20.42,ice,1,0,1,9,1
-SYN-c33c9e11,Synthetic non-food products 582,0.97,0.31,0.45,9.24,non-food products,3,0,1,6,1
-SYN-84b6afdb,Synthetic candy 583,0.68,0.42,0.61,11.66,candy,3,0,1,1,1
-SYN-ee312021,Synthetic bakery products 584,1.09,0.5,0.37,16.06,bakery products,2,1,0,8,1
-SYN-6bfbf447,Synthetic confectionery 585,1.15,0.44,0.42,12.09,confectionery,1,1,0,4,1
-SYN-16fa608b,Synthetic snack 586,1.15,0.73,0.26,18.62,snack,2,0,1,5,1
-SYN-1a12d71b,Synthetic instant meals 587,0.83,0.34,0.29,10.4,instant meals,2,0,1,8,1
-SYN-b5546657,Synthetic confectionery 588,1.11,0.36,0.5,12.69,confectionery,1,1,0,5,1
-SYN-4f4c4ecb,Synthetic vegetables 589,0.8,0.53,0.59,19.02,vegetables,2,1,0,5,1
-SYN-9b4b05f8,Synthetic red meat 590,1.17,0.78,0.23,16.19,red meat,1,0,1,6,1
-SYN-5e0827fb,Synthetic vegetables 591,0.84,0.53,0.56,19.06,vegetables,3,1,0,4,1
-SYN-30621a61,Synthetic confectionery 592,0.57,0.42,0.4,11.83,confectionery,1,1,0,7,1
-SYN-21a21992,Synthetic confectionery 593,0.66,0.42,0.63,10.6,confectionery,1,1,0,3,1
-SYN-d2aa161b,Synthetic bakery products 594,0.83,0.55,0.24,8.06,bakery products,1,1,0,6,1
-SYN-98d728a8,Synthetic fruit 595,0.74,0.48,0.4,20.37,fruit,2,1,0,8,1
-SYN-13c2f017,Synthetic confectionery 596,0.78,0.55,0.56,19.64,confectionery,2,1,0,5,1
-SYN-948fc25b,Synthetic vegetables 597,1.09,0.35,0.47,12.46,vegetables,1,1,0,10,1
-SYN-a4ec7d98,Synthetic bakery products 598,0.81,0.59,0.42,14.78,bakery products,3,1,0,8,1
-SYN-2b111202,Synthetic instant meals 599,0.78,0.57,0.52,18.55,instant meals,3,0,1,10,1
-SYN-ee2e4086,Synthetic red meat 600,0.82,0.58,0.34,11.91,red meat,1,0,1,1,1
+SYN-27a62b45,Synthetic instant meals 1,1.18,0.8,0.57,15.03,instant meals,1,0,1,4,1
+SYN-7e1f6296,Synthetic bakery products 2,0.8,0.33,0.33,15.62,bakery products,1,1,0,2,1
+SYN-3a4c3875,Synthetic non-food products 3,1.04,0.53,0.55,18.99,non-food products,2,0,1,2,1
+SYN-d2e30971,Synthetic bakery products 4,1.09,0.48,0.53,13.38,bakery products,3,1,0,2,1
+SYN-faaed94f,Synthetic vegetables 5,0.73,0.41,0.62,14.15,vegetables,1,1,0,5,1
+SYN-ff551150,Synthetic snack 6,0.53,0.38,0.47,7.58,snack,2,0,0,1,1
+SYN-e96d6376,Synthetic side dish 7,1.08,0.69,0.52,11.49,side dish,3,0,1,9,1
+SYN-9a842f85,Synthetic seafood 8,1.12,0.42,0.53,10.97,seafood,3,0,1,3,1
+SYN-f7f9e3db,Synthetic pizza 9,0.68,0.4,0.6,10.54,pizza,2,0,1,9,1
+SYN-037a50d9,Synthetic confectionery 10,0.79,0.52,0.62,18.12,confectionery,2,1,0,2,1
+SYN-d983b54f,Synthetic snack 11,0.67,0.41,0.6,11.25,snack,1,0,0,4,1
+SYN-3edd6aac,Synthetic confectionery 12,1.16,0.41,0.42,14.32,confectionery,3,1,0,9,1
+SYN-2caca519,Synthetic bakery products 13,0.75,0.35,0.41,14.89,bakery products,2,1,0,9,1
+SYN-770e1d55,Synthetic ice cream 14,1.15,0.4,0.58,17.41,ice cream,1,1,0,9,1
+SYN-73c195d8,Synthetic bakery products 15,0.66,0.4,0.58,10.93,bakery products,3,1,0,8,1
+SYN-777ee24b,Synthetic confectionery 16,1.16,0.75,0.45,15.15,confectionery,1,1,0,5,1
+SYN-8245c9aa,Synthetic confectionery 17,0.79,0.41,0.58,15.69,confectionery,1,1,0,6,1
+SYN-80d64ce8,Synthetic ice cream 18,1.15,0.39,0.49,12.57,ice cream,2,1,0,1,1
+SYN-c60fd7b7,Synthetic confectionery 19,1.16,0.41,0.47,14.41,confectionery,2,1,0,6,1
+SYN-11cc0705,Synthetic seafood 20,0.51,0.38,0.53,6.48,seafood,3,0,1,8,1
+SYN-e90ccb87,Synthetic bakery products 21,0.82,0.59,0.39,14.39,bakery products,1,1,0,7,1
+SYN-a65322b7,Synthetic bakery products 22,0.75,0.53,0.47,20.87,bakery products,3,1,0,1,1
+SYN-ca39f9a3,Synthetic pizza 23,0.72,0.37,0.25,3.04,pizza,3,0,1,7,1
+SYN-bc5315a3,Synthetic vegetables 24,1.07,0.57,0.39,17.22,vegetables,2,1,0,3,1
+SYN-55ba3b2a,Synthetic bakery products 25,1.05,0.34,0.48,10.81,bakery products,1,1,0,10,1
+SYN-5cac82f9,Synthetic vegetables 26,1.13,0.39,0.5,12.95,vegetables,3,1,0,6,1
+SYN-ad5cfbca,Synthetic pizza 27,0.77,0.44,0.42,19.97,pizza,1,0,1,7,1
+SYN-60342511,Synthetic confectionery 28,0.67,0.41,0.61,11.54,confectionery,3,1,0,9,1
+SYN-cbf20650,Synthetic bakery products 29,1.14,0.43,0.55,17.65,bakery products,1,1,0,8,1
+SYN-e11fad4d,Synthetic snack 30,0.8,0.67,0.47,16.22,snack,1,0,0,9,1
+SYN-d07197f5,Synthetic bakery products 31,1.16,0.71,0.5,17.02,bakery products,2,1,0,4,1
+SYN-61ed347b,Synthetic pizza 32,0.75,0.52,0.63,18.61,pizza,1,0,1,9,1
+SYN-3f856099,Synthetic bakery products 33,0.54,0.39,0.44,9.45,bakery products,2,1,0,5,1
+SYN-d775259e,Synthetic confectionery 34,0.71,0.39,0.31,3.91,confectionery,1,1,0,5,1
+SYN-5d85d19a,Synthetic ice cream 35,0.86,0.59,0.44,16.45,ice cream,1,1,0,9,1
+SYN-74a23fcb,Synthetic bakery products 36,0.77,0.53,0.58,19.33,bakery products,3,1,0,2,1
+SYN-7301856f,Synthetic vegetables 37,0.62,0.41,0.54,11.27,vegetables,2,1,0,1,1
+SYN-ab46e459,Synthetic fish 38,0.56,0.43,0.38,11.86,fish,3,0,0,7,1
+SYN-ba6fc262,Synthetic pizza 39,1.16,0.43,0.41,17.37,pizza,2,0,1,6,1
+SYN-a0a2187c,Synthetic confectionery 40,1.18,0.8,0.58,14.1,confectionery,2,1,0,6,1
+SYN-fefdd811,Synthetic confectionery 41,0.76,0.39,0.59,14.16,confectionery,3,1,0,8,1
+SYN-fe04e262,Synthetic snack 42,0.66,0.42,0.61,10.57,snack,1,0,1,9,1
+SYN-0b13c83c,Synthetic bakery products 43,0.95,0.55,0.52,18.82,bakery products,1,1,0,10,1
+SYN-8056982b,Synthetic potatoe products 44,1.15,0.44,0.4,15.04,potatoe products,2,0,1,7,1
+SYN-59c10970,Synthetic confectionery 45,1.12,0.38,0.49,13.11,confectionery,1,1,0,10,1
+SYN-48476bc8,Synthetic bakery products 46,0.95,0.67,0.52,10.33,bakery products,3,1,0,8,1
+SYN-2a159ac6,Synthetic vegetables 47,1.14,0.41,0.49,11.55,vegetables,2,1,0,1,1
+SYN-e730bf6c,Synthetic bakery products 48,0.74,0.51,0.31,5.11,bakery products,1,1,0,7,1
+SYN-cfc9efc0,Synthetic ice cream 49,0.67,0.41,0.6,10.86,ice cream,1,1,0,8,1
+SYN-14a67e1f,Synthetic poultry 50,0.68,0.41,0.59,11.67,poultry,2,0,1,5,1
+SYN-a7c799f6,Synthetic instant meals 51,0.79,0.58,0.48,16.82,instant meals,1,0,1,7,1
+SYN-c3129292,Synthetic bakery products 52,1.18,0.79,0.58,14.48,bakery products,3,1,0,2,1
+SYN-dbd77934,Synthetic vegetables 53,1.17,0.78,0.26,17.84,vegetables,1,1,0,9,1
+SYN-795aed1b,Synthetic instant meals 54,1.13,0.38,0.49,12.68,instant meals,3,0,1,3,1
+SYN-07359f3e,Synthetic pizza 55,0.83,0.56,0.22,12.25,pizza,3,0,1,10,1
+SYN-6a5d656b,Synthetic bakery products 56,1.07,0.55,0.53,18.61,bakery products,3,1,0,7,1
+SYN-9367eb1d,Synthetic poultry 57,1.16,0.77,0.57,14.75,poultry,2,0,1,2,1
+SYN-82a8f484,Synthetic pizza 58,0.79,0.55,0.53,21.25,pizza,2,0,1,1,1
+SYN-deb87d26,Synthetic red meat 59,0.77,0.51,0.61,17.71,red meat,3,0,1,6,1
+SYN-5537a224,Synthetic vegetables 60,1.06,0.34,0.47,12.26,vegetables,2,1,0,4,1
+SYN-d303407c,Synthetic confectionery 61,1.16,0.5,0.65,17.16,confectionery,2,1,0,9,1
+SYN-3bd3de66,Synthetic ice cream 62,0.78,0.54,0.55,20.54,ice cream,2,1,0,1,1
+SYN-6588b763,Synthetic confectionery 63,0.75,0.7,0.57,16.1,confectionery,1,1,0,10,1
+SYN-dc0f0a1f,Synthetic instant meals 64,1.12,0.52,0.65,21.03,instant meals,2,0,1,9,1
+SYN-2f76c36a,Synthetic ice cream 65,0.62,0.42,0.54,11.55,ice cream,3,1,0,9,1
+SYN-4bb3ab32,Synthetic bakery products 66,0.81,0.59,0.25,13.11,bakery products,1,1,0,7,1
+SYN-1af2321e,Synthetic fruit 67,1.14,0.4,0.48,13.48,fruit,1,1,0,5,1
+SYN-3e43fb49,Synthetic confectionery 68,1.07,0.57,0.29,15.63,confectionery,3,1,0,9,1
+SYN-4db75948,Synthetic bakery products 69,0.8,0.57,0.38,12.79,bakery products,3,1,0,9,1
+SYN-f233d9f9,Synthetic bakery products 70,0.63,0.34,0.38,4.69,bakery products,1,1,0,10,1
+SYN-33fc2bf2,Synthetic confectionery 71,1.07,0.33,0.47,12.08,confectionery,1,1,0,4,1
+SYN-014a7910,Synthetic potatoe products 72,0.71,0.47,0.63,14.74,potatoe products,3,0,1,9,1
+SYN-efc9016a,Synthetic confectionery 73,1.16,0.73,0.66,12.66,confectionery,1,1,0,10,1
+SYN-87d429cb,Synthetic vegetables 74,1.18,0.8,0.47,14.67,vegetables,2,1,0,7,1
+SYN-62618ecd,Synthetic pizza 75,0.63,0.39,0.39,12.54,pizza,2,0,1,2,1
+SYN-4cb9b374,Synthetic confectionery 76,1.1,0.51,0.35,16.63,confectionery,2,1,0,5,1
+SYN-65a4b306,Synthetic instant meals 77,1.15,0.6,0.66,14.38,instant meals,1,0,1,10,1
+SYN-b841bf6c,Synthetic ice cream 78,0.78,0.41,0.52,18.11,ice cream,3,1,0,7,1
+SYN-58757f59,Synthetic confectionery 79,1.08,0.54,0.37,16.89,confectionery,1,1,0,7,1
+SYN-dc9d5d26,Synthetic vegetables 80,1.08,0.34,0.49,12.06,vegetables,2,1,0,8,1
+SYN-a54a09e0,Synthetic ice cream 81,0.75,0.51,0.61,17.54,ice cream,3,1,0,1,1
+SYN-93c6fdc2,Synthetic instant meals 82,0.76,0.66,0.62,13.17,instant meals,1,0,1,3,1
+SYN-0cb66b78,Synthetic fish 83,1.06,0.49,0.5,12.22,fish,3,0,1,5,1
+SYN-c7067039,Synthetic seafood 84,0.68,0.41,0.63,11.2,seafood,2,0,1,6,1
+SYN-0d0a0792,Synthetic candy 85,0.99,0.63,0.23,15.77,candy,2,0,1,1,1
+SYN-c3b99cca,Synthetic bakery products 86,0.79,0.66,0.46,17.57,bakery products,2,1,0,7,1
+SYN-75ebcae7,Synthetic confectionery 87,0.51,0.39,0.53,6.78,confectionery,2,1,0,3,1
+SYN-eea75305,Synthetic confectionery 88,0.96,0.44,0.43,9.92,confectionery,1,1,0,9,1
+SYN-7a0feff3,Synthetic ice cream 89,0.84,0.36,0.29,10.34,ice cream,1,1,0,8,1
+SYN-8746b5b0,Synthetic bakery products 90,1.14,0.4,0.48,13.33,bakery products,3,1,0,9,1
+SYN-bfe5f166,Synthetic instant meals 91,0.88,0.25,0.4,8.57,instant meals,3,0,1,4,1
+SYN-f9546348,Synthetic ice cream 92,1.16,0.79,0.42,12.54,ice cream,3,1,0,1,1
+SYN-b6c9b12a,Synthetic confectionery 93,1.09,0.51,0.52,17.29,confectionery,1,1,0,10,1
+SYN-1c1457e1,Synthetic confectionery 94,1.18,0.8,0.58,14.96,confectionery,2,1,0,8,1
+SYN-ebefef06,Synthetic pizza 95,1.03,0.45,0.44,10.03,pizza,2,0,1,6,1
+SYN-38c98580,Synthetic confectionery 96,0.54,0.34,0.4,7.42,confectionery,2,1,0,3,1
+SYN-1fdd6770,Synthetic fish 97,0.59,0.29,0.3,4.34,fish,3,0,1,1,1
+SYN-f0b84a3f,Synthetic confectionery 98,0.7,0.41,0.52,7.19,confectionery,1,1,0,3,1
+SYN-53063468,Synthetic red meat 99,0.66,0.41,0.61,10.58,red meat,3,0,1,1,1
+SYN-f53782f3,Synthetic confectionery 100,0.69,0.45,0.63,11.83,confectionery,2,1,0,8,1
+SYN-e72ed358,Synthetic bakery products 101,1.14,0.68,0.18,19.05,bakery products,3,1,0,10,1
+SYN-7c167a89,Synthetic confectionery 102,1.14,0.44,0.48,14.83,confectionery,3,1,0,4,1
+SYN-96f1f51b,Synthetic pizza 103,0.54,0.41,0.37,9.93,pizza,3,0,0,6,1
+SYN-92b189ec,Synthetic confectionery 104,0.56,0.43,0.42,11.65,confectionery,3,1,0,10,1
+SYN-86c162f8,Synthetic confectionery 105,0.9,0.53,0.57,19.22,confectionery,2,1,0,7,1
+SYN-628a496b,Synthetic candy 106,0.89,0.54,0.55,19.58,candy,3,0,1,8,1
+SYN-6fd9b5c4,Synthetic instant meals 107,1.12,0.37,0.5,12.45,instant meals,2,0,1,5,1
+SYN-33c5d7e7,Synthetic red meat 108,0.58,0.41,0.56,8.26,red meat,3,0,1,10,1
+SYN-482559a3,Synthetic vegetables 109,0.76,0.56,0.54,9.63,vegetables,1,1,0,10,1
+SYN-5d3929e7,Synthetic instant meals 110,0.78,0.53,0.59,20.01,instant meals,3,0,1,8,1
+SYN-0d5f4eac,Synthetic potatoe products 111,0.77,0.53,0.55,5.35,potatoe products,2,0,1,4,1
+SYN-16e33e7c,Synthetic dairy products 112,0.95,0.78,0.4,12.18,dairy products,1,0,1,4,1
+SYN-a80aa610,Synthetic confectionery 113,0.79,0.57,0.55,18.66,confectionery,1,1,0,6,1
+SYN-c6de3bde,Synthetic snack 114,1.16,0.53,0.68,16.06,snack,1,0,1,3,1
+SYN-4e6836af,Synthetic ice cream 115,1.18,0.8,0.54,15.31,ice cream,1,1,0,5,1
+SYN-90c3e345,Synthetic candy 116,1.08,0.56,0.23,14.85,candy,1,0,1,4,1
+SYN-841fd2ee,Synthetic fish 117,0.71,0.52,0.41,20.37,fish,1,0,1,1,1
+SYN-350fba5f,Synthetic fruit 118,1.11,0.45,0.48,15.09,fruit,1,1,0,5,1
+SYN-159100fc,Synthetic ice cream 119,0.76,0.49,0.5,20.74,ice cream,2,1,0,1,1
+SYN-33920219,Synthetic confectionery 120,0.77,0.53,0.59,19.75,confectionery,3,1,0,7,1
+SYN-10c07000,Synthetic ice cream 121,1.13,0.44,0.47,14.84,ice cream,3,1,0,2,1
+SYN-0b5d2e84,Synthetic confectionery 122,0.56,0.43,0.48,10.39,confectionery,2,1,0,4,1
+SYN-4a291078,Synthetic instant meals 123,0.75,0.75,0.46,15.43,instant meals,1,0,1,7,1
+SYN-fd831d82,Synthetic ice cream 124,0.75,0.52,0.38,5.09,ice cream,2,1,0,2,1
+SYN-f0540864,Synthetic pizza 125,1.18,0.8,0.49,14.48,pizza,3,0,0,10,1
+SYN-df2b9d50,Synthetic bakery products 126,0.64,0.42,0.58,11.07,bakery products,3,1,0,2,1
+SYN-b721f9d1,Synthetic bakery products 127,0.77,0.53,0.54,20.39,bakery products,1,1,0,9,1
+SYN-d2e1a3d2,Synthetic candy 128,1.1,0.36,0.5,12.31,candy,3,0,1,9,1
+SYN-bfbeb7cc,Synthetic confectionery 129,0.82,0.58,0.26,9.59,confectionery,3,1,0,9,1
+SYN-bbf82939,Synthetic side dish 130,0.87,0.59,0.35,14.43,side dish,3,0,1,5,1
+SYN-5c59a1d6,Synthetic non-food products 131,0.67,0.41,0.62,11.19,non-food products,2,0,1,8,1
+SYN-0fc9d205,Synthetic potatoe products 132,0.77,0.55,0.24,5.9,potatoe products,2,0,1,3,1
+SYN-ad9f17a0,Synthetic confectionery 133,0.63,0.43,0.59,11.39,confectionery,1,1,0,4,1
+SYN-ef720821,Synthetic ice cream 134,0.79,0.55,0.53,6.61,ice cream,1,1,0,7,1
+SYN-1cce695d,Synthetic bakery products 135,0.76,0.78,0.38,12.18,bakery products,1,1,0,5,1
+SYN-8021ac1c,Synthetic poultry 136,0.92,0.29,0.48,9.7,poultry,3,0,1,4,1
+SYN-596a6f04,Synthetic side dish 137,1.15,0.42,0.43,15.08,side dish,2,0,1,2,1
+SYN-cb99f8f6,Synthetic candy 138,1.18,0.73,0.15,20.83,candy,1,0,1,5,1
+SYN-37e0dbff,Synthetic pizza 139,1.12,0.49,0.33,16.17,pizza,3,0,1,10,1
+SYN-0b31298a,Synthetic vegetables 140,0.49,0.38,0.52,5.47,vegetables,3,1,0,7,1
+SYN-cacc2937,Synthetic fish 141,0.86,0.26,0.45,8.04,fish,3,0,1,6,1
+SYN-abef69e2,Synthetic ice cream 142,0.78,0.66,0.55,16.97,ice cream,3,1,0,9,1
+SYN-fdc68b23,Synthetic confectionery 143,0.6,0.42,0.5,11.76,confectionery,2,1,0,8,1
+SYN-3980cee5,Synthetic potatoe products 144,0.8,0.57,0.51,18.39,potatoe products,3,0,0,6,1
+SYN-0b08eccf,Synthetic confectionery 145,1.11,0.44,0.44,13.14,confectionery,3,1,0,5,1
+SYN-2c67e35f,Synthetic bakery products 146,0.95,0.45,0.42,9.05,bakery products,3,1,0,1,1
+SYN-f413c0a8,Synthetic ice cream 147,0.77,0.53,0.61,19.95,ice cream,2,1,0,10,1
+SYN-7b966b77,Synthetic candy 148,0.66,0.45,0.3,4.85,candy,1,0,1,10,1
+SYN-c964b5eb,Synthetic dairy products 149,1.11,0.49,0.49,16.93,dairy products,3,0,1,4,1
+SYN-fd761c8f,Synthetic bakery products 150,0.79,0.57,0.53,17.88,bakery products,2,1,0,2,1
+SYN-0dc58783,Synthetic side dish 151,0.9,0.42,0.45,8.85,side dish,3,0,1,10,1
+SYN-6cebce92,Synthetic dairy products 152,0.77,0.53,0.61,19.42,dairy products,1,0,1,2,1
+SYN-c9ed8e81,Synthetic ice cream 153,0.99,0.56,0.48,18.99,ice cream,3,1,0,7,1
+SYN-0ac7d6d6,Synthetic candy 154,1.18,0.78,0.43,14.84,candy,2,0,1,3,1
+SYN-dd6e78be,Synthetic side dish 155,0.69,0.41,0.56,9.26,side dish,1,0,1,6,1
+SYN-ff0a5e74,Synthetic pizza 156,0.71,0.42,0.54,8.0,pizza,1,0,1,10,1
+SYN-de5a963d,Synthetic ice cream 157,1.14,0.41,0.47,14.07,ice cream,2,1,0,5,1
+SYN-c9adddcf,Synthetic instant meals 158,1.14,0.37,0.53,16.63,instant meals,2,0,1,3,1
+SYN-abaf3f22,Synthetic poultry 159,0.5,0.33,0.49,4.72,poultry,2,0,1,4,1
+SYN-4e8d3064,Synthetic ice cream 160,1.08,0.35,0.5,11.24,ice cream,1,1,0,10,1
+SYN-2bba8aaa,Synthetic confectionery 161,0.72,0.34,0.32,3.61,confectionery,3,1,0,6,1
+SYN-c13febf9,Synthetic vegetables 162,1.18,0.79,0.54,15.82,vegetables,1,1,0,3,1
+SYN-e13d273e,Synthetic fish 163,1.18,0.76,0.34,18.33,fish,3,0,1,5,1
+SYN-227f6b48,Synthetic dairy products 164,1.18,0.62,0.56,9.29,dairy products,3,0,1,6,1
+SYN-7109f5ac,Synthetic seafood 165,0.78,0.49,0.57,20.95,seafood,3,0,1,7,1
+SYN-14668f9e,Synthetic confectionery 166,0.58,0.43,0.53,10.93,confectionery,2,1,0,1,1
+SYN-21427f8e,Synthetic bakery products 167,0.8,0.5,0.61,20.45,bakery products,1,1,0,2,1
+SYN-1fb09c46,Synthetic instant meals 168,0.67,0.41,0.6,10.61,instant meals,2,0,1,9,1
+SYN-25c5abb8,Synthetic dairy products 169,0.81,0.58,0.34,11.96,dairy products,1,0,1,5,1
+SYN-a85ff96b,Synthetic confectionery 170,1.01,0.54,0.54,19.6,confectionery,1,1,0,3,1
+SYN-1b840024,Synthetic confectionery 171,1.16,0.41,0.45,14.6,confectionery,2,1,0,6,1
+SYN-dc450e9c,Synthetic confectionery 172,0.51,0.39,0.52,6.79,confectionery,2,1,0,8,1
+SYN-5c4b2253,Synthetic side dish 173,0.66,0.41,0.59,10.96,side dish,3,0,1,6,1
+SYN-4f7d8fce,Synthetic instant meals 174,0.74,0.44,0.28,5.06,instant meals,1,0,1,10,1
+SYN-9a948a22,Synthetic instant meals 175,0.68,0.43,0.62,11.7,instant meals,2,0,1,9,1
+SYN-ad92b150,Synthetic fish 176,1.16,0.41,0.46,14.03,fish,1,0,0,4,1
+SYN-2d35d50c,Synthetic vegetables 177,0.69,0.41,0.6,11.97,vegetables,1,1,0,10,1
+SYN-241f27b1,Synthetic ice cream 178,0.72,0.46,0.6,10.93,ice cream,2,1,0,3,1
+SYN-c7bc4345,Synthetic confectionery 179,1.05,0.56,0.51,18.93,confectionery,1,1,0,6,1
+SYN-5d71447a,Synthetic bakery products 180,1.07,0.57,0.24,14.09,bakery products,1,1,0,4,1
+SYN-28220f57,Synthetic potatoe products 181,1.11,0.54,0.58,20.77,potatoe products,1,0,1,5,1
+SYN-86b20091,Synthetic instant meals 182,1.11,0.45,0.45,15.29,instant meals,1,0,1,4,1
+SYN-a7ee225f,Synthetic candy 183,0.58,0.42,0.41,11.72,candy,1,0,0,4,1
+SYN-9faa3473,Synthetic bakery products 184,0.78,0.55,0.32,11.61,bakery products,2,1,0,4,1
+SYN-2ae94bf8,Synthetic confectionery 185,0.81,0.51,0.31,8.45,confectionery,2,1,0,7,1
+SYN-e2a87a84,Synthetic confectionery 186,1.06,0.54,0.57,18.95,confectionery,2,1,0,4,1
+SYN-66e1b9ca,Synthetic ice cream 187,0.75,0.51,0.62,18.12,ice cream,1,1,0,6,1
+SYN-e8670ee9,Synthetic candy 188,0.77,0.52,0.55,20.72,candy,1,0,1,2,1
+SYN-7f0501a1,Synthetic confectionery 189,0.94,0.53,0.53,18.9,confectionery,2,1,0,10,1
+SYN-161a0654,Synthetic pizza 190,1.18,0.79,0.53,15.27,pizza,1,0,1,8,1
+SYN-45e9694b,Synthetic ice cream 191,0.66,0.41,0.59,10.98,ice cream,2,1,0,2,1
+SYN-78ea69e3,Synthetic ice cream 192,0.77,0.79,0.35,10.62,ice cream,3,1,0,10,1
+SYN-862b3e01,Synthetic candy 193,0.65,0.41,0.54,11.74,candy,1,0,1,8,1
+SYN-14a5e796,Synthetic instant meals 194,0.8,0.53,0.26,11.98,instant meals,1,0,1,10,1
+SYN-69ef2a30,Synthetic fish 195,1.16,0.41,0.47,13.98,fish,3,0,1,6,1
+SYN-22e7a27b,Synthetic ice cream 196,0.77,0.5,0.3,4.9,ice cream,3,1,0,10,1
+SYN-84b8daa5,Synthetic red meat 197,0.64,0.41,0.3,6.41,red meat,2,0,1,7,1
+SYN-ce2ab1d8,Synthetic instant meals 198,1.18,0.78,0.29,15.43,instant meals,3,0,1,7,1
+SYN-97000e69,Synthetic red meat 199,1.18,0.63,0.62,10.5,red meat,2,0,1,2,1
+SYN-055a8be6,Synthetic confectionery 200,0.85,0.75,0.23,12.54,confectionery,3,1,0,2,1
+SYN-d74ef3af,Synthetic instant meals 201,1.18,0.79,0.47,14.55,instant meals,2,0,1,1,1
+SYN-de014095,Synthetic bakery products 202,0.7,0.45,0.62,13.72,bakery products,1,1,0,2,1
+SYN-28a372e0,Synthetic vegetables 203,0.63,0.33,0.35,4.59,vegetables,1,1,0,6,1
+SYN-ce75d74f,Synthetic fish 204,0.74,0.38,0.59,13.64,fish,3,0,1,7,1
+SYN-9037e427,Synthetic non-food products 205,0.76,0.51,0.46,21.36,non-food products,2,0,1,10,1
+SYN-0d9e2a97,Synthetic side dish 206,1.17,0.4,0.48,13.74,side dish,3,0,1,9,1
+SYN-aac2deb5,Synthetic seafood 207,1.18,0.79,0.38,14.88,seafood,2,0,1,6,1
+SYN-65ae14f0,Synthetic herbs/spice 208,0.78,0.56,0.59,6.17,herbs/spice,2,0,1,1,1
+SYN-a97bc1ad,Synthetic confectionery 209,0.76,0.53,0.52,20.6,confectionery,1,1,0,3,1
+SYN-f0207f95,Synthetic seafood 210,0.81,0.59,0.44,16.29,seafood,3,0,1,10,1
+SYN-24ca54ac,Synthetic bakery products 211,1.12,0.47,0.52,16.92,bakery products,2,1,0,1,1
+SYN-9abba8f8,Synthetic instant meals 212,0.78,0.54,0.56,20.31,instant meals,3,0,1,5,1
+SYN-aca6b367,Synthetic snack 213,0.51,0.31,0.47,4.8,snack,3,0,1,1,1
+SYN-116e73b6,Synthetic potatoe products 214,0.67,0.42,0.6,11.67,potatoe products,1,0,1,4,1
+SYN-308bcb6b,Synthetic potatoe products 215,1.18,0.79,0.54,15.96,potatoe products,2,0,1,8,1
+SYN-ee908b62,Synthetic dairy products 216,1.09,0.35,0.47,11.61,dairy products,2,0,1,6,1
+SYN-2c3060b3,Synthetic vegetables 217,1.12,0.48,0.47,16.42,vegetables,1,1,0,7,1
+SYN-f6d6fa7e,Synthetic confectionery 218,1.14,0.41,0.55,13.96,confectionery,1,1,0,4,1
+SYN-8324c449,Synthetic fruit 219,0.78,0.53,0.61,19.39,fruit,3,1,0,3,1
+SYN-bc4f393e,Synthetic potatoe products 220,0.67,0.42,0.61,11.11,potatoe products,1,0,1,2,1
+SYN-ea21b3a7,Synthetic confectionery 221,1.05,0.47,0.44,9.65,confectionery,3,1,0,3,1
+SYN-d8632724,Synthetic confectionery 222,0.74,0.56,0.44,21.87,confectionery,3,1,0,4,1
+SYN-00b35dc7,Synthetic seafood 223,0.77,0.54,0.53,19.76,seafood,2,0,1,7,1
+SYN-1e706ff1,Synthetic red meat 224,0.51,0.37,0.5,6.96,red meat,1,0,1,9,1
+SYN-1f8711ab,Synthetic confectionery 225,0.78,0.53,0.58,20.19,confectionery,2,1,0,7,1
+SYN-7a839789,Synthetic fish 226,1.14,0.44,0.5,14.94,fish,3,0,1,5,1
+SYN-f1aab7d3,Synthetic pizza 227,0.77,0.54,0.58,19.76,pizza,3,0,1,6,1
+SYN-30c0cd26,Synthetic bakery products 228,0.78,0.49,0.43,21.18,bakery products,3,1,0,5,1
+SYN-e4f1dcca,Synthetic instant meals 229,1.09,0.37,0.5,11.51,instant meals,3,0,1,8,1
+SYN-e838c7d3,Synthetic side dish 230,0.78,0.75,0.34,14.26,side dish,1,0,1,9,1
+SYN-f41b9783,Synthetic instant meals 231,1.18,0.78,0.51,13.67,instant meals,1,0,0,5,1
+SYN-2a3ec304,Synthetic fish 232,0.8,0.56,0.3,12.89,fish,3,0,1,9,1
+SYN-454af6d9,Synthetic confectionery 233,0.79,0.38,0.3,7.61,confectionery,2,1,0,1,1
+SYN-08f0cfd9,Synthetic fish 234,1.1,0.58,0.2,13.6,fish,3,0,0,3,1
+SYN-0c69831e,Synthetic candy 235,0.78,0.54,0.31,11.7,candy,3,0,0,3,1
+SYN-a67031a7,Synthetic seafood 236,0.9,0.52,0.55,17.37,seafood,2,0,1,7,1
+SYN-1093cf9b,Synthetic candy 237,0.81,0.57,0.23,10.63,candy,1,0,1,3,1
+SYN-e90e38de,Synthetic bakery products 238,1.09,0.49,0.48,15.8,bakery products,1,1,0,8,1
+SYN-c18b6917,Synthetic pizza 239,1.07,0.54,0.52,18.12,pizza,3,0,1,1,1
+SYN-826eb0d4,Synthetic red meat 240,1.14,0.43,0.4,15.07,red meat,1,0,1,3,1
+SYN-84d0e5e0,Synthetic instant meals 241,1.16,0.77,0.19,15.24,instant meals,2,0,1,9,1
+SYN-710308c7,Synthetic vegetables 242,0.79,0.54,0.28,12.98,vegetables,1,1,0,9,1
+SYN-de2924f4,Synthetic side dish 243,0.58,0.35,0.45,6.5,side dish,3,0,1,10,1
+SYN-2f2d9875,Synthetic confectionery 244,1.13,0.45,0.51,10.87,confectionery,1,1,0,7,1
+SYN-6b6ed406,Synthetic snack 245,0.71,0.39,0.59,12.57,snack,2,0,0,4,1
+SYN-8cf5b420,Synthetic red meat 246,1.1,0.52,0.57,17.07,red meat,1,0,1,1,1
+SYN-90eada26,Synthetic confectionery 247,0.77,0.37,0.58,14.78,confectionery,1,1,0,4,1
+SYN-6d3c440a,Synthetic non-food products 248,0.75,0.37,0.56,13.36,non-food products,3,0,1,10,1
+SYN-a6fbd1cf,Synthetic poultry 249,0.79,0.56,0.53,20.17,poultry,1,0,1,4,1
+SYN-44af9ab6,Synthetic confectionery 250,1.06,0.58,0.32,15.5,confectionery,3,1,0,10,1
+SYN-187d4645,Synthetic side dish 251,0.5,0.35,0.48,4.71,side dish,1,0,1,6,1
+SYN-b469355d,Synthetic instant meals 252,1.1,0.47,0.41,16.33,instant meals,2,0,1,2,1
+SYN-b999b2ca,Synthetic side dish 253,0.66,0.41,0.61,10.07,side dish,1,0,1,10,1
+SYN-e47b9a3f,Synthetic bakery products 254,1.15,0.43,0.44,15.12,bakery products,2,1,0,3,1
+SYN-cdb251f1,Synthetic dairy products 255,0.57,0.43,0.55,9.1,dairy products,3,0,1,9,1
+SYN-e2466f9b,Synthetic poultry 256,0.75,0.51,0.62,18.39,poultry,1,0,0,2,1
+SYN-645be1cf,Synthetic bakery products 257,0.78,0.35,0.46,14.71,bakery products,3,1,0,6,1
+SYN-ded74660,Synthetic pizza 258,1.14,0.38,0.49,12.66,pizza,2,0,1,8,1
+SYN-cd81dcc7,Synthetic bakery products 259,0.81,0.32,0.34,15.82,bakery products,2,1,0,5,1
+SYN-13e9e5c5,Synthetic vegetables 260,0.68,0.41,0.6,10.99,vegetables,3,1,0,5,1
+SYN-6b10c735,Synthetic instant meals 261,0.83,0.46,0.53,7.22,instant meals,3,0,1,5,1
+SYN-582a9fae,Synthetic red meat 262,1.14,0.42,0.56,11.1,red meat,3,0,1,5,1
+SYN-44eaf2ae,Synthetic fish 263,1.12,0.37,0.5,12.06,fish,3,0,0,5,1
+SYN-0a9f4fe3,Synthetic fish 264,0.78,0.47,0.52,7.21,fish,2,0,1,8,1
+SYN-f7691055,Synthetic confectionery 265,1.15,0.41,0.47,14.32,confectionery,1,1,0,7,1
+SYN-2e498d24,Synthetic pizza 266,0.79,0.56,0.53,20.07,pizza,2,0,1,6,1
+SYN-c5a93327,Synthetic confectionery 267,1.16,0.7,0.6,16.78,confectionery,3,1,0,1,1
+SYN-abf6b548,Synthetic poultry 268,0.76,0.52,0.6,18.17,poultry,3,0,1,5,1
+SYN-4c73486f,Synthetic poultry 269,0.78,0.56,0.53,19.63,poultry,2,0,1,1,1
+SYN-40338a6b,Synthetic bakery products 270,0.79,0.59,0.51,19.61,bakery products,2,1,0,9,1
+SYN-7fe20723,Synthetic pizza 271,0.84,0.55,0.23,12.74,pizza,3,0,1,5,1
+SYN-39949020,Synthetic snack 272,0.82,0.58,0.45,16.45,snack,1,0,1,8,1
+SYN-33a3b2b7,Synthetic confectionery 273,0.82,0.59,0.31,13.49,confectionery,2,1,0,7,1
+SYN-c160e6b4,Synthetic candy 274,0.81,0.59,0.36,12.73,candy,2,0,1,5,1
+SYN-00ff9ea3,Synthetic bakery products 275,1.1,0.52,0.26,15.33,bakery products,1,1,0,3,1
+SYN-0179a496,Synthetic bakery products 276,1.13,0.4,0.47,13.02,bakery products,1,1,0,1,1
+SYN-ae6c7982,Synthetic dairy products 277,1.08,0.51,0.48,17.2,dairy products,2,0,1,8,1
+SYN-00ec43f5,Synthetic bakery products 278,0.82,0.59,0.4,15.23,bakery products,1,1,0,4,1
+SYN-5e9cc346,Synthetic confectionery 279,0.79,0.54,0.48,6.39,confectionery,3,1,0,3,1
+SYN-ea110d2d,Synthetic potatoe products 280,0.89,0.43,0.37,7.68,potatoe products,1,0,1,8,1
+SYN-2c369cc3,Synthetic side dish 281,0.79,0.55,0.52,19.88,side dish,1,0,1,10,1
+SYN-23a608f5,Synthetic ice cream 282,0.81,0.39,0.41,7.18,ice cream,1,1,0,1,1
+SYN-f6607538,Synthetic dairy products 283,0.69,0.43,0.61,11.42,dairy products,3,0,0,9,1
+SYN-a208be0d,Synthetic bakery products 284,0.49,0.36,0.53,4.88,bakery products,1,1,0,2,1
+SYN-efe6b76e,Synthetic bakery products 285,1.13,0.39,0.5,12.63,bakery products,3,1,0,6,1
+SYN-988e0663,Synthetic bakery products 286,0.98,0.6,0.2,14.95,bakery products,2,1,0,7,1
+SYN-72316177,Synthetic dairy products 287,1.12,0.39,0.44,12.44,dairy products,2,0,1,1,1
+SYN-ca687bb1,Synthetic candy 288,0.68,0.41,0.6,11.34,candy,3,0,1,6,1
+SYN-66365911,Synthetic fish 289,0.82,0.59,0.37,13.18,fish,2,0,1,3,1
+SYN-932a01ca,Synthetic confectionery 290,0.8,0.58,0.51,17.88,confectionery,3,1,0,10,1
+SYN-130aa062,Synthetic vegetables 291,0.6,0.42,0.49,11.11,vegetables,3,1,0,10,1
+SYN-9ab22f11,Synthetic instant meals 292,0.57,0.32,0.37,6.64,instant meals,1,0,1,5,1
+SYN-1f98416e,Synthetic instant meals 293,1.1,0.48,0.46,15.8,instant meals,1,0,1,8,1
+SYN-cfdc6144,Synthetic candy 294,1.14,0.44,0.43,17.01,candy,1,0,1,7,1
+SYN-60f3240d,Synthetic bakery products 295,0.82,0.51,0.44,8.24,bakery products,1,1,0,4,1
+SYN-b6010a18,Synthetic red meat 296,1.02,0.34,0.49,9.68,red meat,3,0,1,1,1
+SYN-5ebc4d27,Synthetic confectionery 297,1.09,0.46,0.44,11.45,confectionery,1,1,0,10,1
+SYN-a3378098,Synthetic ice cream 298,1.17,0.76,0.24,21.41,ice cream,3,1,0,1,1
+SYN-d7d234c2,Synthetic bakery products 299,1.16,0.67,0.66,18.82,bakery products,1,1,0,7,1
+SYN-bffbe461,Synthetic confectionery 300,0.72,0.37,0.31,3.44,confectionery,1,1,0,4,1
+SYN-6753ed35,Synthetic side dish 301,0.57,0.4,0.47,6.49,side dish,1,0,1,4,1
+SYN-9876d428,Synthetic confectionery 302,1.08,0.54,0.54,19.33,confectionery,3,1,0,4,1
+SYN-e8b2a49e,Synthetic pizza 303,0.92,0.28,0.47,9.2,pizza,2,0,1,3,1
+SYN-4376cfcb,Synthetic vegetables 304,0.68,0.41,0.6,10.3,vegetables,1,1,0,5,1
+SYN-f636f26c,Synthetic ice cream 305,0.85,0.34,0.28,8.42,ice cream,2,1,0,7,1
+SYN-370ede53,Synthetic vegetables 306,0.79,0.53,0.59,19.86,vegetables,3,1,0,7,1
+SYN-e4f4ce82,Synthetic confectionery 307,1.16,0.79,0.47,13.08,confectionery,3,1,0,4,1
+SYN-857d0585,Synthetic ice cream 308,0.76,0.4,0.59,15.52,ice cream,1,1,0,8,1
+SYN-773f4ca1,Synthetic ice cream 309,0.78,0.55,0.56,19.37,ice cream,2,1,0,5,1
+SYN-c08edc4d,Synthetic confectionery 310,1.16,0.69,0.64,19.07,confectionery,2,1,0,10,1
+SYN-c69ff4d7,Synthetic dairy products 311,1.14,0.44,0.46,15.46,dairy products,3,0,1,1,1
+SYN-3b6000f7,Synthetic confectionery 312,0.81,0.47,0.45,13.29,confectionery,3,1,0,9,1
+SYN-dc3971f5,Synthetic instant meals 313,0.7,0.38,0.34,11.25,instant meals,1,0,1,4,1
+SYN-1567beb7,Synthetic snack 314,1.18,0.8,0.56,15.03,snack,3,0,1,1,1
+SYN-232b98e1,Synthetic ice cream 315,0.49,0.35,0.51,4.78,ice cream,1,1,0,3,1
+SYN-3d522a44,Synthetic seafood 316,0.67,0.41,0.6,11.13,seafood,1,0,1,1,1
+SYN-3bd68beb,Synthetic dairy products 317,0.79,0.56,0.54,19.6,dairy products,1,0,1,1,1
+SYN-4a868daf,Synthetic pizza 318,0.81,0.34,0.44,14.47,pizza,3,0,1,1,1
+SYN-17f3fcb5,Synthetic ice cream 319,0.8,0.36,0.52,15.77,ice cream,2,1,0,7,1
+SYN-693c7f8a,Synthetic ice cream 320,0.82,0.73,0.27,14.1,ice cream,1,1,0,10,1
+SYN-9a18b6e5,Synthetic ice cream 321,1.18,0.8,0.47,15.04,ice cream,2,1,0,7,1
+SYN-785455fc,Synthetic fish 322,0.65,0.42,0.58,11.22,fish,2,0,1,5,1
+SYN-29436508,Synthetic bakery products 323,1.08,0.57,0.31,16.0,bakery products,1,1,0,9,1
+SYN-f3fe7515,Synthetic pizza 324,1.16,0.45,0.65,19.98,pizza,2,0,1,4,1
+SYN-9f10a039,Synthetic confectionery 325,0.71,0.39,0.6,12.31,confectionery,3,1,0,10,1
+SYN-85901f63,Synthetic confectionery 326,1.18,0.8,0.58,14.83,confectionery,2,1,0,9,1
+SYN-7c164eb4,Synthetic non-food products 327,1.13,0.45,0.51,15.21,non-food products,3,0,1,10,1
+SYN-ba0e1481,Synthetic poultry 328,0.65,0.41,0.55,11.47,poultry,3,0,1,10,1
+SYN-d681e6b0,Synthetic bakery products 329,0.96,0.6,0.42,17.22,bakery products,2,1,0,9,1
+SYN-10d044bf,Synthetic confectionery 330,1.12,0.46,0.36,15.82,confectionery,1,1,0,4,1
+SYN-972d812e,Synthetic pizza 331,1.14,0.43,0.47,14.7,pizza,1,0,1,7,1
+SYN-8bb7dec2,Synthetic ice cream 332,1.17,0.78,0.36,15.81,ice cream,3,1,0,5,1
+SYN-60cb7506,Synthetic side dish 333,0.56,0.35,0.4,8.17,side dish,2,0,1,10,1
+SYN-652976af,Synthetic vegetables 334,0.78,0.54,0.53,20.81,vegetables,1,1,0,5,1
+SYN-114d026f,Synthetic ice cream 335,0.73,0.55,0.62,6.74,ice cream,3,1,0,5,1
+SYN-6ac39677,Synthetic candy 336,0.78,0.76,0.35,13.22,candy,3,0,1,3,1
+SYN-8e3954aa,Synthetic ice cream 337,0.93,0.52,0.57,18.7,ice cream,2,1,0,4,1
+SYN-38fc065c,Synthetic pizza 338,0.74,0.46,0.62,14.46,pizza,3,0,1,3,1
+SYN-e2d93770,Synthetic confectionery 339,1.15,0.42,0.46,14.15,confectionery,3,1,0,1,1
+SYN-2ae96c45,Synthetic bakery products 340,0.67,0.4,0.58,10.51,bakery products,1,1,0,7,1
+SYN-3efebb91,Synthetic red meat 341,1.17,0.39,0.44,15.62,red meat,2,0,1,4,1
+SYN-e7cd8f6e,Synthetic confectionery 342,0.78,0.39,0.41,18.45,confectionery,3,1,0,6,1
+SYN-782d4863,Synthetic instant meals 343,0.81,0.55,0.49,8.89,instant meals,2,0,1,1,1
+SYN-84024aa8,Synthetic confectionery 344,0.79,0.57,0.45,18.88,confectionery,3,1,0,6,1
+SYN-4e3a7f66,Synthetic bakery products 345,1.17,0.73,0.12,18.98,bakery products,3,1,0,10,1
+SYN-5fe125f8,Synthetic vegetables 346,1.08,0.51,0.51,17.28,vegetables,3,1,0,9,1
+SYN-2dc25a27,Synthetic bakery products 347,0.58,0.43,0.49,11.52,bakery products,1,1,0,9,1
+SYN-4350b177,Synthetic candy 348,1.07,0.56,0.34,16.11,candy,2,0,1,9,1
+SYN-76d7ac51,Synthetic bakery products 349,0.68,0.4,0.57,10.64,bakery products,3,1,0,6,1
+SYN-470e5110,Synthetic fish 350,1.17,0.77,0.63,16.11,fish,3,0,1,5,1
+SYN-e31a919e,Synthetic bakery products 351,0.78,0.53,0.59,20.59,bakery products,2,1,0,1,1
+SYN-edc5cef5,Synthetic bakery products 352,1.16,0.42,0.43,14.85,bakery products,1,1,0,10,1
+SYN-69667eb4,Synthetic confectionery 353,1.18,0.8,0.5,14.54,confectionery,2,1,0,3,1
+SYN-34b12c08,Synthetic candy 354,1.18,0.78,0.3,14.99,candy,1,0,1,2,1
+SYN-f556f40a,Synthetic fish 355,0.52,0.32,0.47,5.6,fish,1,0,1,1,1
+SYN-9f0bc827,Synthetic ice cream 356,1.07,0.56,0.5,18.66,ice cream,2,1,0,2,1
+SYN-c1bb4412,Synthetic side dish 357,0.74,0.52,0.48,20.78,side dish,2,0,0,9,1
+SYN-eac331c8,Synthetic bakery products 358,0.68,0.41,0.6,12.11,bakery products,2,1,0,5,1
+SYN-7bd38c8b,Synthetic vegetables 359,1.12,0.44,0.47,13.44,vegetables,2,1,0,7,1
+SYN-31174e76,Synthetic confectionery 360,1.15,0.4,0.49,13.71,confectionery,2,1,0,7,1
+SYN-254e94c4,Synthetic poultry 361,0.6,0.42,0.56,9.61,poultry,2,0,1,8,1
+SYN-a5eaa12b,Synthetic confectionery 362,1.14,0.42,0.46,12.71,confectionery,2,1,0,8,1
+SYN-2f9eef8f,Synthetic instant meals 363,1.04,0.35,0.49,10.09,instant meals,1,0,1,6,1
+SYN-f2b47593,Synthetic poultry 364,1.09,0.5,0.48,17.16,poultry,1,0,1,1,1
+SYN-86101197,Synthetic confectionery 365,1.06,0.56,0.44,17.69,confectionery,2,1,0,6,1
+SYN-691276c7,Synthetic ice 366,1.16,0.52,0.56,21.36,ice,3,0,1,6,1
+SYN-c0f0c84a,Synthetic confectionery 367,0.79,0.55,0.53,20.63,confectionery,3,1,0,6,1
+SYN-a1fcfb76,Synthetic vegetables 368,0.73,0.51,0.42,18.5,vegetables,3,1,0,10,1
+SYN-869afcea,Synthetic confectionery 369,1.13,0.36,0.49,12.77,confectionery,3,1,0,5,1
+SYN-f138bb32,Synthetic bakery products 370,1.15,0.41,0.48,14.12,bakery products,3,1,0,1,1
+SYN-23303167,Synthetic potatoe products 371,1.17,0.4,0.47,14.03,potatoe products,1,0,0,7,1
+SYN-6edc7aa8,Synthetic candy 372,0.67,0.41,0.62,10.89,candy,3,0,1,2,1
+SYN-f0c44100,Synthetic instant meals 373,1.14,0.45,0.34,14.48,instant meals,1,0,1,2,1
+SYN-82a8e030,Synthetic bakery products 374,1.14,0.37,0.49,12.91,bakery products,2,1,0,1,1
+SYN-e40edc42,Synthetic fruit 375,1.18,0.77,0.25,17.21,fruit,2,1,0,10,1
+SYN-1e2e3410,Synthetic candy 376,0.75,0.44,0.61,16.26,candy,1,0,0,8,1
+SYN-739c881a,Synthetic vegetables 377,1.16,0.47,0.63,21.13,vegetables,2,1,0,1,1
+SYN-b8e32a31,Synthetic confectionery 378,0.6,0.43,0.36,9.48,confectionery,3,1,0,10,1
+SYN-94cc0edf,Synthetic pizza 379,0.62,0.42,0.35,11.26,pizza,1,0,1,4,1
+SYN-b6c08d3e,Synthetic seafood 380,1.14,0.53,0.67,20.52,seafood,3,0,1,1,1
+SYN-c6007395,Synthetic confectionery 381,1.14,0.38,0.5,12.59,confectionery,2,1,0,5,1
+SYN-049aeb5b,Synthetic ice cream 382,0.81,0.55,0.22,9.61,ice cream,2,1,0,4,1
+SYN-3fc9a4d1,Synthetic bakery products 383,0.79,0.54,0.25,10.62,bakery products,2,1,0,2,1
+SYN-60040054,Synthetic vegetables 384,1.12,0.45,0.44,15.71,vegetables,3,1,0,9,1
+SYN-8722c84f,Synthetic bakery products 385,0.77,0.52,0.55,5.65,bakery products,3,1,0,3,1
+SYN-1385a2e5,Synthetic instant meals 386,1.12,0.36,0.48,12.6,instant meals,3,0,1,9,1
+SYN-27c54849,Synthetic candy 387,0.81,0.32,0.31,15.5,candy,2,0,0,4,1
+SYN-207bcfcb,Synthetic vegetables 388,1.18,0.8,0.49,14.1,vegetables,2,1,0,3,1
+SYN-ca4097e7,Synthetic instant meals 389,0.77,0.53,0.54,20.76,instant meals,3,0,1,3,1
+SYN-1931d715,Synthetic confectionery 390,0.58,0.36,0.55,7.11,confectionery,3,1,0,8,1
+SYN-ee7e6902,Synthetic ice cream 391,0.8,0.58,0.5,19.88,ice cream,1,1,0,8,1
+SYN-caa5870e,Synthetic confectionery 392,1.14,0.44,0.36,16.06,confectionery,3,1,0,5,1
+SYN-fbc195e4,Synthetic instant meals 393,0.72,0.47,0.62,15.18,instant meals,3,0,1,3,1
+SYN-1e845823,Synthetic bakery products 394,0.79,0.55,0.51,20.9,bakery products,2,1,0,5,1
+SYN-c56295ce,Synthetic fish 395,0.59,0.42,0.45,11.76,fish,2,0,1,1,1
+SYN-09f61a4c,Synthetic non-food products 396,1.1,0.51,0.53,17.2,non-food products,2,0,1,7,1
+SYN-04b8347e,Synthetic bakery products 397,1.16,0.68,0.44,11.48,bakery products,1,1,0,5,1
+SYN-af131909,Synthetic candy 398,0.8,0.55,0.55,19.58,candy,1,0,1,8,1
+SYN-791559fc,Synthetic seafood 399,1.16,0.42,0.46,14.75,seafood,3,0,1,2,1
+SYN-435dc8a5,Synthetic snack 400,1.17,0.8,0.58,14.48,snack,2,0,1,10,1
+SYN-70c1a8df,Synthetic confectionery 401,0.84,0.39,0.42,7.11,confectionery,3,1,0,1,1
+SYN-32b68498,Synthetic snack 402,1.13,0.44,0.37,15.26,snack,1,0,1,5,1
+SYN-e9bc83cf,Synthetic bakery products 403,0.49,0.33,0.49,4.15,bakery products,3,1,0,4,1
+SYN-b64be845,Synthetic seafood 404,1.02,0.54,0.54,18.85,seafood,3,0,0,7,1
+SYN-ea4a8686,Synthetic confectionery 405,0.77,0.53,0.61,19.55,confectionery,1,1,0,8,1
+SYN-8ac45f56,Synthetic confectionery 406,0.57,0.43,0.39,12.5,confectionery,1,1,0,1,1
+SYN-7d948642,Synthetic dairy products 407,0.69,0.38,0.48,12.86,dairy products,2,0,1,7,1
+SYN-d72b0ccd,Synthetic fish 408,1.13,0.7,0.52,9.82,fish,3,0,0,1,1
+SYN-12616913,Synthetic bakery products 409,1.03,0.54,0.54,19.0,bakery products,3,1,0,6,1
+SYN-c0cbe058,Synthetic confectionery 410,0.68,0.41,0.61,11.45,confectionery,1,1,0,7,1
+SYN-b0c42c93,Synthetic confectionery 411,0.65,0.42,0.59,11.53,confectionery,2,1,0,1,1
+SYN-c156f58c,Synthetic bakery products 412,1.12,0.37,0.5,11.89,bakery products,3,1,0,1,1
+SYN-13718e82,Synthetic ice cream 413,0.67,0.41,0.61,11.16,ice cream,2,1,0,9,1
+SYN-f22b3041,Synthetic fruit 414,0.72,0.44,0.28,3.94,fruit,3,1,0,9,1
+SYN-76309e60,Synthetic seafood 415,0.81,0.52,0.34,8.22,seafood,1,0,0,3,1
+SYN-339e4771,Synthetic candy 416,0.79,0.56,0.43,16.64,candy,2,0,1,7,1
+SYN-982863d9,Synthetic bakery products 417,1.17,0.79,0.49,17.43,bakery products,2,1,0,5,1
+SYN-708fca57,Synthetic ice cream 418,1.13,0.43,0.47,14.63,ice cream,2,1,0,5,1
+SYN-9ea1e509,Synthetic poultry 419,1.16,0.4,0.48,13.57,poultry,3,0,1,4,1
+SYN-cd2402f8,Synthetic bakery products 420,1.06,0.46,0.37,9.58,bakery products,2,1,0,9,1
+SYN-a25b08b5,Synthetic dairy products 421,0.9,0.62,0.29,15.02,dairy products,3,0,1,10,1
+SYN-7c16c8b4,Synthetic vegetables 422,1.18,0.8,0.59,14.6,vegetables,2,1,0,1,1
+SYN-71f2710b,Synthetic vegetables 423,1.15,0.43,0.47,12.65,vegetables,3,1,0,10,1
+SYN-ee405189,Synthetic vegetables 424,0.79,0.56,0.53,20.81,vegetables,3,1,0,8,1
+SYN-c29a2f46,Synthetic confectionery 425,1.14,0.43,0.43,15.35,confectionery,1,1,0,7,1
+SYN-9f6c74ec,Synthetic bakery products 426,0.68,0.42,0.61,11.63,bakery products,2,1,0,2,1
+SYN-c5aa368f,Synthetic side dish 427,0.81,0.32,0.31,14.91,side dish,1,0,1,6,1
+SYN-408cd725,Synthetic vegetables 428,0.79,0.59,0.5,17.27,vegetables,1,1,0,9,1
+SYN-5e2acd5c,Synthetic bakery products 429,0.61,0.42,0.52,11.62,bakery products,2,1,0,4,1
+SYN-479384fe,Synthetic fish 430,1.05,0.45,0.45,10.16,fish,1,0,1,8,1
+SYN-0cdc6233,Synthetic seafood 431,0.55,0.42,0.39,11.17,seafood,2,0,1,9,1
+SYN-e0de3444,Synthetic confectionery 432,0.68,0.42,0.61,11.38,confectionery,3,1,0,7,1
+SYN-71886d8a,Synthetic bakery products 433,0.78,0.53,0.57,20.02,bakery products,1,1,0,4,1
+SYN-2b8b88c5,Synthetic instant meals 434,1.13,0.42,0.52,13.71,instant meals,3,0,1,6,1
+SYN-2cdfbd1d,Synthetic confectionery 435,0.54,0.26,0.4,3.88,confectionery,1,1,0,3,1
+SYN-04550dd4,Synthetic confectionery 436,0.65,0.41,0.57,11.39,confectionery,2,1,0,4,1
+SYN-9f0ca700,Synthetic fish 437,0.67,0.41,0.58,10.92,fish,1,0,1,8,1
+SYN-6fe3d676,Synthetic ice cream 438,1.04,0.57,0.45,18.45,ice cream,2,1,0,8,1
+SYN-78a5d28e,Synthetic bakery products 439,0.47,0.4,0.55,5.07,bakery products,1,1,0,5,1
+SYN-708b60b5,Synthetic candy 440,0.78,0.6,0.36,12.81,candy,2,0,1,7,1
+SYN-3025f27c,Synthetic confectionery 441,0.8,0.54,0.23,10.1,confectionery,3,1,0,5,1
+SYN-626661c2,Synthetic confectionery 442,0.8,0.56,0.53,19.9,confectionery,2,1,0,1,1
+SYN-15306c16,Synthetic ice cream 443,0.78,0.51,0.6,18.09,ice cream,3,1,0,3,1
+SYN-15513c69,Synthetic confectionery 444,0.52,0.39,0.48,7.47,confectionery,2,1,0,8,1
+SYN-214bdfce,Synthetic pizza 445,0.78,0.37,0.57,14.97,pizza,3,0,1,5,1
+SYN-f14a2610,Synthetic confectionery 446,0.96,0.58,0.36,17.22,confectionery,1,1,0,7,1
+SYN-e3e6035f,Synthetic confectionery 447,1.15,0.44,0.44,15.13,confectionery,1,1,0,10,1
+SYN-d42fe142,Synthetic red meat 448,0.79,0.51,0.55,21.23,red meat,2,0,1,3,1
+SYN-19923f68,Synthetic confectionery 449,1.18,0.8,0.55,14.83,confectionery,2,1,0,10,1
+SYN-0cb6e6af,Synthetic dairy products 450,0.67,0.41,0.59,10.7,dairy products,3,0,1,3,1
+SYN-7a2c718c,Synthetic candy 451,0.68,0.44,0.64,12.29,candy,3,0,1,2,1
+SYN-be0cd9b0,Synthetic instant meals 452,0.66,0.4,0.6,10.68,instant meals,3,0,1,4,1
+SYN-eb68ce76,Synthetic poultry 453,1.12,0.42,0.54,11.38,poultry,3,0,1,10,1
+SYN-27d03d76,Synthetic bakery products 454,0.77,0.56,0.39,11.93,bakery products,2,1,0,1,1
+SYN-33ce2d3f,Synthetic herbs/spice 455,0.79,0.58,0.32,9.96,herbs/spice,3,0,0,5,1
+SYN-f66e7d45,Synthetic ice cream 456,1.08,0.53,0.56,18.58,ice cream,2,1,0,8,1
+SYN-ca1d9b0c,Synthetic red meat 457,1.12,0.38,0.47,11.94,red meat,3,0,1,5,1
+SYN-e5ced4b8,Synthetic snack 458,1.18,0.8,0.53,14.85,snack,3,0,1,4,1
+SYN-0088aa1c,Synthetic confectionery 459,0.59,0.42,0.37,10.54,confectionery,3,1,0,5,1
+SYN-565be292,Synthetic red meat 460,0.79,0.53,0.55,20.86,red meat,1,0,1,2,1
+SYN-5e157de0,Synthetic vegetables 461,0.75,0.51,0.64,17.95,vegetables,1,1,0,4,1
+SYN-19c53136,Synthetic ice cream 462,0.75,0.52,0.64,18.26,ice cream,2,1,0,8,1
+SYN-d8a61b9e,Synthetic ice 463,0.74,0.36,0.5,13.5,ice,3,0,1,8,1
+SYN-d35f71cb,Synthetic dairy products 464,0.62,0.4,0.57,9.6,dairy products,1,0,1,2,1
+SYN-152a5ae3,Synthetic seafood 465,0.78,0.55,0.57,19.93,seafood,2,0,1,1,1
+SYN-edee007f,Synthetic confectionery 466,1.1,0.49,0.38,15.99,confectionery,1,1,0,9,1
+SYN-ba18c5a0,Synthetic bakery products 467,0.8,0.52,0.22,9.4,bakery products,1,1,0,10,1
+SYN-0427527a,Synthetic confectionery 468,0.79,0.37,0.37,17.49,confectionery,1,1,0,2,1
+SYN-2a305fa4,Synthetic fruit 469,1.15,0.4,0.47,13.87,fruit,2,1,0,3,1
+SYN-8cb684f7,Synthetic red meat 470,1.15,0.38,0.5,13.24,red meat,2,0,1,5,1
+SYN-f4469aee,Synthetic ice cream 471,0.75,0.39,0.5,8.08,ice cream,1,1,0,9,1
+SYN-27ab46cf,Synthetic red meat 472,0.76,0.53,0.49,19.5,red meat,3,0,1,5,1
+SYN-72590604,Synthetic pizza 473,1.18,0.79,0.43,15.8,pizza,1,0,1,2,1
+SYN-7ac30a7e,Synthetic side dish 474,1.1,0.48,0.49,16.32,side dish,1,0,1,8,1
+SYN-02f5f121,Synthetic confectionery 475,1.09,0.51,0.49,17.04,confectionery,2,1,0,8,1
+SYN-764d9a43,Synthetic bakery products 476,0.78,0.57,0.43,7.54,bakery products,1,1,0,2,1
+SYN-70a7e91a,Synthetic red meat 477,0.91,0.28,0.45,8.72,red meat,1,0,1,7,1
+SYN-c0d129bd,Synthetic candy 478,0.74,0.53,0.47,20.8,candy,3,0,1,1,1
+SYN-24feeb4a,Synthetic confectionery 479,1.17,0.73,0.61,15.94,confectionery,1,1,0,3,1
+SYN-b90316a7,Synthetic side dish 480,1.18,0.8,0.54,14.47,side dish,3,0,1,1,1
+SYN-ae3a0378,Synthetic meat 481,1.04,0.58,0.36,15.93,meat,1,0,1,6,1
+SYN-610a5f8c,Synthetic pizza 482,1.14,0.41,0.49,13.19,pizza,3,0,1,4,1
+SYN-be5c5ede,Synthetic potatoe products 483,1.18,0.8,0.57,14.44,potatoe products,1,0,1,1,1
+SYN-fd475c4e,Synthetic candy 484,0.73,0.4,0.6,13.87,candy,1,0,1,7,1
+SYN-3258fc73,Synthetic bakery products 485,0.61,0.42,0.43,11.81,bakery products,1,1,0,7,1
+SYN-fb0fe397,Synthetic side dish 486,1.14,0.38,0.5,13.09,side dish,2,0,1,1,1
+SYN-a124f4ca,Synthetic candy 487,0.51,0.38,0.47,6.99,candy,1,0,1,3,1
+SYN-2d1dac68,Synthetic bakery products 488,0.65,0.42,0.61,10.61,bakery products,2,1,0,3,1
+SYN-c7c76b31,Synthetic potatoe products 489,1.17,0.57,0.39,10.05,potatoe products,2,0,1,10,1
+SYN-b22e705b,Synthetic ice cream 490,0.53,0.42,0.54,7.79,ice cream,2,1,0,9,1
+SYN-8439cd83,Synthetic confectionery 491,0.86,0.59,0.32,12.86,confectionery,3,1,0,8,1
+SYN-1c3404f5,Synthetic fruit 492,0.8,0.78,0.34,10.93,fruit,2,1,0,2,1
+SYN-83128414,Synthetic confectionery 493,0.74,0.53,0.45,21.28,confectionery,1,1,0,7,1
+SYN-50f5b959,Synthetic instant meals 494,1.13,0.45,0.45,15.54,instant meals,3,0,1,2,1
+SYN-325e14a9,Synthetic pizza 495,1.18,0.8,0.48,14.57,pizza,1,0,1,9,1
+SYN-f333955b,Synthetic ice cream 496,1.18,0.78,0.4,12.61,ice cream,2,1,0,10,1
+SYN-6dda538a,Synthetic potatoe products 497,0.81,0.6,0.48,18.48,potatoe products,2,0,1,4,1
+SYN-37340f4d,Synthetic pizza 498,1.15,0.57,0.69,19.18,pizza,2,0,1,2,1
+SYN-39486c7e,Synthetic candy 499,1.15,0.43,0.45,15.48,candy,3,0,1,6,1
+SYN-e18bff54,Synthetic fish 500,1.05,0.53,0.55,18.54,fish,1,0,1,5,1
+SYN-c6a65647,Synthetic seafood 501,1.18,0.79,0.49,14.62,seafood,2,0,1,9,1
+SYN-d2f6336c,Synthetic seafood 502,1.18,0.79,0.55,14.21,seafood,2,0,1,10,1
+SYN-98986906,Synthetic dairy products 503,1.18,0.77,0.62,15.26,dairy products,2,0,1,3,1
+SYN-98a5945e,Synthetic vegetables 504,0.54,0.37,0.44,8.46,vegetables,1,1,0,2,1
+SYN-1d9ed481,Synthetic ice cream 505,0.53,0.45,0.56,8.57,ice cream,3,1,0,8,1
+SYN-3b6748d8,Synthetic fruit 506,0.79,0.56,0.51,7.14,fruit,1,1,0,1,1
+SYN-9f6a274f,Synthetic confectionery 507,1.09,0.46,0.49,12.92,confectionery,1,1,0,5,1
+SYN-59fe60c1,Synthetic seafood 508,1.16,0.76,0.62,17.51,seafood,1,0,1,6,1
+SYN-90d3f151,Synthetic confectionery 509,0.62,0.42,0.48,11.76,confectionery,1,1,0,6,1
+SYN-26038916,Synthetic ice cream 510,0.77,0.58,0.54,8.91,ice cream,1,1,0,6,1
+SYN-aa4c7963,Synthetic confectionery 511,1.18,0.8,0.52,14.48,confectionery,1,1,0,5,1
+SYN-18f3f017,Synthetic ice cream 512,0.69,0.44,0.64,11.86,ice cream,3,1,0,10,1
+SYN-09aeb303,Synthetic side dish 513,0.69,0.4,0.58,12.28,side dish,2,0,1,1,1
+SYN-2bf0ec61,Synthetic bakery products 514,0.56,0.39,0.54,8.29,bakery products,1,1,0,7,1
+SYN-07f96fcc,Synthetic confectionery 515,0.77,0.53,0.5,20.87,confectionery,2,1,0,9,1
+SYN-6c5d3332,Synthetic confectionery 516,0.89,0.53,0.56,18.53,confectionery,1,1,0,3,1
+SYN-b1ab9538,Synthetic potatoe products 517,0.91,0.29,0.37,11.04,potatoe products,2,0,1,3,1
+SYN-a24f2765,Synthetic confectionery 518,0.79,0.54,0.28,10.63,confectionery,3,1,0,4,1
+SYN-a95f9bd4,Synthetic snack 519,0.75,0.53,0.59,11.48,snack,2,0,1,3,1
+SYN-4fabef30,Synthetic confectionery 520,0.81,0.42,0.52,10.04,confectionery,2,1,0,1,1
+SYN-1f561ae5,Synthetic instant meals 521,1.07,0.58,0.26,13.23,instant meals,3,0,1,10,1
+SYN-d82dba7b,Synthetic seafood 522,1.18,0.79,0.46,16.55,seafood,2,0,1,7,1
+SYN-39746a02,Synthetic herbs/spice 523,0.63,0.44,0.42,8.63,herbs/spice,1,0,1,5,1
+SYN-77605952,Synthetic potatoe products 524,0.65,0.41,0.54,11.02,potatoe products,2,0,1,7,1
+SYN-50d7fb16,Synthetic dairy products 525,0.58,0.4,0.56,8.56,dairy products,3,0,1,5,1
+SYN-fce492a0,Synthetic ice cream 526,0.55,0.28,0.38,4.81,ice cream,3,1,0,9,1
+SYN-e19b36eb,Synthetic bakery products 527,1.19,0.74,0.17,19.27,bakery products,3,1,0,9,1
+SYN-adc0adf1,Synthetic potatoe products 528,0.77,0.56,0.43,19.52,potatoe products,1,0,1,10,1
+SYN-108820bb,Synthetic pizza 529,1.14,0.71,0.59,10.56,pizza,3,0,1,2,1
+SYN-94873322,Synthetic confectionery 530,1.15,0.42,0.41,15.15,confectionery,1,1,0,7,1
+SYN-49e78e9f,Synthetic vegetables 531,0.66,0.41,0.6,10.55,vegetables,2,1,0,5,1
+SYN-ff84d6a0,Synthetic snack 532,1.11,0.46,0.36,15.58,snack,2,0,1,6,1
+SYN-a5a835a4,Synthetic bakery products 533,0.7,0.38,0.42,14.34,bakery products,3,1,0,6,1
+SYN-6e50a929,Synthetic confectionery 534,0.78,0.59,0.59,16.3,confectionery,3,1,0,2,1
+SYN-231aea94,Synthetic pizza 535,0.77,0.78,0.36,11.63,pizza,3,0,1,7,1
+SYN-b5b9ca5c,Synthetic potatoe products 536,0.83,0.37,0.42,12.6,potatoe products,2,0,1,6,1
+SYN-eb95748b,Synthetic fruit 537,1.18,0.79,0.49,14.16,fruit,2,1,0,6,1
+SYN-62421cce,Synthetic fruit 538,0.5,0.32,0.47,4.12,fruit,1,1,0,1,1
+SYN-9ba23f59,Synthetic snack 539,1.09,0.33,0.5,11.45,snack,2,0,1,9,1
+SYN-1072b9b7,Synthetic herbs/spice 540,0.95,0.45,0.36,9.32,herbs/spice,3,0,1,5,1
+SYN-a1e88185,Synthetic ice cream 541,0.64,0.41,0.56,8.69,ice cream,2,1,0,2,1
+SYN-c6af02a2,Synthetic candy 542,0.77,0.54,0.53,20.7,candy,1,0,1,9,1
+SYN-610c020d,Synthetic confectionery 543,1.08,0.36,0.5,11.17,confectionery,3,1,0,7,1
+SYN-9356675d,Synthetic bakery products 544,1.18,0.8,0.55,14.41,bakery products,2,1,0,4,1
+SYN-abef9d39,Synthetic bakery products 545,0.87,0.75,0.24,12.81,bakery products,3,1,0,10,1
+SYN-cf4956e8,Synthetic poultry 546,1.13,0.39,0.52,14.0,poultry,2,0,1,6,1
+SYN-557d6ad7,Synthetic pizza 547,1.17,0.41,0.46,14.0,pizza,1,0,1,8,1
+SYN-2c91a8d8,Synthetic bakery products 548,1.07,0.57,0.3,15.47,bakery products,2,1,0,1,1
+SYN-0fa1c31d,Synthetic ice cream 549,0.68,0.42,0.6,11.45,ice cream,2,1,0,2,1
+SYN-ca1af789,Synthetic candy 550,1.11,0.53,0.6,20.8,candy,3,0,1,9,1
