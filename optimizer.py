@@ -9,9 +9,7 @@ from database import get_exclusion_zones
 
 import atexit
 
-# --- Global Shared Memory for Multiprocessing ---
-# We are moving away from globals to explicit argument passing to allow reliable pool reuse.
-# However, we keep these for backward compatibility if needed, but they will be unused in new logic.
+# Global shared memory for multiprocessing (kept for backward compatibility)
 _pool_items_props = None
 _pool_wh_dims = None
 _pool_valid_z = None
@@ -34,9 +32,7 @@ def get_process_pool():
     global _global_pool
     if _global_pool is None:
         cpu_count = multiprocessing.cpu_count()
-        # Cap process count
-        process_count = min(cpu_count, 12) 
-        # No initializer needed as we pass data explicitly
+        process_count = min(cpu_count, 12)
         _global_pool = multiprocessing.Pool(processes=process_count)
     return _global_pool
 
@@ -45,19 +41,8 @@ def init_worker(*args):
     pass
 
 
-# Helper for gravity calculation
 def calculate_z_for_item(x, y, dim_x, dim_y, other_items_bbox, other_items_z, other_items_h, other_items_stackable=None, strict_stacking=True):
-    """
-    Calculate the lowest valid Z position for an item given its position and other items.
-    
-    Args:
-        x, y: Center coordinates of the new item
-        dim_x, dim_y: Dimensions of the new item
-        other_items_bbox: (N, 4) array of [min_x, min_y, max_x, max_y] for placed items
-        other_items_z: (N,) array of Z positions for placed items
-        other_items_h: (N,) array of heights for placed items
-        other_items_stackable: (N,) boolean/int array indicating if item can support others.
-    """
+    """Calculate the lowest valid Z position for an item based on items below it."""
     if len(other_items_bbox) == 0:
         return 0.0
         
@@ -67,11 +52,7 @@ def calculate_z_for_item(x, y, dim_x, dim_y, other_items_bbox, other_items_z, ot
     new_min_y = y - dim_y / 2
     new_max_y = y + dim_y / 2
     
-    # Check overlaps in XY plane (vectorized)
-    # Overlap condition: not (A.left > B.right or A.right < B.left or A.top < B.bottom or A.bottom > B.top)
-    # Inverted: (A.left < B.right and A.right > B.left and A.top > B.bottom and A.bottom < B.top)
-    # Here Y is depth, so "top/bottom" refers to Y-axis
-    
+    # Check XY plane overlaps (vectorized)
     overlaps_x = (new_min_x < other_items_bbox[:, 2]) & (new_max_x > other_items_bbox[:, 0])
     overlaps_y = (new_min_y < other_items_bbox[:, 3]) & (new_max_y > other_items_bbox[:, 1])
     overlaps = overlaps_x & overlaps_y
@@ -82,7 +63,7 @@ def calculate_z_for_item(x, y, dim_x, dim_y, other_items_bbox, other_items_z, ot
     # Get max Z top of overlapping items
     overlapping_z_tops = other_items_z[overlaps] + other_items_h[overlaps]
 
-    # Check if any overlapping item is NOT stackable
+    # Reject stacking on non-stackable items
     if strict_stacking and other_items_stackable is not None:
         overlapping_stackables = other_items_stackable[overlaps]
         if np.any(overlapping_stackables == 0):
@@ -90,16 +71,9 @@ def calculate_z_for_item(x, y, dim_x, dim_y, other_items_bbox, other_items_z, ot
              
     max_z = np.max(overlapping_z_tops)
     
-    # Stability Check: Ensure support area is sufficient
+    # Stability check: ensure sufficient support area
     if max_z > 0:
-        # Identify supporting items (within small tolerance of max_z)
         is_support = np.abs(overlapping_z_tops - max_z) < 0.01
-        
-        # Get indices of supports relative to the 'overlaps' subset? NO.
-        # 'overlaps' is a boolean mask. 
-        # overlapping_z_tops is filtered by [overlaps].
-        # is_support is boolean mask matching overlapping_z_tops.
-        # We need original indices to get bboxes.
         
         all_indices = np.arange(len(other_items_bbox))
         overlapping_indices = all_indices[overlaps]
@@ -122,7 +96,7 @@ def calculate_z_for_item(x, y, dim_x, dim_y, other_items_bbox, other_items_z, ot
         supported_area = np.sum(area)
         
         item_area = dim_x * dim_y
-        if supported_area < (item_area * 0.2): # 20% Support Threshold
+        if supported_area < (item_area * 0.2):  # 20% support threshold
             return max_z + 100000.0
             
     return max_z
@@ -130,15 +104,7 @@ def calculate_z_for_item(x, y, dim_x, dim_y, other_items_bbox, other_items_z, ot
 
 
 def get_rotated_dims(l, w, h, rotation_code):
-    """
-    Returns (dx, dy, dz) based on rotation code 0-5.
-    0: (L, W, H) - Flat 0
-    1: (W, L, H) - Flat 90
-    2: (L, H, W) - Side 0
-    3: (H, L, W) - Side 90
-    4: (W, H, L) - Up 0
-    5: (H, W, L) - Up 90
-    """
+    """Returns (dx, dy, dz) based on rotation code 0-5."""
     code = int(rotation_code) % 6
     if code == 0: return l, w, h
     if code == 1: return w, l, h
@@ -149,6 +115,7 @@ def get_rotated_dims(l, w, h, rotation_code):
     return l, w, h
 
 def repair_solution_compact(solution, items_props=None, warehouse_dims=None, allocation_zones=None, layer_heights=None):
+    """Repair solution by placing items in valid positions with gravity."""
     # Use globals if in worker process
     if items_props is None: items_props = _pool_items_props
     if warehouse_dims is None: warehouse_dims = _pool_wh_dims
@@ -174,71 +141,52 @@ def repair_solution_compact(solution, items_props=None, warehouse_dims=None, all
     volumes = items_props[:, 0] * items_props[:, 1] * items_props[:, 2]
     
     indices = np.arange(num_items)
-    # Sort indices:
-    # Priority 1: Fragility (Ascending) - 0 (Robust) first, 1 (Fragile) last
-    # Priority 2: Weight (Descending) - Heavy items first
-    # Priority 3: Volume (Descending) - Large items first
-    fragility = items_props[:, 8]
-    weights = items_props[:, 6]
-    volumes = items_props[:, 0] * items_props[:, 1] * items_props[:, 2]
-    
-    indices = np.arange(num_items)
+    # Sort: fragile last, then heavy/large first
     sorted_indices = sorted(indices, key=lambda i: (fragility[i], -weights[i], -volumes[i], i))
 
     # Tracking placed items: (x, y, z, dx, dy, dz)
     placed_items = []
     
-    # Pre-calculate simplified zone definitions for fast checking
-    # Filter zones that might be relevant? For now use all passed zones.
-    # Zones: list of dicts.
+    # Use provided zones or default to full warehouse
     use_zones = allocation_zones if allocation_zones else [{'x1':0, 'y1':0, 'x2':wh_len, 'y2':wh_wid, 'z1':0, 'z2':wh_hgt}]
 
     for idx in sorted_indices:
         l, w, h = items_props[idx, 0:3]
         can_rotate = int(items_props[idx, 3])
         
-        # Orientations to try (Flat rotations 0-1 usually preferred for stability)
-        # But user might want dense packing.
+        # Try flat rotations for stability
         rots = [0, 1] if can_rotate else [int(solution[idx, 3])]
-        if can_rotate and items_props[idx, 4] == 1: # If stackable, maybe allow all rotations? 
-             pass # Stick to flat for logic simplicity unless requested
+        if can_rotate and items_props[idx, 4] == 1:
+             pass  # Stick to flat rotations
         
-        best_pos = None 
-        # (center_x, center_y, z, rot, dx, dy, dz, score)
-        # Score tuple: (z, y, x) - Minimize Z, then Y, then X.
+        best_pos = None
         
-        # 1. Generate Candidates (XY corners)
-        # Candidates are Potential Min-X, Min-Y coordinates
+        # Generate candidate positions
         candidates = set()
         
-        # From Zones (Zone Bottom-Left)
+        # From zone corners
         for z in use_zones:
             candidates.add((z['x1'], z['y1']))
-            
-        # From Placed Items (Right and Back edges)
-        for (px, py, pz, pdx, pdy, pdz) in placed_items:
-            candidates.add((px + pdx, py)) # Right
-            candidates.add((px, py + pdy)) # Back
-            candidates.add((px, py))       # On top (aligned)
         
-        # Filter candidates out of warehouse bounds (optimization)
+        # From placed items (adjacent positions)
+        for (px, py, pz, pdx, pdy, pdz) in placed_items:
+            candidates.add((px + pdx, py))  # Right
+            candidates.add((px, py + pdy))  # Back
+            candidates.add((px, py))        # On top
+        
+        # Filter valid candidates
         valid_candidates = []
         for (cx, cy) in candidates:
              if cx >= 0 and cy >= 0 and cx < wh_len and cy < wh_wid:
                  valid_candidates.append((cx, cy))
                  
-        # Sort Candidates: Proximity to Genome Position
-        # The optimizer (GA/EO) suggests a position (solution[idx]).
-        # We try to snap to the candidate closest to that suggestion.
+        # Sort by proximity to optimizer's suggested position
         target_x = solution[idx, 0]
         target_y = solution[idx, 1]
         
-        # Tie-breaker: Z (Gravity), then Y, then X
-        # Since we haven't calculated Z yet, we use Y, X as secondary tie-breakers
         sorted_candidates = sorted(valid_candidates, key=lambda p: (
-            (p[0] - target_x)**2 + (p[1] - target_y)**2, # Distance
-            p[1], # Min Y
-            p[0]  # Min X
+            (p[0] - target_x)**2 + (p[1] - target_y)**2,
+            p[1], p[0]
         ))
         
         for rot in rots:
@@ -246,31 +194,24 @@ def repair_solution_compact(solution, items_props=None, warehouse_dims=None, all
             dx, dy, dz = dims
             
             for (cx, cy) in sorted_candidates:
-                # Early Pruning: If best_pos found at Z=0, and we are far in list?
-                # Hard to prune without calculating Z.
-                
                 min_x, min_y = cx, cy
                 max_x, max_y = cx + dx, cy + dy
                 
                 if max_x > wh_len + 0.001 or max_y > wh_wid + 0.001:
                     continue
                 
-                # Calculate Gravity Z (Drop on top of items)
+                # Calculate gravity Z
                 gravity_z = 0.0
-                overlap_xy = False
                 
                 # Find highest item below this footprint
                 for (px, py, pz, pdx, pdy, pdz) in placed_items:
-                    # Check XY Intersection
                     if (max_x > px + 0.001 and min_x < px + pdx - 0.001 and
                         max_y > py + 0.001 and min_y < py + pdy - 0.001):
-                        
                         top_z = pz + pdz
                         if top_z > gravity_z:
                             gravity_z = top_z
                 
-                # Now check if this Gravity Z is valid in ANY zone
-                # We need a zone that contains this footprint (XY) and height (Z to Z+h)
+                # Find valid Z in any suitable zone
                 valid_z_found = False
                 final_z = float('inf')
                 
@@ -279,34 +220,13 @@ def repair_solution_compact(solution, items_props=None, warehouse_dims=None, all
                     if (min_x >= zne['x1'] - 0.01 and max_x <= zne['x2'] + 0.01 and 
                         min_y >= zne['y1'] - 0.01 and max_y <= zne['y2'] + 0.01):
                         
-                        # Calculate minimal valid Z for this zone
                         zone_floor = zne.get('z1', 0)
-                        
-                        # The item naturally settles at max(gravity_z, zone_floor)
-                        # e.g. If gravity says 3, but zone starts at 5 (Top Zone), it floats at 5.
-                        # e.g. If gravity says 3, and zone is 0-5, it sits at 3.
-                        
                         placement_z = max(gravity_z, zone_floor)
                         placement_top = placement_z + dz
-                        
                         zone_ceil = zne.get('z2', wh_hgt)
                         
-                        # Check Z containment
+                        # Check Z fits
                         if placement_top <= zone_ceil + 0.001:
-                            # It fits!
-                            # Check Overlap again? 
-                            # We calculated gravity_z based on overlaps. 
-                            # If placement_z == gravity_z, it's resting on item.
-                            # If placement_z > gravity_z (floated to zone floor), we perform
-                            # a quick check to ensure we didn't float INTO another item above gravity_z?
-                            # Gravity theory says gravity_z is the HIGHEST item below. 
-                            # So anything above gravity_z is empty space (up to current placement).
-                            # Wait, "Highest item below" assumes we checked ALL items.
-                            # Yes, we did.
-                            # So the space from gravity_z upwards is clear of items.
-                            # So placement_z is safe from item collisions.
-                            
-                            # Update global best for this item
                             if placement_z < final_z:
                                 final_z = placement_z
                                 valid_z_found = True
@@ -319,15 +239,15 @@ def repair_solution_compact(solution, items_props=None, warehouse_dims=None, all
                          center_y = min_y + dy/2
                          best_pos = (center_x, center_y, final_z, rot, dx, dy, dz, score)
     
-        # Apply Placement
+        # Apply placement
         if best_pos:
             b_x, b_y, b_z, b_rot, b_dx, b_dy, b_dz, _ = best_pos
         else:
-            # FALLBACK
+            # Fallback: stack on top of everything
             b_z = 0
             if placed_items:
                 max_top = max([p[2]+p[5] for p in placed_items])
-                b_z = max_top # Stack on top of everything
+                b_z = max_top
             
             b_rot = solution[idx, 3] if not can_rotate else 0
             dims = get_rotated_dims(l, w, h, b_rot)
@@ -345,7 +265,7 @@ def repair_solution_compact(solution, items_props=None, warehouse_dims=None, all
     return solution
 
 
-# Helper for layer calculations
+# Get valid Z positions for layers
 def get_valid_z_positions(warehouse):
     if 'layer_heights' in warehouse and warehouse['layer_heights'] is not None:
         positions = set(warehouse['layer_heights'])
@@ -360,31 +280,24 @@ def get_valid_z_positions(warehouse):
     return [i * level_height for i in range(levels)]
 
 
-# --- Standalone Functions for Multiprocessing ---
+# Standalone functions for multiprocessing
 
 def create_random_solution_array(num_items, warehouse_dims=None, items_props=None, allocation_zones=None):
+    """Create a random solution array with gravity-based placement."""
     # Use globals if running in worker
     if items_props is None: items_props = _pool_items_props
     if warehouse_dims is None: warehouse_dims = _pool_wh_dims
     if allocation_zones is None: allocation_zones = _pool_allocation_zones
     
-    # items_props: (N, 7) array: [length, width, height, can_rotate, stackable, ... ]
-    # Only needed cols: 0:len, 1:wid, 2:hgt, 3:can_rot
-    # allocation_zones: list of dicts with x1, y1, x2, y2, z1, z2 bounds
     
     solution = np.zeros((num_items, 4), dtype=np.float32)
-    
-    # Use valid Z positions logic only for fallback or zone limits, but we calculate precise Z now
-    
-    # Get full warehouse dimensions for proper utilization
     wh_len, wh_wid, wh_hgt = warehouse_dims[:3]
     
-    # If allocation zones exist, place items within them
+    # Check for allocation zones
     has_allocation_zones = allocation_zones is not None and len(allocation_zones) > 0
     
-    # Arrays to track placed items for gravity calculation
-    # We need to fill solution sequentially
-    placed_bboxes = np.zeros((num_items, 4), dtype=np.float32) # x1, y1, x2, y2
+    # Track placed items for gravity
+    placed_bboxes = np.zeros((num_items, 4), dtype=np.float32)
     placed_z = np.zeros(num_items, dtype=np.float32)
     placed_h = np.zeros(num_items, dtype=np.float32)
     
@@ -394,18 +307,12 @@ def create_random_solution_array(num_items, warehouse_dims=None, items_props=Non
         item_hgt = items_props[i, 2]
         can_rotate = items_props[i, 3]
         
-        # Retry for floor priority
-        best_x, best_y, best_z = 0, 0, float('inf')
-        
         # Retry for floor priority (try to find Z=0)
-        best_x, best_y, best_z = 0, 0, float('inf')
-        
-        # Retry for floor priority
         best_x, best_y, best_z = 0, 0, float('inf')
         best_rotation = 0
         
         for attempt in range(50):
-            # Dynamic Rotation: Randomize orientation per attempt
+            # Randomize rotation
             rotation = 0
             if can_rotate and random.random() > 0.5:
                     rotation = random.choice([0, 90, 180, 270])
@@ -415,7 +322,7 @@ def create_random_solution_array(num_items, warehouse_dims=None, items_props=Non
             else:
                 dim_x, dim_y = item_wid, item_len
             
-            # --- Position Selection Logic ---
+            # Position selection logic
             valid_zones = []
             if has_allocation_zones:
                 for zone in allocation_zones:
@@ -427,15 +334,11 @@ def create_random_solution_array(num_items, warehouse_dims=None, items_props=Non
             zone_z1 = 0
             zone_z2 = wh_hgt
             if valid_zones:
-                # Sort zones by Z height (Bottom Shelf First)
+                # Sort zones by Z (bottom first)
                 valid_zones.sort(key=lambda z: z.get('z1', 0))
                 
-                # Zone Selection Heuristic:
-                # Strictly Sequential: 0, 1, 2, ... looping if needed
-                # This ensures we try bottom, then next up, then next up...
+                # Select zone sequentially
                 zone_idx = attempt % len(valid_zones)
-                
-                # Safety clamp
                 zone_idx = min(zone_idx, len(valid_zones) - 1)
                 zone = valid_zones[zone_idx]
                 
@@ -450,32 +353,25 @@ def create_random_solution_array(num_items, warehouse_dims=None, items_props=Non
                 if max_x < min_x: max_x = min_x = (zone['x1'] + zone['x2']) / 2
                 if max_y < min_y: max_y = min_y = (zone['y1'] + zone['y2']) / 2
                 
-                # Dense Pact Heuristic
+                # Dense packing: try corner first, then adjacent, then random
                 if attempt < 5:
-                    # Strategy: Bottom-Left Corner Bias
                     x = min_x
                     y = min_y
                 elif attempt < 45 and i > 0:
-                    # Strategy: Adjacent to existing item
+                    # Place adjacent to existing item
                     rand_idx = random.randint(0, i-1)
                     ref_box = placed_bboxes[rand_idx]
-                    # Try to place to the right, or above (in Y)
                     if random.random() < 0.5:
-                        x = ref_box[2] + dim_x / 2 # Right
-                        y = ref_box[1] + dim_y / 2 # Align Y center
+                        x = ref_box[2] + dim_x / 2
+                        y = ref_box[1] + dim_y / 2
                     else:
-                        x = ref_box[0] + dim_x / 2 # Align X center
-                        y = ref_box[3] + dim_y / 2 # Top
-                    
-                    # Perturb slightly to allow sliding
+                        x = ref_box[0] + dim_x / 2
+                        y = ref_box[3] + dim_y / 2
                     x += random.uniform(-1, 1)
                     y += random.uniform(-1, 1)
-                    
-                    # Clamp
                     x = max(min_x, min(max_x, x))
                     y = max(min_y, min(max_y, y))
                 else:
-                    # Strategy: Random Fallback
                     x = random.uniform(min_x, max_x)
                     y = random.uniform(min_y, max_y)
                     
@@ -488,7 +384,7 @@ def create_random_solution_array(num_items, warehouse_dims=None, items_props=Non
                 if max_x < min_x: max_x = min_x
                 if max_y < min_y: max_y = min_y
                 
-                # Dense Pact Heuristic (Global)
+                # Dense packing (global)
                 if attempt < 3:
                         x = min_x
                         y = min_y
@@ -510,10 +406,10 @@ def create_random_solution_array(num_items, warehouse_dims=None, items_props=Non
             # Check Z immediately
             z = calculate_z_for_item(x, y, dim_x, dim_y, placed_bboxes[:i], placed_z[:i], placed_h[:i])
             
-            # Enforce Layer Floor (cannot fall below zone_z1)
+            # Enforce layer floor
             z = max(z, zone_z1)
             
-            # Layer Snap: If item protrudes through ceiling of current layer, snap to next layer floor
+            # Snap to next layer if exceeds ceiling
             if z + item_hgt > zone_z2 and zone_z2 < wh_hgt:
                 z = zone_z2
             

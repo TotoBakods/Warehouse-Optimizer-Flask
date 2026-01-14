@@ -2,7 +2,6 @@ import flask
 import pandas as pd
 import numpy as np
 import json
-# Trigger reload again 6
 import math
 import random
 import threading
@@ -22,7 +21,7 @@ from database import (
     delete_warehouse, update_warehouse_config, add_item, update_item,
     delete_item, clear_data, add_exclusion_zone, delete_exclusion_zone,
     load_sample_data, create_default_sample_data, get_metrics_history,
-    get_item_stats_by_category, load_generated_data
+    get_item_stats_by_category, load_generated_data, DB_PATH
 )
 from optimizer import (
     GeneticAlgorithm, ExtremalOptimization, HybridOptimizer, get_valid_z_positions
@@ -30,7 +29,9 @@ from optimizer import (
 from optimizer_physics import physics_settle
 
 app = Flask(__name__)
-CORS(app)
+# Allow CORS configuration from env, default to *
+cors_origins = os.environ.get('FLASK_CORS_ORIGINS', '*').split(',')
+CORS(app, resources={r"/api/*": {"origins": cors_origins}})
 
 # Global state for optimization
 optimization_state = {
@@ -71,9 +72,6 @@ def finalize_optimization(solution, algorithm, weights, start_time, warehouse_id
         items = get_all_items(warehouse_id)
         warehouse = get_warehouse_config(warehouse_id)
         
-        with open('thread_debug.log', 'a') as f:
-            f.write("Loaded items and warehouse config\n")
-
         with open('thread_debug.log', 'a') as f:
             f.write("Loaded items and warehouse config\n")
             
@@ -966,7 +964,7 @@ def get_algo_best_performance():
     warehouse_id = request.args.get('warehouse_id', default=1, type=int)
     
     import sqlite3
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     
     results = []
@@ -1207,10 +1205,15 @@ def stop_benchmark():
 
 
 if __name__ == '__main__':
-    init_db()
-    migrate_db()
-    if not get_all_items():
-        print("No items found in the database. Loading sample data...")
-        load_sample_data()
+    try:
+        init_db()
+        migrate_db()
+        if not get_all_items():
+            print("No items found in the database. Loading sample data...")
+            load_sample_data()
+    except Exception as e:
+        print(f"Error during startup initialization: {e}")
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use environment variable for debug mode, default to False for safety
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)

@@ -144,7 +144,7 @@ def generate(n_items=100, warehouse_length=20.0, warehouse_width=15.0, scale_fac
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--n', type=int, default=550, help='Number of items to generate')
+    parser.add_argument('--n', type=int, default=50, help='Number of items to generate')
     args = parser.parse_args()
     
     generate(args.n)

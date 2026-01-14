@@ -5,9 +5,11 @@ import pandas as pd
 import os
 import uuid
 
+DB_PATH = 'warehouse.db'
+
 # Database setup
 def init_db():
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     c.execute('''CREATE TABLE IF NOT EXISTS items
@@ -42,7 +44,7 @@ def init_db():
 
 
 def migrate_db():
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     try:
         c.execute('SELECT layer_heights_json FROM warehouse_config LIMIT 1')
@@ -137,7 +139,7 @@ def migrate_db():
 
 # Database helper functions
 def get_all_items(warehouse_id=None):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     if warehouse_id:
@@ -161,7 +163,7 @@ def get_all_items(warehouse_id=None):
 
 
 def get_item_by_id(item_id):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT * FROM items WHERE id = ?', (item_id,))
     row = c.fetchone()
@@ -178,7 +180,7 @@ def get_item_by_id(item_id):
 
 
 def get_warehouse_config(warehouse_id=1):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT * FROM warehouse_config WHERE id = ?', (warehouse_id,))
     row = c.fetchone()
@@ -206,7 +208,7 @@ def get_warehouse_config(warehouse_id=1):
 
 
 def get_all_warehouses():
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT * FROM warehouse_config')
     rows = c.fetchall()
@@ -234,7 +236,7 @@ def get_all_warehouses():
 
 
 def get_exclusion_zones(warehouse_id=1):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT * FROM exclusion_zones WHERE warehouse_id = ?', (warehouse_id,))
     rows = c.fetchall()
@@ -246,7 +248,7 @@ def get_exclusion_zones(warehouse_id=1):
         if len(row) > 8 and row[8]:
             try:
                 metadata = json.loads(row[8])
-            except:
+            except Exception:
                 pass
         
         zones.append({
@@ -262,7 +264,7 @@ def get_exclusion_zones(warehouse_id=1):
 
 def save_solution(solution, algorithm, fitness, space_util, accessibility, stability, grouping, exec_time,
                   warehouse_id=1, time_to_best=0):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     if solution:
@@ -284,7 +286,7 @@ def save_solution(solution, algorithm, fitness, space_util, accessibility, stabi
 
 
 def add_warehouse(data):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
@@ -314,7 +316,7 @@ def delete_warehouse(warehouse_id):
     if warehouse_id == 1:
         raise ValueError('Cannot delete default warehouse')
 
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
@@ -333,7 +335,7 @@ def delete_warehouse(warehouse_id):
 
 
 def update_warehouse_config(warehouse_id, data):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     levels = data.get('levels', 1)
@@ -358,7 +360,7 @@ def update_warehouse_config(warehouse_id, data):
 
 
 def add_item(data, warehouse_id):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
@@ -379,16 +381,25 @@ def add_item(data, warehouse_id):
 
 
 def update_item(item_id, data, warehouse_id):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
+
+        # Whitelist columns to prevent injection
+        valid_columns = {'name', 'length', 'width', 'height', 'weight', 'category', 
+                         'priority', 'fragility', 'stackable', 'access_freq', 'can_rotate', 
+                         'x', 'y', 'z', 'rotation'}
+        
         fields = []
         values = []
         for key, value in data.items():
-            if key != 'id' and key != 'warehouse_id':
+            if key in valid_columns:
                 fields.append(f"{key} = ?")
                 values.append(value)
+
+        if not fields:
+             return # Nothing to update
 
         values.append(item_id)
         values.append(warehouse_id)
@@ -401,7 +412,7 @@ def update_item(item_id, data, warehouse_id):
 
 
 def delete_item(item_id, warehouse_id):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
@@ -412,7 +423,7 @@ def delete_item(item_id, warehouse_id):
 
 
 def clear_data(warehouse_id):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
@@ -424,7 +435,7 @@ def clear_data(warehouse_id):
 
 
 def add_exclusion_zone(data, warehouse_id):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
@@ -442,7 +453,7 @@ def add_exclusion_zone(data, warehouse_id):
 
 
 def update_exclusion_zone(zone_id, data, warehouse_id):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
@@ -460,7 +471,7 @@ def update_exclusion_zone(zone_id, data, warehouse_id):
 
 
 def delete_exclusion_zone(zone_id, warehouse_id):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     try:
@@ -480,7 +491,7 @@ def create_default_sample_data():
             ['HEAVY001', 'Heavy Item', 2.0, 1.5, 1.0, 45.0, 'Heavy', 3, 0, 1, 1, 0, 0, 0, 0, 0]
         ]
 
-        conn = sqlite3.connect('warehouse.db')
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
 
         # Only delete generic items if needed, but the original code deleted ALL items. 
@@ -504,7 +515,7 @@ def create_default_sample_data():
 def load_sample_data(warehouse_id=1):
     try:
         if os.path.exists('datasets.csv'):
-            conn = sqlite3.connect('warehouse.db')
+            conn = sqlite3.connect(DB_PATH)
             
             # Clear existing items first to avoid duplicates if replace isn't working as expected per chunk
             # But the original code used 'replace' which drops the table. 
@@ -577,7 +588,7 @@ def load_generated_data(warehouse_id=1):
     generated_file = os.path.join('gan', 'generated_items.csv')
     try:
         if os.path.exists(generated_file):
-            conn = sqlite3.connect('warehouse.db')
+            conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             # Clear existing items for this warehouse
             c.execute('DELETE FROM items WHERE warehouse_id = ?', (warehouse_id,))
@@ -642,7 +653,7 @@ def load_generated_data(warehouse_id=1):
 
 
 def get_metrics_history(warehouse_id=1):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''SELECT algorithm, fitness, space_utilization, accessibility, 
                  stability, execution_time, timestamp, time_to_best FROM optimization_results 
@@ -666,7 +677,7 @@ def get_metrics_history(warehouse_id=1):
 
 
 def get_item_stats_by_category(warehouse_id=1):
-    conn = sqlite3.connect('warehouse.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''SELECT category, COUNT(*), SUM(length * width * height)
                  FROM items WHERE warehouse_id = ? GROUP BY category''', (warehouse_id,))

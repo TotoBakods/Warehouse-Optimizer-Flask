@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAlgorithmParams(); // Initialize algorithm params
 });
 
-// --- Algorithm Parameters ---
+// Algorithm parameter UI
 function updateAlgorithmParams() {
     const algo = document.getElementById('algorithm-select').value;
     const container = document.getElementById('algorithm-params');
@@ -87,7 +87,7 @@ function updateAlgorithmParams() {
     }
 }
 
-// --- UI Navigation ---
+// UI navigation
 function switchView(viewName) {
     // Hide all view panels
     document.querySelectorAll('.view-panel').forEach(el => el.style.display = 'none');
@@ -105,7 +105,7 @@ function switchView(viewName) {
     if (viewName === 'warehouse') loadWarehouseConfig();
 }
 
-// --- Three.js & Visualization ---
+// Three.js visualization
 function initThreeJS() {
     const container = document.getElementById('three-container');
     const width = container.clientWidth;
@@ -168,7 +168,7 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-// Raycasting for Tooltip
+// Raycasting for tooltips
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
@@ -196,13 +196,13 @@ function onMouseClick(event) {
                 Fragile: ${data.fragility ? '<span style="color:#FF6B8A">Yes ⚠️</span>' : '<span style="color:#00FF9D">No</span>'}
             </div>
         `;
-        // Select logic could go here (highlighting)
+        // Click selection could go here
     } else {
         tooltip.style.display = 'none';
     }
 }
 
-// --- Data Loading & Rendering ---
+// Data loading and rendering
 
 function loadWarehouses() {
     fetch(`${API_BASE_URL}/api/warehouses`)
@@ -245,7 +245,7 @@ function loadWarehouseConfig() {
             document.getElementById('warehouse-length').value = config.length;
             document.getElementById('warehouse-width').value = config.width;
             document.getElementById('warehouse-height').value = config.height;
-            // These inputs may not exist in current HTML layout - check before setting
+            // These inputs may not exist
             const gridSizeEl = document.getElementById('warehouse-grid-size');
             if (gridSizeEl) gridSizeEl.value = config.grid_size || 1;
             const levelsEl = document.getElementById('warehouse-levels');
@@ -256,7 +256,7 @@ function loadWarehouseConfig() {
         });
 }
 
-// Helper for Rectangular Grids (Global)
+// Helper for rectangular grids
 function createRectangularGrid(L, W, step, color, opacity = 0.2, depthTest = true) {
     const points = [];
     const hL = L / 2;
@@ -285,7 +285,7 @@ function createRectangularGrid(L, W, step, color, opacity = 0.2, depthTest = tru
 }
 
 function renderWarehouse() {
-    // Clear old - properly dispose to prevent memory leaks
+    // Clear old objects with proper disposal
     while (warehouseGroup.children.length > 0) {
         const obj = warehouseGroup.children[0];
         if (obj.geometry) obj.geometry.dispose();
@@ -301,15 +301,12 @@ function renderWarehouse() {
 
     const { length, width, height, grid_size } = warehouseConfig;
 
-    // Helper for Rectangular Grids
-
-
-    // Grid Floor
+    // Grid floor
     const gridHelper = createRectangularGrid(length, width, grid_size, 0x333333, 0.3);
     gridHelper.position.y = 0.01;
     warehouseGroup.add(gridHelper);
 
-    // Floor Plane
+    // Floor plane
     const planeGeo = new THREE.PlaneGeometry(length, width);
     const planeMat = new THREE.MeshStandardMaterial({
         color: 0x0a0a0a, side: THREE.DoubleSide, roughness: 0.8
@@ -319,18 +316,18 @@ function renderWarehouse() {
     floor.receiveShadow = true;
     warehouseGroup.add(floor);
 
-    // Wireframe Box for Bounds
+    // Wireframe bounds
     const boxGeo = new THREE.BoxGeometry(length, height, width);
     const edges = new THREE.EdgesGeometry(boxGeo);
     const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00F0FF, opacity: 0.3, transparent: true }));
     line.position.y = height / 2;
     warehouseGroup.add(line);
 
-    // Render Door
+    // Door marker
     const doorX = warehouseConfig.door_x || 0;
     const doorY = warehouseConfig.door_y || 0;
 
-    // Draw Door as a distinctive marker (e.g., Neon Box)
+    // Door position
     const doorGeo = new THREE.BoxGeometry(2, 0.1, 2); // 2x2m pad
     const doorMat = new THREE.MeshBasicMaterial({ color: 0xFFD600 }); // Yellow
     const doorMesh = new THREE.Mesh(doorGeo, doorMat);
@@ -343,14 +340,14 @@ function renderWarehouse() {
     );
     warehouseGroup.add(doorMesh);
 
-    // Door Label (Simple vertical stick)
+    // Door label stick
     const stickGeo = new THREE.CylinderGeometry(0.1, 0.1, 2, 8);
     const stickMat = new THREE.MeshBasicMaterial({ color: 0xFFD600 });
     const stick = new THREE.Mesh(stickGeo, stickMat);
     stick.position.set(doorX - length / 2, 1, doorY - width / 2);
     warehouseGroup.add(stick);
 
-    // Render Layer Planes - REMOVED per user request (only show grids in zones)
+    // Layer planes - removed per user request
     /*
     let layers = [];
     if (warehouseConfig.layer_heights && warehouseConfig.layer_heights.length > 0) {
@@ -367,7 +364,7 @@ function renderWarehouse() {
         currentH += layers[i];
         if (currentH >= height) break; // Don't draw ceiling if it's top
 
-        // Code removed to prevent global grid rendering
+    // Code removed to prevent global grid rendering
     }
     */
 
@@ -430,7 +427,7 @@ function updateVisualization() {
         });
 }
 
-// Helper for 6-axis dimensions
+// Helper for 6-axis rotation dimensions
 function getRotatedDims(l, w, h, rotationCode) {
     const code = Math.round(rotationCode) % 6;
     switch (code) {
@@ -445,7 +442,7 @@ function getRotatedDims(l, w, h, rotationCode) {
 }
 
 function renderItems(items) {
-    // Properly dispose of geometries and materials to prevent memory leaks
+    // Dispose old objects to prevent memory leaks
     while (itemsGroup.children.length > 0) {
         const mesh = itemsGroup.children[0];
         if (mesh.geometry) mesh.geometry.dispose();
@@ -470,7 +467,7 @@ function renderItems(items) {
     const mode = document.getElementById('color-mode') ? document.getElementById('color-mode').value : 'category';
     const showPath = document.getElementById('show-path') ? document.getElementById('show-path').checked : false;
 
-    // Count overflow items (items that don't fit - placed at Z >= 1000)
+    // Count overflow items (Z >= 1000 means doesn't fit)
     const OVERFLOW_Z_THRESHOLD = 1000;
     const overflowItems = items.filter(i => i.z >= OVERFLOW_Z_THRESHOLD);
     const fittingItems = items.filter(i => i.z < OVERFLOW_Z_THRESHOLD);
@@ -529,30 +526,13 @@ function renderItems(items) {
         renderPickerPath(fittingItems);
     }
 
-    // Only render items that fit (skip overflow)
+    // Render fitting items only
     fittingItems.forEach(item => {
-        // Handle 6-Axis Rotation
+        // Apply 6-axis rotation
         const rotCode = item.rotation || 0;
         const dims = getRotatedDims(item.length, item.width, item.height, rotCode);
 
-        // Geometry uses rotated world-aligned dimensions
-        // Note: In ThreeJS BoxGeometry is (width, height, depth) -> (x, y, z)
-        // In our app: 
-        // L -> X, W -> Z (Depth), H -> Y (Height)
-        // Wait, check coordinate mapping in renderWarehouse:
-        // floor rotation x = -Math.PI/2 implies Y is up.
-        // warehouse length (X), width (Y in floor plane -> Z in world), height (Z in floor -> Y in world)
-        // BoxGeometry(L, H, W) ??
-        // Let's verify standard mapping:
-        // BoxGeometry(width, height, depth) = (x, y, z)
-        // Our Dims: dx(X), dy(Z_depth), dz(Y_height) ?
-        // getRotatedDims returns dx, dy, dz relative to L, W, H input.
-        // Optimizer: L=X, W=Y, H=Z.
-        // Frontend: L=X, W=Z, H=Y.
-        // So passed dx -> Box Width (X)
-        // passed dy -> Box Depth (Z)
-        // passed dz -> Box Height (Y)
-
+        // BoxGeometry(width, height, depth) = our (dx, dz, dy)
         const geometry = new THREE.BoxGeometry(dims.dx, dims.dz, dims.dy);
         const color = getItemColor(item, mode, maxWeight, maxAccess);
         const material = new THREE.MeshStandardMaterial({
@@ -563,26 +543,14 @@ function renderItems(items) {
 
         const mesh = new THREE.Mesh(geometry, material);
 
-        // Position
-        // Optimizer pos is Bottom-Left-Front corner? Or Center?
-        // Optimizer outputs Center X, Center Y (depth), Bottom Z (height).
-        // ThreeJS Box is centered at local (0,0,0).
-        // item.x -> Center X
-        // item.y -> Center Depth (Z in world)
-        // item.z -> Bottom Height (Y in world)
-
-        // Convert to ThreeJS coords:
-        // World X = item.x - warehouseLength/2
-        // World Z = item.y - warehouseWidth/2
-        // World Y = item.z + dims.dz/2
-
+        // Position: x,y are centers, z is bottom
         mesh.position.set(
             item.x - warehouseConfig.length / 2,
             item.z + dims.dz / 2,
             item.y - warehouseConfig.width / 2
         );
 
-        // No extra rotation needed since we handled it in Dimensions
+        // No extra rotation (baked into dimensions)
         mesh.userData = item;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -594,7 +562,7 @@ function renderItems(items) {
 function renderPickerPath(items) {
     if (!items || items.length === 0) return;
 
-    // Greedy TSP to simulation picking order
+    // Greedy TSP simulation for picking order
     const doorX = (warehouseConfig.door_x || 0);
     const doorY = (warehouseConfig.door_y || 0);
     const L = warehouseConfig.length;
@@ -603,7 +571,6 @@ function renderPickerPath(items) {
     let currentPos = { x: doorX, y: doorY };
     let remaining = [...items].map(i => ({
         ...i,
-        // Calculate center for distance
         cx: i.x,
         cy: i.y
     }));
@@ -671,15 +638,14 @@ function getItemColor(item, mode, maxWeight, maxAccess) {
         const color = new THREE.Color().setHSL(0.66 - (t * 0.66), 1, 0.5); // 0.66=Blue, 0=Red
         return color;
     } else if (mode === 'fragility') {
-        // Fragile (1) -> Red (0 hue), Robust (0) -> Green (120 hue = 0.33)
-        // If fragility is boolean 0/1, map directly.
+        // Fragile = Red, Robust = Green
         const isFragile = item.fragility === 1 || item.fragility === true;
         return isFragile ? new THREE.Color(0xFF0055) : new THREE.Color(0x00FF9D);
     }
     return 0x888888;
 }
 
-// --- Picker Path ---
+// Picker path controls
 
 function togglePickerPath() {
     const showPath = document.getElementById('show-path').checked;
@@ -708,8 +674,8 @@ function generatePickerPath() {
     const itemCount = parseInt(document.getElementById('picker-item-count').value) || 5;
     const selectionMode = document.getElementById('picker-selection-mode').value;
 
-    // Get all items as array
-    const items = Object.values(allItemsData).filter(i => i.z < 1000); // Only placed items
+    // Get placed items
+    const items = Object.values(allItemsData).filter(i => i.z < 1000);
     if (items.length === 0) {
         alert('No items to create path for');
         return;
@@ -742,7 +708,7 @@ function generatePickerPath() {
 
     if (selectedItems.length === 0) return;
 
-    // Simple greedy path: start at door, go to nearest unvisited, repeat
+    // Simple greedy path from door
     const pathPoints = [];
     const startPoint = new THREE.Vector3(doorX - whLength / 2, 0.2, doorY - whWidth / 2);
     pathPoints.push(startPoint);
@@ -809,10 +775,10 @@ function generatePickerPath() {
         pickerPathGroup.add(sprite);
     }
 
-    console.log(`Generated picker path with ${pathPoints.length - 1} stops`);
+
 }
 
-// --- Optimization Controls ---
+// Optimization controls
 
 
 
@@ -832,12 +798,11 @@ function startOptimization() {
         params.population_size = parseInt(document.getElementById('population-size').value);
         params.generations = parseInt(document.getElementById('generations').value);
     } else if (algo === 'eo') {
-        // For EO, the 'generations' input is labeled 'Iterations' in the UI
         params.iterations = parseInt(document.getElementById('generations').value);
         const tauEl = document.getElementById('eo-tau');
         if (tauEl) params.tau = parseFloat(tauEl.value);
     } else if (algo === 'compare') {
-        // Collect custom comparison parameters
+        // Custom comparison parameters
         params.custom_algorithms = [
             {
                 name: 'GA', type: 'ga',
@@ -883,16 +848,14 @@ function startOptimization() {
         if (iterEl) params.iterations = parseInt(iterEl.value);
     }
 
-    console.log("Starting optimization with params:", params);
 
-    // Ensure allItemsData is populated before starting optimization
+
+
+    // Load items before starting
     fetch(`${API_BASE_URL}/api/items?warehouse_id=${currentWarehouseId}`)
         .then(res => res.json())
         .then(items => {
-            // Populate allItemsData to ensure 3D view can render during optimization
             items.forEach(i => allItemsData[i.id] = i);
-
-            // Now start the optimization
             startOptimizationRequest(algo, params);
         })
         .catch(err => {
@@ -901,10 +864,7 @@ function startOptimization() {
 }
 
 function startOptimizationRequest(algo, params) {
-
-    // Fix API endpoint logic based on algo
     let endpoint = `/api/optimize/${algo}`;
-    // The previous forced mapping to ga-eo is removed to support eo-ga correctly.
 
     fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -1009,13 +969,12 @@ function startPolling() {
                 }
 
                 if (status.best_solution && status.best_solution.length > 0) {
-                    console.log('[DEBUG] best_solution items:', status.best_solution.length);
-                    console.log('[DEBUG] allItemsData keys:', Object.keys(allItemsData).length);
+
                     // Map solution coordinates back to full item data
                     const solutionItems = status.best_solution.map(sol => {
                         const originalItem = allItemsData[sol.id];
                         if (!originalItem) {
-                            console.log('[DEBUG] Missing item in allItemsData:', sol.id);
+
                         }
                         if (originalItem) {
                             return { ...originalItem, ...sol };
@@ -1023,7 +982,7 @@ function startPolling() {
                         return null;
                     }).filter(item => item !== null);
 
-                    console.log('[DEBUG] solutionItems after mapping:', solutionItems.length);
+
 
                     // Only re-render if we have items to show (prevents blank screen)
                     if (solutionItems.length > 0) {
@@ -1034,7 +993,7 @@ function startPolling() {
     }, 200); // Faster polling for smooth updates
 }
 
-// --- Analytics ---
+// Analytics
 function loadAnalytics() {
     fetch(`${API_BASE_URL}/api/metrics/current?warehouse_id=${currentWarehouseId}`)
         .then(res => res.json())
@@ -1145,9 +1104,8 @@ function initHistoryChart(history) {
     if (!ctx) return;
     if (historyChart) historyChart.destroy();
 
-    // Map history to chart data
-    // Group by timestamp or just show last N runs
-    const data = history.slice(-10); // Last 10
+    // Last 10 runs
+    const data = history.slice(-10);
     const labels = data.map(d => new Date(d.timestamp).toLocaleTimeString());
     const fitness = data.map(d => d.fitness);
 
@@ -1210,7 +1168,7 @@ function initCategoryChart(data) {
     });
 }
 
-// --- Item List ---
+// Item list
 function loadItemsList() {
     const container = document.getElementById('items-list');
     container.innerHTML = 'Loading...';
@@ -1269,7 +1227,7 @@ function editZone(id) {
     document.getElementById('zone-z2').value = zone.z2 || '';
     document.getElementById('zone-type').value = zone.zone_type;
 
-    // Load Metadata
+    // Load metadata
     if (zone.metadata) {
         if (zone.metadata.layer_heights) {
             document.getElementById('zone-layer-heights').value = zone.metadata.layer_heights.join(', ');
@@ -1298,7 +1256,7 @@ function editZone(id) {
 
 
 function renderZones(zones) {
-    // Clear old zones - properly dispose to prevent memory leaks
+    // Clear old zones with disposal
     function disposeObject(obj) {
         if (obj.geometry) obj.geometry.dispose();
         if (obj.material) {
@@ -1308,7 +1266,7 @@ function renderZones(zones) {
                 obj.material.dispose();
             }
         }
-        // Recursively dispose children
+        // Dispose children
         while (obj.children && obj.children.length > 0) {
             disposeObject(obj.children[0]);
             obj.remove(obj.children[0]);
@@ -1323,11 +1281,11 @@ function renderZones(zones) {
         const width = zone.x2 - zone.x1;
         const depth = zone.y2 - zone.y1;
 
-        // Z coordinates
+        // Z bounds
         const whHeight = warehouseConfig ? warehouseConfig.height : 5;
         let z1 = zone.z1 !== undefined ? zone.z1 : 0;
         let z2 = zone.z2 !== undefined ? zone.z2 : whHeight;
-        // Clamp z2 if it's the default 100 and likely unset (heuristic)
+        // Clamp z2 if default 100
         if (z2 === 100 && whHeight < 100) z2 = whHeight;
 
         const zoneHeight = z2 - z1;
@@ -1366,14 +1324,13 @@ function renderZones(zones) {
         line.renderOrder = 1; // Try to force render on top
         mesh.add(line);
 
-        // Shelf Layers
+        // Shelf layers
         if (isAlloc) {
             let layerHeights = [];
             if (zone.metadata && zone.metadata.layer_heights && zone.metadata.layer_heights.length > 0) {
                 layerHeights = zone.metadata.layer_heights;
             } else {
-                // Fallback to levels count
-                // DEFAULT TO 1 (Ground only) if not specified in metadata. Ignore global config to prevent unwanted grids.
+                // Default to 1 layer if not specified
                 const levels = (zone.metadata && zone.metadata.levels) ? parseInt(zone.metadata.levels) : 1;
 
                 if (levels > 1) {
@@ -1382,21 +1339,18 @@ function renderZones(zones) {
                 }
             }
 
-            // Draw planes
-            // If levels=3 (Ground, Shelf1, Shelf2), we need dividers at z=H/3 and z=2H/3
-            // The bottom (currentY) starts at -zoneHeight/2
+            // Draw shelf planes
             let currentY = -zoneHeight / 2;
             const hPerLayer = zoneHeight / layerHeights.length;
 
             for (let i = 0; i < layerHeights.length; i++) {
-                // Determine height of this layer
                 const h = layerHeights[i];
                 currentY += h;
 
-                // Don't draw top face if it's the very top of box
+                // Skip top face
                 if (currentY >= zoneHeight / 2 - 0.01) break;
 
-                // Add Shelf Plane (Transparent visual)
+                // Shelf plane
                 const shelfGeo = new THREE.PlaneGeometry(width, depth);
                 const shelfMat = new THREE.MeshBasicMaterial({
                     color: color,
@@ -1414,14 +1368,11 @@ function renderZones(zones) {
 
                 mesh.add(shelf);
 
-                // Add Grid to Shelf (White grid lines)
-                // Grid is XZ, matches mesh local space. Position at same height as shelf.
+                // Grid on shelf
                 const gridSize = warehouseConfig.grid_size || 1;
-                // High opacity (0.9) and depthTest: false to ensure it renders on top of the zone box transparency
                 const layerGrid = createRectangularGrid(width, depth, gridSize, 0xFFFFFF, 1.0, false);
-                layerGrid.position.y = currentY + 0.01; // Slightly above shelf to avoid z-fighting
-                // Ensure renderOrder is later than the box to appear on "top"
-                layerGrid.renderOrder = 2; // Box edges are 1
+                layerGrid.position.y = currentY + 0.01;
+                layerGrid.renderOrder = 2;
                 mesh.add(layerGrid);
             }
         }
@@ -1608,11 +1559,11 @@ function editZone(id) {
 
 function deleteZone(id) {
     if (!confirm('Delete this zone?')) return;
-    console.log('Deleting zone:', id);
+
     fetch(`${API_BASE_URL}/api/warehouse/zones/${id}?warehouse_id=${currentWarehouseId}`, { method: 'DELETE' })
         .then(res => res.json())
         .then(data => {
-            console.log('Delete response:', data);
+
             if (data.success) {
                 loadZones();
             } else {
@@ -1629,7 +1580,7 @@ function deleteZone(id) {
 function applyPreset(name) {
     if (!confirm('This will overwrite current warehouse configuration and zones. Continue?')) return;
 
-    console.log('Applying preset:', name);
+
 
     if (name === '4-shelves') {
         // 1. Update Config - Compact Physics Warehouse
@@ -1643,7 +1594,7 @@ function applyPreset(name) {
             id: currentWarehouseId
         };
 
-        console.log('Sending config:', newConfig);
+
 
         fetch(`${API_BASE_URL}/api/warehouse/config`, {
             method: 'PUT',
@@ -1651,7 +1602,7 @@ function applyPreset(name) {
             body: JSON.stringify(newConfig)
         }).then(res => res.json())
             .then(d => {
-                console.log('Config response:', d);
+
                 if (d.success) {
                     // 2. Clear Zones & Add New Zones 
                     clearZones().then(() => {
@@ -1790,7 +1741,7 @@ function scrambleItems() {
 
 
 function clearZones() {
-    console.log('Clearing all zones...');
+
     return fetch(`${API_BASE_URL}/api/warehouse/zones?warehouse_id=${currentWarehouseId}`)
         .then(res => res.json())
         .then(zones => {
@@ -1798,7 +1749,7 @@ function clearZones() {
                 console.error('Expected array of zones, got:', zones);
                 throw new Error('Invalid response from server when fetching zones.');
             }
-            console.log(`Found ${zones.length} zones to clear.`);
+
             const promises = zones.map(z =>
                 fetch(`${API_BASE_URL}/api/warehouse/zones/${z.id}?warehouse_id=${currentWarehouseId}`, { method: 'DELETE' })
             );
@@ -2165,6 +2116,6 @@ function countRenderedBoxes() {
         mRendered.textContent = count;
         mRendered.style.color = count > 0 ? '#00f0ff' : '#ff6b8a';
     }
-    console.log(`📦 3D Boxes rendered: ${count}`);
+
     return count;
 }
