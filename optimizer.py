@@ -7,21 +7,42 @@ import gc
 from functools import partial
 from database import get_exclusion_zones
 
+import atexit
+
 # --- Global Shared Memory for Multiprocessing ---
+# We are moving away from globals to explicit argument passing to allow reliable pool reuse.
+# However, we keep these for backward compatibility if needed, but they will be unused in new logic.
 _pool_items_props = None
 _pool_wh_dims = None
 _pool_valid_z = None
 _pool_allocation_zones = None
 _pool_exclusion_zones = None
 
-def init_worker(items_props, wh_dims, valid_z, allocation_zones, exclusion_zones):
-    """Initialize worker process with shared read-only data."""
-    global _pool_items_props, _pool_wh_dims, _pool_valid_z, _pool_allocation_zones, _pool_exclusion_zones
-    _pool_items_props = items_props
-    _pool_wh_dims = wh_dims
-    _pool_valid_z = valid_z
-    _pool_allocation_zones = allocation_zones
-    _pool_exclusion_zones = exclusion_zones
+_global_pool = None
+
+def cleanup_pool():
+    global _global_pool
+    if _global_pool:
+        _global_pool.terminate()
+        _global_pool.join()
+        _global_pool = None
+
+atexit.register(cleanup_pool)
+
+def get_process_pool():
+    """Returns a singleton multiprocessing pool."""
+    global _global_pool
+    if _global_pool is None:
+        cpu_count = multiprocessing.cpu_count()
+        # Cap process count
+        process_count = min(cpu_count, 12) 
+        # No initializer needed as we pass data explicitly
+        _global_pool = multiprocessing.Pool(processes=process_count)
+    return _global_pool
+
+def init_worker(*args):
+    """Deprecated: Initialization handled via explicit args now."""
+    pass
 
 
 # Helper for gravity calculation
@@ -107,446 +128,220 @@ def calculate_z_for_item(x, y, dim_x, dim_y, other_items_bbox, other_items_z, ot
     return max_z
 
 
+
+def get_rotated_dims(l, w, h, rotation_code):
+    """
+    Returns (dx, dy, dz) based on rotation code 0-5.
+    0: (L, W, H) - Flat 0
+    1: (W, L, H) - Flat 90
+    2: (L, H, W) - Side 0
+    3: (H, L, W) - Side 90
+    4: (W, H, L) - Up 0
+    5: (H, W, L) - Up 90
+    """
+    code = int(rotation_code) % 6
+    if code == 0: return l, w, h
+    if code == 1: return w, l, h
+    if code == 2: return l, h, w
+    if code == 3: return h, l, w
+    if code == 4: return w, h, l
+    if code == 5: return h, w, l
+    return l, w, h
+
 def repair_solution_compact(solution, items_props=None, warehouse_dims=None, allocation_zones=None, layer_heights=None):
     # Use globals if in worker process
     if items_props is None: items_props = _pool_items_props
     if warehouse_dims is None: warehouse_dims = _pool_wh_dims
     if allocation_zones is None: allocation_zones = _pool_allocation_zones
-    if layer_heights is None:
-         # layer_heights logic is usually derived from warehouse_dims if not passed contextually.
-         # But usually it's passed or can be derived.
-         # For safety, if we have warehouse_dims, we can try to derive it via get_valid_z_positions logic?
-         # Or just assume it's passed or default to [0.0].
-         pass
-
-    """
-    Re-calculates positions to enforce gravity and compactness (Tetris-like).
-    Packs items towards the origin (0,0,0) by sliding them Left and Back.
-    Respects allocation zones and layer heights.
     
-    Args:
-        solution: (N, 4) array [x, y, z, rotation]
-        items_props: (N, 8) or (N, 7) array [length, width, height, can_rotate, ...]
-        warehouse_dims: tuple (length, width, height, door_x, door_y) or None
-        allocation_zones: list of zone dicts with x1, y1, x2, y2, z1, z2 or None
-        layer_heights: list of valid Z positions for layers or None
-    """
-    num_items = len(solution)
-    if num_items == 0:
-        return solution
+    # Defaults
+    if layer_heights is None or len(layer_heights) == 0:
+        layer_heights = [0.0]
     
-    # Default warehouse bounds if not provided
     wh_len = warehouse_dims[0] if warehouse_dims else 100
     wh_wid = warehouse_dims[1] if warehouse_dims else 100
     wh_hgt = warehouse_dims[2] if warehouse_dims else 10
     
-    # Default layer heights (just floor if not specified)
-    if layer_heights is None or len(layer_heights) == 0:
-        layer_heights = [0.0]
-    layer_heights = sorted(layer_heights)
-    
+    num_items = len(solution)
+    if num_items == 0: return solution
+
     # Sort indices:
-    # Primary Key: Volume (Descending) - Critical for packing density (Large items first)
-    # Secondary Key: Input Z coordinate (Ascending) - Allows GA to shuffle similar items to avoid stagnation
+    # Priority 1: Fragility (Ascending) - 0 (Robust) first, 1 (Fragile) last
+    # Priority 2: Weight (Descending) - Heavy items first
+    # Priority 3: Volume (Descending) - Large items first
+    fragility = items_props[:, 8]
+    weights = items_props[:, 6]
     volumes = items_props[:, 0] * items_props[:, 1] * items_props[:, 2]
-    # np.lexsort sorts by keys in reverse order (last key is primary)
-    # Keys: (Secondary: Z, Primary: -Volume)
-    sorted_indices = np.lexsort((solution[:, 2], -volumes))
     
-    # Arrays to track placed items
-    placed_bbox = np.zeros((num_items, 4))  # x1, y1, x2, y2
-    placed_z = np.zeros(num_items)
-    placed_h = np.zeros(num_items)
-    placed_stackable = np.zeros(num_items, dtype=int)
+    indices = np.arange(num_items)
+    # Sort indices:
+    # Priority 1: Fragility (Ascending) - 0 (Robust) first, 1 (Fragile) last
+    # Priority 2: Weight (Descending) - Heavy items first
+    # Priority 3: Volume (Descending) - Large items first
+    fragility = items_props[:, 8]
+    weights = items_props[:, 6]
+    volumes = items_props[:, 0] * items_props[:, 1] * items_props[:, 2]
     
-    count = 0
+    indices = np.arange(num_items)
+    sorted_indices = sorted(indices, key=lambda i: (fragility[i], -weights[i], -volumes[i], i))
+
+    # Tracking placed items: (x, y, z, dx, dy, dz)
+    placed_items = []
     
+    # Pre-calculate simplified zone definitions for fast checking
+    # Filter zones that might be relevant? For now use all passed zones.
+    # Zones: list of dicts.
+    use_zones = allocation_zones if allocation_zones else [{'x1':0, 'y1':0, 'x2':wh_len, 'y2':wh_wid, 'z1':0, 'z2':wh_hgt}]
+
     for idx in sorted_indices:
         l, w, h = items_props[idx, 0:3]
-        can_rotate = items_props[idx, 3]
-        stackable = items_props[idx, 4]
+        can_rotate = int(items_props[idx, 3])
         
-        # Try all rotation options if rotation is allowed (0, 90 degrees)
-        orientations_to_try = [0.0, 90.0] if can_rotate else [solution[idx, 3]]
+        # Orientations to try (Flat rotations 0-1 usually preferred for stability)
+        # But user might want dense packing.
+        rots = [0, 1] if can_rotate else [int(solution[idx, 3])]
+        if can_rotate and items_props[idx, 4] == 1: # If stackable, maybe allow all rotations? 
+             pass # Stick to flat for logic simplicity unless requested
         
-        best_state = None
-        best_score = float('inf')
+        best_pos = None 
+        # (center_x, center_y, z, rot, dx, dy, dz, score)
+        # Score tuple: (z, y, x) - Minimize Z, then Y, then X.
         
-        # Search for valid zones
-        fitting_zones = []
-        if allocation_zones and len(allocation_zones) > 0:
-            for zone in allocation_zones:
-                zw = zone['x2'] - zone['x1']
-                zh = zone['y2'] - zone['y1']
-                if min(l, w) <= max(zw, zh) and max(l, w) <= max(zw, zh):
-                     fitting_zones.append(zone)
+        # 1. Generate Candidates (XY corners)
+        # Candidates are Potential Min-X, Min-Y coordinates
+        candidates = set()
         
-        # If no allocation zones provided or none fit, treat whole warehouse as one zone
-        if not fitting_zones:
-             fitting_zones = [{
-                'x1': 0.0, 'y1': 0.0, 'x2': wh_len, 'y2': wh_wid, 
-                'z1': 0.0, 'z2': wh_hgt
-             }]
-
-        # Try each fitting zone
-        # Shuffle zones to ensure balanced distribution (User Request: "not distributed properly")
-        random.shuffle(fitting_zones)
+        # From Zones (Zone Bottom-Left)
+        for z in use_zones:
+            candidates.add((z['x1'], z['y1']))
+            
+        # From Placed Items (Right and Back edges)
+        for (px, py, pz, pdx, pdy, pdz) in placed_items:
+            candidates.add((px + pdx, py)) # Right
+            candidates.add((px, py + pdy)) # Back
+            candidates.add((px, py))       # On top (aligned)
         
-        for zone in fitting_zones:
-            zone_x1 = zone['x1']
-            zone_y1 = zone['y1']
-            zone_x2 = zone['x2']
-            zone_y2 = zone['y2']
-            zone_z1 = zone.get('z1', 0.0)
-            zone_z2 = zone.get('z2', wh_hgt)
-
-            for rot in orientations_to_try:
-                # Calculate Dimensions based on rotation
-                if int(rot) % 180 == 0:
-                    dx, dy = l, w
-                else:
-                    dx, dy = w, l
+        # Filter candidates out of warehouse bounds (optimization)
+        valid_candidates = []
+        for (cx, cy) in candidates:
+             if cx >= 0 and cy >= 0 and cx < wh_len and cy < wh_wid:
+                 valid_candidates.append((cx, cy))
+                 
+        # Sort Candidates: Proximity to Genome Position
+        # The optimizer (GA/EO) suggests a position (solution[idx]).
+        # We try to snap to the candidate closest to that suggestion.
+        target_x = solution[idx, 0]
+        target_y = solution[idx, 1]
+        
+        # Tie-breaker: Z (Gravity), then Y, then X
+        # Since we haven't calculated Z yet, we use Y, X as secondary tie-breakers
+        sorted_candidates = sorted(valid_candidates, key=lambda p: (
+            (p[0] - target_x)**2 + (p[1] - target_y)**2, # Distance
+            p[1], # Min Y
+            p[0]  # Min X
+        ))
+        
+        for rot in rots:
+            dims = get_rotated_dims(l, w, h, rot)
+            dx, dy, dz = dims
+            
+            for (cx, cy) in sorted_candidates:
+                # Early Pruning: If best_pos found at Z=0, and we are far in list?
+                # Hard to prune without calculating Z.
                 
-                # Skip if item doesn't fit in zone at all (double check)
-                if dx > (zone_x2 - zone_x1) or dy > (zone_y2 - zone_y1):
+                min_x, min_y = cx, cy
+                max_x, max_y = cx + dx, cy + dy
+                
+                if max_x > wh_len + 0.001 or max_y > wh_wid + 0.001:
                     continue
                 
-                # Try each layer, starting from bottom
-                found_position = False
-                for layer_z in layer_heights:
-                    if layer_z < zone_z1 or layer_z >= zone_z2:
-                        continue
-                    
-                    # Calculate layer ceiling (next layer height or zone top)
-                    layer_ceiling = zone_z2
-                    
-                    # Look for the next defined layer
-                    next_layer_exists = False
-                    for next_lz in layer_heights:
-                        if next_lz > layer_z:
-                            layer_ceiling = next_lz
-                            next_layer_exists = True
-                            break
-                    
-                    # Infere last layer height if no explicit ceiling from next layer
-                    if not next_layer_exists and len(layer_heights) > 1:
-                        # Find previous layer Z
-                        prev_layer_z = layer_heights[0]
-                        for lz in layer_heights:
-                             if lz < layer_z:
-                                 prev_layer_z = lz
-                             else:
-                                 break
-                        
-                        inferred_height = layer_z - prev_layer_z
-                        if inferred_height > 0:
-                            # Apply constraint: min of zone top OR inferred top
-                            layer_ceiling = min(zone_z2, layer_z + inferred_height)
-
-                    # Check if item fits within layer height
-                    if layer_z + h > layer_ceiling + 0.01:  # Small tolerance
-                        continue  # Item too tall for this layer
-                    
-                    # --- Tetris-like placement: scan for first open position ---
-                    step_x = max(0.5, dx / 2)
-                    step_y = max(0.5, dy / 2)
-                    
-                    # Start from zone corner
-                    test_x = zone_x1 + dx / 2
-                    found_position = False
-                    
-                    while test_x + dx / 2 <= zone_x2 + 0.01:
-                        test_y = zone_y1 + dy / 2
-                        
-                        while test_y + dy / 2 <= zone_y2 + 0.01:
-                            # Check Z at this position
-                            # Add small padding to query dimensions to enforce separation/prevent Z-fighting
-                            z = calculate_z_for_item(test_x, test_y, dx + 0.001, dy + 0.001, 
-                                                     placed_bbox[:count], placed_z[:count], placed_h[:count], placed_stackable[:count])
-                            
-                            # Apply layer floor constraint
-                            z = max(z, layer_z)
-                            
-                            # Check if item fits within layer ceiling
-                            if z + h <= layer_ceiling + 0.01:
-                                # Valid position found!
-                                # Calculate score: prefer lower Z, then closer to origin (relative to zone? or global?)
-                                # Using global coordinates ensures packing towards 0,0 usually.
-                                # But we might want to pack towards zone start?
-                                # Let's stick to global coordinate minimization for consistency, 
-                                # OR minimize Z first.
-                                score = z * 10000.0 + test_x + test_y
-                                
-                                if score < best_score:
-                                    best_score = score
-                                    best_state = (test_x, test_y, z, rot, dx, dy)
-                                    found_position = True
-                                    # Optimization: If we found ANY valid spot, 
-                                    # and since we scan layers bottom-up, and zones... 
-                                    # Should we break strictly? 
-                                    # If we break here, we take the first valid spot in the first valid zone.
-                                    # This is good for "filling Zone A then Zone B".
-                                    # So yes, break.
-                            
-                            if found_position: break
-                            test_y += step_y
-                        if found_position: break
-                        test_x += step_x
-                    if found_position: break
-                if found_position: break
-            if found_position: break
-        
-        # If no valid position found in assigned zones, try GLOBAL SPILLOVER (search entire warehouse)
-        # [DISABLED] Global Spillover disabled to strict zone enforcement
-        if False and best_state is None and allocation_zones and len(allocation_zones) > 0:
-            # Spillover Zone: Full Warehouse
-            zone_x1, zone_y1, zone_z1 = 0.0, 0.0, 0.0
-            zone_x2, zone_y2, zone_z2 = wh_len, wh_wid, wh_hgt
-            
-            # Reuse logic for one specific global zone
-            for rot in orientations_to_try:
-                if int(rot) % 180 == 0:
-                    dx, dy = l, w
-                else:
-                    dx, dy = w, l
+                # Calculate Gravity Z (Drop on top of items)
+                gravity_z = 0.0
+                overlap_xy = False
                 
-                if dx > wh_len or dy > wh_wid: continue
-
-                # Try each layer
-                for layer_z in layer_heights:
-                    # Calculate layer ceiling
-                    layer_ceiling = wh_hgt
-                    
-                    # Look for the next defined layer
-                    next_layer_exists = False
-                    for next_lz in layer_heights:
-                        if next_lz > layer_z:
-                            layer_ceiling = next_lz
-                            next_layer_exists = True
-                            break
-                    
-                    # If this is the last layer (no next layer defined), 
-                    # try to infer a height constraint to prevent infinite stacking.
-                    # This prevents the "last layer is the whole rest of the warehouse" behavior
-                    # which causes infinite stacking if users expect shelves.
-                    if not next_layer_exists and len(layer_heights) > 1:
-                        # Estimate layer height from the previous interval
-                        # (Assuming uniform layer spacing)
-                        # Find the layer before this one
-                        prev_layer_z = layer_heights[0]
-                        for lz in layer_heights:
-                             if lz < layer_z:
-                                 prev_layer_z = lz
-                             else:
-                                 break
+                # Find highest item below this footprint
+                for (px, py, pz, pdx, pdy, pdz) in placed_items:
+                    # Check XY Intersection
+                    if (max_x > px + 0.001 and min_x < px + pdx - 0.001 and
+                        max_y > py + 0.001 and min_y < py + pdy - 0.001):
                         
-                        inferred_height = layer_z - prev_layer_z
-                        if inferred_height > 0:
-                            # Apply this height to the current layer
-                            layer_ceiling = min(wh_hgt, layer_z + inferred_height)
-
-                    if layer_z + h > layer_ceiling + 0.01: continue
-                    
-                    # Tetris scan
-                    step_x = max(0.5, dx / 2)
-                    step_y = max(0.5, dy / 2)
-                    test_x = zone_x1 + dx / 2
-                    found_position = False
-                    
-                    while test_x + dx / 2 <= zone_x2 + 0.01:
-                        test_y = zone_y1 + dy / 2
-                        while test_y + dy / 2 <= zone_y2 + 0.01:
-                            z = calculate_z_for_item(test_x, test_y, dx, dy, 
-                                                     placed_bbox[:count], placed_z[:count], placed_h[:count], placed_stackable[:count])
-                            z = max(z, layer_z)
+                        top_z = pz + pdz
+                        if top_z > gravity_z:
+                            gravity_z = top_z
+                
+                # Now check if this Gravity Z is valid in ANY zone
+                # We need a zone that contains this footprint (XY) and height (Z to Z+h)
+                valid_z_found = False
+                final_z = float('inf')
+                
+                for zne in use_zones:
+                    # Check XY containment
+                    if (min_x >= zne['x1'] - 0.01 and max_x <= zne['x2'] + 0.01 and 
+                        min_y >= zne['y1'] - 0.01 and max_y <= zne['y2'] + 0.01):
+                        
+                        # Calculate minimal valid Z for this zone
+                        zone_floor = zne.get('z1', 0)
+                        
+                        # The item naturally settles at max(gravity_z, zone_floor)
+                        # e.g. If gravity says 3, but zone starts at 5 (Top Zone), it floats at 5.
+                        # e.g. If gravity says 3, and zone is 0-5, it sits at 3.
+                        
+                        placement_z = max(gravity_z, zone_floor)
+                        placement_top = placement_z + dz
+                        
+                        zone_ceil = zne.get('z2', wh_hgt)
+                        
+                        # Check Z containment
+                        if placement_top <= zone_ceil + 0.001:
+                            # It fits!
+                            # Check Overlap again? 
+                            # We calculated gravity_z based on overlaps. 
+                            # If placement_z == gravity_z, it's resting on item.
+                            # If placement_z > gravity_z (floated to zone floor), we perform
+                            # a quick check to ensure we didn't float INTO another item above gravity_z?
+                            # Gravity theory says gravity_z is the HIGHEST item below. 
+                            # So anything above gravity_z is empty space (up to current placement).
+                            # Wait, "Highest item below" assumes we checked ALL items.
+                            # Yes, we did.
+                            # So the space from gravity_z upwards is clear of items.
+                            # So placement_z is safe from item collisions.
                             
-                            if z + h <= layer_ceiling + 0.01:
-                                score = z * 10000.0 + test_x + test_y
-                                if score < best_score:
-                                    best_score = score
-                                    best_state = (test_x, test_y, z, rot, dx, dy)
-                                    found_position = True
-                            if found_position: break
-                            test_y += step_y
-                        if found_position: break
-                        test_x += step_x
-                    if found_position: break
-                if found_position: break
-
-        # If STILL no valid position found, use fallback (using the FIRST fitting zone as default container)
-        if best_state is None:
-            # Debug log
-            # Debug log removed
-
+                            # Update global best for this item
+                            if placement_z < final_z:
+                                final_z = placement_z
+                                valid_z_found = True
+                    
+                if valid_z_found:
+                    # Calculate final score (Z, Y, X)
+                    score = (final_z, min_y, min_x)
+                    if best_pos is None or score < best_pos[7]:
+                         center_x = min_x + dx/2
+                         center_y = min_y + dy/2
+                         best_pos = (center_x, center_y, final_z, rot, dx, dy, dz, score)
+    
+        # Apply Placement
+        if best_pos:
+            b_x, b_y, b_z, b_rot, b_dx, b_dy, b_dz, _ = best_pos
+        else:
+            # FALLBACK
+            b_z = 0
+            if placed_items:
+                max_top = max([p[2]+p[5] for p in placed_items])
+                b_z = max_top # Stack on top of everything
             
-            # Pick first fitting zone as default or global if none
-            zone = fitting_zones[0] if fitting_zones else {'x1':0, 'y1':0, 'x2':wh_len, 'y2':wh_wid}
-            zone_x1, zone_y1 = zone.get('x1', 0), zone.get('y1', 0)
-            zone_x2, zone_y2 = zone.get('x2', wh_len), zone.get('y2', wh_wid)
-            zone_z1, zone_z2 = zone.get('z1', 0.0), zone.get('z2', wh_hgt)
-
-            fallback_rot = solution[idx, 3]
-            if int(fallback_rot) % 180 == 0:
-                dx, dy = l, w
-            else:
-                dx, dy = w, l
+            b_rot = solution[idx, 3] if not can_rotate else 0
+            dims = get_rotated_dims(l, w, h, b_rot)
+            b_dx, b_dy, b_dz = dims
+            b_x = dims[0]/2
+            b_y = dims[1]/2
             
-        if best_state is None:
-             # Fallback: Try to find ANY valid position
-             # Try random positions to avoid unstackable items
-             found_fallback = False
-             
-             # First try original position clamped
-             candidates = [(max(zone_x1 + dx/2, min(zone_x2 - dx/2, solution[idx, 0])),
-                            max(zone_y1 + dy/2, min(zone_y2 - dy/2, solution[idx, 1])))]
-                            
-             # Add random candidates
-             for _ in range(20):
-                 if zone_x2 > zone_x1 + dx and zone_y2 > zone_y1 + dy:
-                     rx = random.uniform(zone_x1 + dx/2, zone_x2 - dx/2)
-                     ry = random.uniform(zone_y1 + dy/2, zone_y2 - dy/2)
-                     candidates.append((rx, ry))
-
-             best_fallback_z = float('inf')
-             best_fallback_state = None
-
-             for fx, fy in candidates:
-                 # Calculate gravity support
-                 # Add small padding to query dimensions to enforce separation/prevent Z-fighting
-                 gravity_z = calculate_z_for_item(fx, fy, dx + 0.001, dy + 0.001, 
-                                           placed_bbox[:count], placed_z[:count], placed_h[:count], placed_stackable[:count])
-                 
-                 if gravity_z > 50000: continue
-                 
-                 # Try to fit in each layer
-                 for layer_z in layer_heights:
-                     # Calculate ceiling for this layer
-                     layer_ceiling = wh_hgt # Default to max
-                     next_layer_exists = False
-                     for next_lz in layer_heights:
-                        if next_lz > layer_z:
-                            layer_ceiling = next_lz
-                            next_layer_exists = True
-                            break
-                     
-                     if not next_layer_exists and len(layer_heights) > 1:
-                         prev_layer_z = layer_heights[0]
-                         for lz in layer_heights:
-                             if lz < layer_z: prev_layer_z = lz; break # simplified previous find
-                             # Actually logic is: find max lz < layer_z? No, just prev in sorted list
-                         # We can just iterate sorted list
-                         pass # Skip complex inference in fallback for safety, use wh_hgt or derived logic if easy
-                         
-                         # Re-use logical derivation if possible, or just default to max or existing ceiling
-                         # Let's assume uniform is safer:
-                         idx_l = layer_heights.index(layer_z)
-                         if idx_l > 0:
-                             diff = layer_z - layer_heights[idx_l-1]
-                             layer_ceiling = min(wh_hgt, layer_z + diff)
-                             
-                     z_candidate = max(gravity_z, layer_z)
-                     
-                     # Enforce ceiling
-                     if z_candidate + h <= layer_ceiling + 0.01:
-                         # Valid!
-                         if z_candidate < best_fallback_z:
-                              best_fallback_z = z_candidate
-                              best_fallback_state = (fx, fy, z_candidate, fallback_rot, dx, dy)
-                              # Break inner layer loop if we found a spot? 
-                              # No, we want *best* Z (lowest). Since we sort layers, first valid is lowest for this X,Y?
-                              # Gravity might make higher layer valid but lower invalid?
-                              # But max(freq, layer) implies increasing Z.
-                              # So yes, break to pick lowest valid layer for this X,Y.
-                              break
-             
-             if best_fallback_state:
-                 best_state = best_fallback_state
-             else:
-                 # Absolute Fallback: Find the candidate with the LOWEST forced stack height
-                 best_forced_z = float('inf')
-                 best_forced_state = None
-                 
-                 # Backup: just the absolute shortest stack, ignoring layer rules (last resort)
-                 shortest_z = float('inf')
-                 shortest_state = None
-
-                 for fx, fy in candidates:
-                     # Calculate stack height ignoring stackability properties
-                     safe_z = calculate_z_for_item(fx, fy, dx + 0.001, dy + 0.001, 
-                                               placed_bbox[:count], placed_z[:count], placed_h[:count], placed_stackable[:count],
-                                               strict_stacking=False)
-                     
-                     # Update shortest backup
-                     if safe_z < shortest_z:
-                         shortest_z = safe_z
-                         shortest_state = (fx, fy, safe_z, fallback_rot, dx, dy)
-
-                     # Try to fit into a layer strictly
-                     final_z = safe_z
-                     valid_layer_found = False
-                     
-                     for layer_z in layer_heights:
-                         # Ceiling logic
-                         layer_ceiling = wh_hgt 
-                         next_layer_exists = False
-                         for next_lz in layer_heights:
-                            if next_lz > layer_z:
-                                layer_ceiling = next_lz; next_layer_exists = True; break
-                         if not next_layer_exists and len(layer_heights) > 1:
-                             idx_l = layer_heights.index(layer_z)
-                             if idx_l > 0: layer_ceiling = min(wh_hgt, layer_z + (layer_z - layer_heights[idx_l-1]))
-
-                         z_test = max(safe_z, layer_z)
-                         
-                         # Check strict fit in layer AND warehouse
-                         if z_test + items_props[idx, 2] <= layer_ceiling + 0.01 and z_test + items_props[idx, 2] <= wh_hgt + 0.01:
-                             final_z = z_test
-                             valid_layer_found = True
-                             break
-                     
-                     if valid_layer_found:
-                         if final_z < best_forced_z:
-                             best_forced_z = final_z
-                             best_forced_state = (fx, fy, final_z, fallback_rot, dx, dy)
-                 
-                 # Decide which fallback to use
-                 if best_forced_state:
-                     best_state = best_forced_state
-                 else:
-                     # Even forced stacking failed to find a valid layer spot (warehouse full?)
-                     # Use the shortest physical stack found to minimize "Infinite Stacking"
-                     if shortest_state:
-                         best_state = shortest_state
-                     else:
-                         # Truly purely hypothetical fallback
-                         fx, fy = candidates[0]
-                         best_state = (fx, fy, 0.0, fallback_rot, dx, dy)
-                 
-        # Apply Best State
-        b_x, b_y, b_z, b_rot, b_dx, b_dy = best_state
-        
-        # Handle any remaining penalty Z positions
-        if b_z > 50000:
-            # Should not happen with strict_stacking=False logic above, but fail safe to MAX height rather than floor
-             b_z = 100.0 # Better to be out of bounds than colliding? Or assume 0.0 only if truly no other option?
-             # actually if we used strict=False, b_z should be the top of the stack.
-             pass
-        
-        # Ensure Z is never negative
-        b_z = max(0.0, b_z)
-        
         solution[idx, 0] = b_x
         solution[idx, 1] = b_y
         solution[idx, 2] = b_z
         solution[idx, 3] = b_rot
         
-        # Track placed item
-        placed_bbox[count] = [b_x - b_dx/2, b_y - b_dy/2, b_x + b_dx/2, b_y + b_dy/2]
-        placed_z[count] = b_z
-        placed_h[count] = items_props[idx, 2]  # Use original height
-        placed_stackable[count] = stackable
-        count += 1
-        
+        placed_items.append((b_x - b_dx/2, b_y - b_dy/2, b_z, b_dx, b_dy, b_dz))
+
     return solution
 
 
@@ -766,6 +561,7 @@ def fitness_function_numpy(solution, items_props=None, warehouse_dims=None, weig
     # items_props is likely already float32 if we initialized it carefully, but let's assume it's ro (read-only)
     
     # Calculate Space Utilization
+    # Calculate Space Utilization
     grouping = 0.0 # Initialize early to avoid NameError
     total_vol = np.sum(items_props[:, 0] * items_props[:, 1] * items_props[:, 2])
     wh_vol = warehouse_dims[0] * warehouse_dims[1] * warehouse_dims[2]
@@ -779,7 +575,12 @@ def fitness_function_numpy(solution, items_props=None, warehouse_dims=None, weig
     dists = np.sqrt((solution[:, 0] - door_x)**2 + (solution[:, 1] - door_y)**2)
     # Avoid div by zero
     access_scores = 1.0 / (1.0 + dists)
-    accessibility = np.average(access_scores, weights=items_props[:, 5])
+    
+    freqs = items_props[:, 5]
+    if np.sum(freqs) > 1e-9:
+        accessibility = np.average(access_scores, weights=freqs)
+    else:
+        accessibility = np.mean(access_scores)
     
     # Stability
     on_valid_z = np.zeros(len(solution), dtype=bool)
@@ -836,19 +637,69 @@ def fitness_function_numpy(solution, items_props=None, warehouse_dims=None, weig
         rots = solution[:, 3].astype(int)
         l = items_props[:, 0]
         w = items_props[:, 1]
+        orig_h = items_props[:, 2] # Need original height to swap
         
-        # If rot is 90 or 270, swap
-        swap_mask = (rots % 180 != 0)
-        current_len = np.where(swap_mask, w, l)
-        current_wid = np.where(swap_mask, l, w)
+        # We need to vectorizely apply get_rotated_dims?
+        # get_rotated_dims is not vectorized.
+        # But we can simulate it with numpy usage.
+        
+        # Codes 0-5
+        # 0: L, W, H
+        # 1: W, L, H
+        # 2: L, H, W
+        # 3: H, L, W
+        # 4: W, H, L
+        # 5: H, W, L
+        
+        current_len = np.zeros(n, dtype=np.float32)
+        current_wid = np.zeros(n, dtype=np.float32)
+        current_hgt = np.zeros(n, dtype=np.float32)
+        
+        rot_mod = rots % 6
+        
+        # Case 0
+        mask = (rot_mod == 0)
+        current_len[mask] = l[mask]
+        current_wid[mask] = w[mask]
+        current_hgt[mask] = orig_h[mask]
+        
+        # Case 1
+        mask = (rot_mod == 1)
+        current_len[mask] = w[mask]
+        current_wid[mask] = l[mask]
+        current_hgt[mask] = orig_h[mask]
+        
+        # Case 2
+        mask = (rot_mod == 2)
+        current_len[mask] = l[mask]
+        current_wid[mask] = orig_h[mask]
+        current_hgt[mask] = w[mask]
+        
+        # Case 3
+        mask = (rot_mod == 3)
+        current_len[mask] = orig_h[mask]
+        current_wid[mask] = l[mask]
+        current_hgt[mask] = w[mask]
+        
+        # Case 4
+        mask = (rot_mod == 4)
+        current_len[mask] = w[mask]
+        current_wid[mask] = orig_h[mask]
+        current_hgt[mask] = l[mask]
+        
+        # Case 5
+        mask = (rot_mod == 5)
+        current_len[mask] = orig_h[mask]
+        current_wid[mask] = w[mask]
+        current_hgt[mask] = l[mask]
         
         # Half-dims
         hw = current_len / 2
         hh = current_wid / 2
         
-        # Z intervals
+        # Z intervals (bottom + rotated height)
         z1 = z
-        z2 = z + h
+        z2 = z + current_hgt
         
         # Reduced Batch Size for Memory Safety
         BATCH_SIZE = 512 
@@ -881,14 +732,15 @@ def fitness_function_numpy(solution, items_props=None, warehouse_dims=None, weig
                 # Overlap checks
                 # X overlap: |x1 - x2| < hw1 + hw2
                 dx = np.abs(x_batch - x_other)
-                overlap_x = dx < (hw_batch + hw_other)
+                overlap_x = dx < (hw_batch + hw_other - 0.01) # 1cm tolerance? No, stricter.
                 
                 # Y overlap
                 dy = np.abs(y_batch - y_other)
-                overlap_y = dy < (hh_batch + hh_other)
+                overlap_y = dy < (hh_batch + hh_other - 0.01)
                 
                 # Z overlap
                 # Interval overlap: not (end1 <= start2 or start1 >= end2)
+                # Strict < inequality implies 0 thickness overlap is ignored, which is good.
                 overlap_z = (z2_batch > (z1_other + 0.01)) & (z1_batch < (z2_other - 0.01))
                 
                 # Combined
@@ -903,20 +755,20 @@ def fitness_function_numpy(solution, items_props=None, warehouse_dims=None, weig
         # Divide by 2 because A-B and B-A are counted
         overlap_count /= 2.0
         
-        # Normalize
-        max_pairs = (n * (n - 1)) / 2 if n > 1 else 1
-        overlap_penalty = overlap_count / max_pairs
+        # Draconian Penalty
+        if overlap_count > 0:
+             overlap_penalty = overlap_count * 10000.0 # Extreme penalty
+        else:
+             overlap_penalty = 0.0
         
     # --- Stackability Enforcement ---
     # Check if items are stacked on non-stackable items
     stackability_penalty = 0
+    
+    # Optimized Vectorized Stackability Check
     # n is already defined
     if n > 1:
-        # Reuse variables from earlier or re-extract (safer to re-extract as some were batch-local or overwritten)
-        # Actually x,y,z,h were extracted at top of if n > 0 block.
-        # But let's be safe and rigorous.
-        
-        # For each item, check if it's above another item that is NOT stackable
+        # Reuse variables extracted earlier
         x = solution[:, 0]
         y = solution[:, 1]
         z = solution[:, 2]
@@ -924,43 +776,118 @@ def fitness_function_numpy(solution, items_props=None, warehouse_dims=None, weig
         stackable = items_props[:, 4]  # stackable flags
         
         # Get item footprint dimensions (accounting for rotation)
+        # Get item footprint dimensions (accounting for rotation)
         rots = solution[:, 3].astype(int)
         l = items_props[:, 0]
         w = items_props[:, 1]
-        swap_mask = (rots % 180 != 0)
-        current_len = np.where(swap_mask, w, l)
-        current_wid = np.where(swap_mask, l, w)
+        orig_h = items_props[:, 2]
+        
+        # 6-Axis Dimension Logic (Vectorized)
+        current_len = np.zeros(n, dtype=np.float32)
+        current_wid = np.zeros(n, dtype=np.float32)
+        current_hgt = np.zeros(n, dtype=np.float32) # We need this for z_tops!
+        
+        rot_mod = rots % 6
+        
+        # Case 0 (L, W, H)
+        mask = (rot_mod == 0)
+        current_len[mask] = l[mask]; current_wid[mask] = w[mask]; current_hgt[mask] = orig_h[mask]
+        # Case 1 (W, L, H)
+        mask = (rot_mod == 1)
+        current_len[mask] = w[mask]; current_wid[mask] = l[mask]; current_hgt[mask] = orig_h[mask]
+        # Case 2 (L, H, W)
+        mask = (rot_mod == 2)
+        current_len[mask] = l[mask]; current_wid[mask] = orig_h[mask]; current_hgt[mask] = w[mask]
+        # Case 3 (H, L, W)
+        mask = (rot_mod == 3)
+        current_len[mask] = orig_h[mask]; current_wid[mask] = l[mask]; current_hgt[mask] = w[mask]
+        # Case 4 (W, H, L)
+        mask = (rot_mod == 4)
+        current_len[mask] = w[mask]; current_wid[mask] = orig_h[mask]; current_hgt[mask] = l[mask]
+        # Case 5 (H, W, L)
+        mask = (rot_mod == 5)
+        current_len[mask] = orig_h[mask]; current_wid[mask] = w[mask]; current_hgt[mask] = l[mask]
+
         hw = current_len / 2
         hh = current_wid / 2
         
-        violations = 0
-        for i in range(n):
-            if z[i] <= 0.01:  # Item on ground floor, no stacking issue
-                continue
-            
-            # Check all items that could be supporting this item
-            for j in range(n):
-                if i == j:
-                    continue
-                
-                # Check if item j is below item i
-                # Item j's top = z[j] + h[j], Item i's bottom = z[i]
-                z_j_top = z[j] + h[j]
-                
-                # Is item i resting on item j? (within tolerance)
-                if abs(z[i] - z_j_top) < 0.1:
-                    # Check XY overlap (footprint overlap)
-                    dx = abs(x[i] - x[j])
-                    dy = abs(y[i] - y[j])
-                    overlap_threshold_x = (hw[i] + hw[j]) * 0.5  # At least 50% overlap
-                    overlap_threshold_y = (hh[i] + hh[j]) * 0.5
-                    
-                    if dx < overlap_threshold_x and dy < overlap_threshold_y:
-                        # Item i is stacked on item j
-                        if stackable[j] < 0.5:  # Item j is NOT stackable
-                            violations += 1
-                            break  # One violation per stacked item is enough
+        # Z-tops MUST use rotated height
+        z_tops = z + current_hgt
         
+        # We need to find pairs (i, j) where i is resting on j.
+        # Resting condition: abs(z[i] - z_top[j]) < 0.1
+        # AND Footprint Overlap
+        
+        violations = 0
+        BATCH_SIZE_STACK = 128 # Small batch for safety
+        
+        for i_start in range(0, n, BATCH_SIZE_STACK):
+            i_end = min(i_start + BATCH_SIZE_STACK, n)
+            
+            # Batch I data (Potential Top Items)
+            z_i = z[i_start:i_end].reshape(-1, 1) # (B, 1)
+            x_i = x[i_start:i_end].reshape(-1, 1)
+            y_i = y[i_start:i_end].reshape(-1, 1)
+            hw_i = hw[i_start:i_end].reshape(-1, 1)
+            hh_i = hh[i_start:i_end].reshape(-1, 1)
+            
+            # Filter: Only check items that are NOT on the ground
+            # effective_mask = (z_i > 0.01).flatten()
+            # If we want to optimize further we could skip ground items, but vectorization is fast enough.
+            
+            for j_start in range(0, n, BATCH_SIZE_STACK):
+                j_end = min(j_start + BATCH_SIZE_STACK, n)
+                
+                # Batch J data (Potential Support Items)
+                z_j_top = z_tops[j_start:j_end].reshape(1, -1) # (1, B2)
+                
+                # Z-Check: Is i resting on j?
+                # resting = abs(z_i - z_j_top) < 0.1
+                resting = np.abs(z_i - z_j_top) < 0.1
+                
+                if not np.any(resting):
+                    continue
+                    
+                # XY Overlap Check for resting pairs
+                x_j = x[j_start:j_end].reshape(1, -1)
+                y_j = y[j_start:j_end].reshape(1, -1)
+                hw_j = hw[j_start:j_end].reshape(1, -1)
+                hh_j = hh[j_start:j_end].reshape(1, -1)
+                
+                dx = np.abs(x_i - x_j)
+                dy = np.abs(y_i - y_j)
+                
+                # Overlap Threshold (50% rule mostly... logic was: < (hw1+hw2)*0.5)
+                # Wait, original logic: overlap_threshold_x = (hw[i] + hw[j]) * 0.5
+                # This means centers must be VERY close.
+                # Actually (hw[i] + hw[j]) is the touching distance. * 0.5 means they must overlap by 50%?
+                # Yes.
+                
+                thresh_x = (hw_i + hw_j) * 0.5
+                thresh_y = (hh_i + hh_j) * 0.5
+                
+                xy_overlap = (dx < thresh_x) & (dy < thresh_y)
+                
+                # Valid Support Relation
+                is_supported = resting & xy_overlap
+                
+                # Self-support is impossible due to z vs z+h check (unless h=0, but valid check prevents self-loop effectively)
+                # But to be safe, if i==j, z_i cannot equal z_j + h_j unless h_j=0.
+                
+                if np.any(is_supported):
+                     # Check if supporter J is stackable
+                     stackable_j = stackable[j_start:j_end].reshape(1, -1) # (1, B2)
+                     
+                     # Identify bad supports: Supported by item with stackable=0
+                     # mask: is_supported AND (stackable_j == 0)
+                     bad_support = is_supported & (stackable_j < 0.5)
+                     
+                     # Count unique ITEMS 'i' that have at least one bad support
+                     # Reduce along J axis: does item i have ANY bad support in this batch?
+                     has_bad_support = np.any(bad_support, axis=1) # (B,)
+                     
+                     violations += np.sum(has_bad_support)
+
         stackability_penalty = violations / n if n > 0 else 0
     
     # --- Grouping Metric ---
@@ -1001,7 +928,11 @@ def fitness_function_numpy(solution, items_props=None, warehouse_dims=None, weig
             grouping = 0
 
     
-    norm_weights = {k: v / sum(weights.values()) for k, v in weights.items()}
+    total_weight = sum(weights.values())
+    if total_weight <= 1e-9:
+        norm_weights = weights # Avoid division by zero
+    else:
+        norm_weights = {k: v / total_weight for k, v in weights.items()}
     
     # Penalize fitness for zone violations
     fitness = (norm_weights.get('space', 0) * space_util +
@@ -1247,6 +1178,42 @@ def process_offspring_batch(parent1, parent2, crossover_rate, mutation_rate, wh_
     return [m1, m2]
 
 
+def eo_evaluate_mutation(solution, item_to_mutate, items_props, wh_dims, valid_z, allocation_zones, 
+                         exclusion_zones_arr, current_weights, seed_x, seed_y, seed_z, rotation):
+    """
+    Evaluate a single EO mutation candidate. Used for parallel evaluation.
+    
+    Args:
+        solution: Base solution array (N, 4)
+        item_to_mutate: Index of item to mutate
+        items_props: Item properties array (N, 8)
+        wh_dims: Warehouse dimensions tuple
+        valid_z: Valid z positions array
+        allocation_zones: List of allocation zone dicts or None
+        exclusion_zones_arr: Exclusion zones array or None
+        current_weights: Fitness weights dict
+        seed_x, seed_y, seed_z, rotation: The mutation seed position and rotation
+        
+    Returns:
+        (mutated_solution, fitness, space_util, accessibility, stability)
+    """
+    # Create copy to avoid modifying original
+    mutated_sol = solution.copy()
+    
+    # Apply mutation
+    mutated_sol[item_to_mutate] = [seed_x, seed_y, seed_z, rotation]
+    
+    # Repair solution
+    mutated_sol = repair_solution_compact(mutated_sol, items_props, wh_dims, allocation_zones, valid_z)
+    
+    # Evaluate fitness
+    fitness, su, acc, sta, grp = fitness_function_numpy(
+        solution=mutated_sol, items_props=items_props, warehouse_dims=wh_dims,
+        weights=current_weights, valid_z=valid_z, exclusion_zones_arr=exclusion_zones_arr
+    )
+    
+    return (mutated_sol, fitness, su, acc, sta)
+
 
 class GeneticAlgorithm:
     def __init__(self, population_size=100, generations=500, crossover_rate=0.8,
@@ -1262,46 +1229,24 @@ class GeneticAlgorithm:
         # Population shape: (pop_size, num_items, 4) -> x, y, z, rotation
         print(f"Initializing population of size {self.population_size}...", flush=True)
         
-        cpu_count = multiprocessing.cpu_count()
-        # Cap process count to avoid overhead for small tasks or system overload
-        process_count = min(cpu_count, 16) 
-        
         population = []
         
+        # Use singleton pool
+        pool = get_process_pool()
+        process_count = pool._processes if hasattr(pool, '_processes') else multiprocessing.cpu_count()
+        
         if process_count > 1:
-             # Prepare args for parallel execution - use None for shared data
-             args = [(num_items, None, None, None, None) for _ in range(self.population_size)]
+             # Explicitly pass all data args
+             args = [(num_items, warehouse_dims, items_props, allocation_zones, valid_z) for _ in range(self.population_size)]
              
-             # Use Pool with Initializer
              print(f"Starting parallel initialization with {process_count} processes...")
-             # We assume pool is created in optimize() usually, or we create one here.
-             # If we create one here, we need to pass the data.
-             # BUT: Initialize is called from optimize(), which already sets up the pool context IF we want to reuse it?
-             # No, initialize is called once. Optimize re-creates pool or uses one.
-             # Better: Create a pool here with initializer.
-             
-             with multiprocessing.Pool(processes=process_count, initializer=init_worker, 
-                                     initargs=(items_props, warehouse_dims, valid_z, allocation_zones, None)) as pool:
-                 population = pool.starmap(create_and_repair, args)
+             population = pool.starmap(create_and_repair, args)
         else:
              print("Starting serial initialization...")
-             # Set globals for serial execution (shim)
-             global _pool_items_props, _pool_wh_dims, _pool_valid_z, _pool_allocation_zones
-             old_globals = (_pool_items_props, _pool_wh_dims, _pool_valid_z, _pool_allocation_zones)
-             
-             _pool_items_props = items_props
-             _pool_wh_dims = warehouse_dims
-             _pool_valid_z = valid_z
-             _pool_allocation_zones = allocation_zones
-             
-             try:
-                 for _ in range(self.population_size):
-                     population.append(create_and_repair(num_items, None, None, None, None))
-             finally:
-                 # Restore
-                 _pool_items_props, _pool_wh_dims, _pool_valid_z, _pool_allocation_zones = old_globals
+             # Serial execution
+             for _ in range(self.population_size):
+                 population.append(create_and_repair(num_items, warehouse_dims, items_props, allocation_zones, valid_z))
 
-        
         return np.array(population)
 
     def _get_rotated_bounding_box_dims(self, length, width, rotation):
@@ -1322,49 +1267,7 @@ class GeneticAlgorithm:
     
     # fitness_function_numpy moved to standalone function
     
-    def fitness_function(self, solution, items, warehouse, weights=None):
-        """
-        Legacy wrapper for app.py to call the numpy fitness calculation.
-        Converts list-based inputs to numpy arrays.
-        """
-        num_items = len(items)
-        
-        # Prepare props
-        items_props = np.zeros((num_items, 8), dtype=np.float32)
-        for i, item in enumerate(items):
-            items_props[i] = [
-                item['length'], item['width'], item['height'],
-                item['can_rotate'], item['stackable'],
-                item['access_freq'], item.get('weight', 0),
-                hash(item.get('category', '')) % 10000 
-            ]
-            
-        # Prepare solution array (N, 4)
-        sol_arr = np.zeros((num_items, 4), dtype=np.float32)
-        item_map = {item['id']: i for i, item in enumerate(items)}
-        
-        # Handle solution format (list of dicts vs list of lists?)
-        # app.py usually passes list of dicts [{'id':..., 'x':...}, ...]
-        if isinstance(solution, list) and len(solution) > 0 and isinstance(solution[0], dict):
-             for s in solution:
-                 idx = item_map.get(s['id'])
-                 if idx is not None:
-                     sol_arr[idx] = [s.get('x',0), s.get('y',0), s.get('z',0), s.get('rotation',0)]
-        elif isinstance(solution, np.ndarray):
-             sol_arr = solution
-        
-        wh_dims = (warehouse['length'], warehouse['width'], warehouse['height'], 
-                   warehouse.get('door_x', 0), warehouse.get('door_y', 0))
-        
-        valid_z = get_valid_z_positions(warehouse)
-        zones = get_exclusion_zones(warehouse['id'])
-        exclusion_zones_arr = None
-        if zones:
-             ex_zones = [z for z in zones if z['zone_type'] == 'exclusion']
-             if ex_zones:
-                 exclusion_zones_arr = np.array([[z['x1'], z['y1'], z['x2'], z['y2']] for z in ex_zones])
-                 
-        return fitness_function_numpy(sol_arr, items_props, wh_dims, weights, valid_z, exclusion_zones_arr)
+
 
 
     def selection(self, population, fitness_scores):
@@ -1400,21 +1303,20 @@ class GeneticAlgorithm:
              if ex_zones:
                  exclusion_zones_arr = np.array([[z['x1'], z['y1'], z['x2'], z['y2']] for z in ex_zones])
             
-        # Pre-process items into numpy array (N, 8)
-        # Cols: 0:len, 1:wid, 2:hgt, 3:can_rot, 4:stackable, 5:access_freq, 6:weight, 7:category_hash
-        items_props = np.zeros((num_items, 8), dtype=np.float32)
+        # Pre-process items into numpy array (N, 9)
+        items_props = np.zeros((num_items, 9), dtype=np.float32)
         for i, item in enumerate(items):
             items_props[i] = [
                 item['length'], item['width'], item['height'],
                 item['can_rotate'], item['stackable'],
                 item['access_freq'], item.get('weight', 0),
-                hash(item.get('category', '')) % 10000 
+                hash(item.get('category', '')) % 10000,
+                item.get('fragility', 0)
             ]
             
         wh_dims = (warehouse['length'], warehouse['width'], warehouse['height'], 
                    warehouse.get('door_x', 0), warehouse.get('door_y', 0))
         
-        # DEBUG: Log unstackable count
         unstackable_count = np.sum(items_props[:, 4] == 0)
         with open('thread_debug.log', 'a') as f:
              f.write(f"DEBUG: Unstackable Items Count: {unstackable_count} / {num_items}\n")
@@ -1451,13 +1353,11 @@ class GeneticAlgorithm:
         start_time = time.time()
         time_to_best = 0
         
-        cpu_count = multiprocessing.cpu_count()
-        process_count = min(cpu_count, 16)
+        # Use singleton pool to prevent process churn
+        pool = get_process_pool()
+        process_count = pool._processes if hasattr(pool, '_processes') else multiprocessing.cpu_count()
         
-        # Create pool with shared memory initializer
-        with multiprocessing.Pool(processes=process_count, initializer=init_worker, 
-                                initargs=(items_props, wh_dims, valid_z, allocation_zones, exclusion_zones_arr)) as pool:
-            
+        try:
             for generation in range(self.generations):
                 if optimization_state and not optimization_state['running']:
                     break
@@ -1467,34 +1367,24 @@ class GeneticAlgorithm:
                 
                 if callback:
                      msg = f"GA Generation {generation + 1}/{self.generations}"
-                     # Send immediate status update
                      callback((generation) / self.generations * 100, best_fitness if best_fitness != -float('inf') else 0, best_fitness if best_fitness != -float('inf') else 0, None, 0, 0, 0, message=msg)
 
-                
                 current_weights = weights if weights else {'space': 0.5, 'accessibility': 0.4, 'stability': 0.1}
                 
                 # Parallel Fitness Evaluation
                 if process_count > 1:
-                     # args: (solution, None, None, weights, None, None) -> using globals
-                     fit_args = [(sol, None, None, current_weights, None, None) for sol in population]
+                     # Explicitly pass all data args to avoid globals
+                     fit_args = [(sol, items_props, wh_dims, current_weights, valid_z, exclusion_zones_arr) for sol in population]
                      results = pool.starmap(fitness_function_numpy, fit_args)
                      
-                     # results is list of tuples (f, su, acc, sta, grp)
                      results_arr = np.array(results)
                      fitness_scores = results_arr[:, 0]
                      metrics_list = results_arr[:, 1:]
                 else:
-                    # Shim globals for serial fallback
-                    global _pool_items_props, _pool_wh_dims, _pool_valid_z, _pool_allocation_zones, _pool_exclusion_zones
-                    _pool_items_props = items_props
-                    _pool_wh_dims = wh_dims
-                    _pool_valid_z = valid_z
-                    _pool_allocation_zones = allocation_zones
-                    _pool_exclusion_zones = exclusion_zones_arr
-                    
+                    # Serial Fallback for debugging (or if pool fails)
                     for sol in population:
                         f, su, acc, sta, grp = fitness_function_numpy(
-                            sol, None, None, current_weights, None, None)
+                            sol, items_props, wh_dims, current_weights, valid_z, exclusion_zones_arr)
                         fitness_scores.append(f)
                         metrics_list.append((su, acc, sta, grp))
                     metrics_list = np.array(metrics_list)
@@ -1514,35 +1404,33 @@ class GeneticAlgorithm:
                 new_pop = []
                 
                 if process_count > 1:
-                     # Prepare batches
                      offspring_args = []
                      for i in range(0, len(selected_pop), 2):
                          if i+1 < len(selected_pop):
                               p1 = selected_pop[i]
                               p2 = selected_pop[i+1]
-                              # Pass None for shared data
-                              offspring_args.append((p1, p2, self.crossover_rate, self.mutation_rate, None, None, None, None))
+                              offspring_args.append((p1, p2, self.crossover_rate, self.mutation_rate, wh_dims, items_props, valid_z, allocation_zones))
                          else:
-                              offspring_args.append((selected_pop[i], selected_pop[i], self.crossover_rate, self.mutation_rate, None, None, None, None))
+                              # Self-crossover? (Copy really)
+                              offspring_args.append((selected_pop[i], selected_pop[i], self.crossover_rate, self.mutation_rate, wh_dims, items_props, valid_z, allocation_zones))
                      
                      if offspring_args:
                          results = pool.starmap(process_offspring_batch, offspring_args)
                          for pair in results:
                              new_pop.extend(pair)
                 else:
-                    # Serial Fallback (globals already shimmed above)
                     for i in range(0, len(selected_pop), 2):
                         if i+1 < len(selected_pop):
-                             batch_res = process_offspring_batch(selected_pop[i], selected_pop[i+1], self.crossover_rate, self.mutation_rate, None, None, None, None)
+                             batch_res = process_offspring_batch(selected_pop[i], selected_pop[i+1], self.crossover_rate, self.mutation_rate, wh_dims, items_props, valid_z, allocation_zones)
                              new_pop.extend(batch_res)
                         else:
-                             batch_res = process_offspring_batch(selected_pop[i], selected_pop[i], self.crossover_rate, self.mutation_rate, None, None, None, None)
+                             batch_res = process_offspring_batch(selected_pop[i], selected_pop[i], self.crossover_rate, self.mutation_rate, wh_dims, items_props, valid_z, allocation_zones)
                              new_pop.extend(batch_res)
                 
                 new_pop = new_pop[:self.population_size]
                 population = np.array(new_pop)
                 
-                # Callback
+                # Callback update
                 if callback:
                     progress = (generation + 1) / self.generations * 100
                     avg_fitness = np.mean(fitness_scores)
@@ -1570,6 +1458,9 @@ class GeneticAlgorithm:
 
                 if generation % 10 == 0:
                      gc.collect()
+        except Exception as e:
+            print(f"Optimization Loop Error: {e}")
+            raise e
 
         # Final conversion
         final_sol_list = []
@@ -1600,13 +1491,14 @@ class GeneticAlgorithm:
             if idx is not None:
                 sol_array[idx] = [item_sol['x'], item_sol['y'], item_sol['z'], item_sol['rotation']]
                 
-        items_props = np.zeros((num_items, 8))
+        items_props = np.zeros((num_items, 9))
         for i, item in enumerate(items):
             items_props[i] = [
                 item['length'], item['width'], item['height'],
                 item['can_rotate'], item['stackable'],
                 item['access_freq'], item.get('weight', 0),
-                hash(item.get('category', '')) % 10000 
+                hash(item.get('category', '')) % 10000,
+                item.get('fragility', 0)
             ]
             
         wh_dims = (warehouse['length'], warehouse['width'], warehouse['height'], 
@@ -1664,13 +1556,14 @@ class ExtremalOptimization:
                 exclusion_zones_arr = np.array([[z['x1'], z['y1'], z['x2'], z['y2']] for z in ex_zones])
             
         # Pre-process items into numpy array
-        items_props = np.zeros((num_items, 8))
+        items_props = np.zeros((num_items, 9))
         for i, item in enumerate(items):
             items_props[i] = [
                 item['length'], item['width'], item['height'],
                 item['can_rotate'], item['stackable'],
                 item['access_freq'], item.get('weight', 0),
-                hash(item.get('category', '')) % 10000 
+                hash(item.get('category', '')) % 10000,
+                item.get('fragility', 0)
             ]
             
         wh_dims = (warehouse['length'], warehouse['width'], warehouse['height'], 
@@ -1698,21 +1591,22 @@ class ExtremalOptimization:
         start_time = time.time()
         time_to_best = 0
         
+        # Use singleton pool for parallel evaluation
+        pool = get_process_pool()
+        process_count = pool._processes if hasattr(pool, '_processes') else multiprocessing.cpu_count()
+        num_parallel_candidates = max(4, process_count)  # Evaluate multiple candidates per iteration
+        
         for iteration in range(self.iterations):
             if optimization_state and not optimization_state['running']:
                 break
                 
-            # Calculate individual item fitnesses (local contribution)
-            item_fitnesses = np.zeros(num_items)
-            
-            # Simple heuristic: item fitness based on distance to door and zone collision
+            # Calculate individual item fitnesses (local contribution) - vectorized
             door_x = wh_dims[3] if len(wh_dims) >= 5 else 0
             door_y = wh_dims[4] if len(wh_dims) >= 5 else 0
             
-            for i in range(num_items):
-                dist = np.sqrt((solution[i, 0] - door_x)**2 + (solution[i, 1] - door_y)**2)
-                access_score = 1.0 / (1.0 + dist) * items_props[i, 5]  # Weighted by access_freq
-                item_fitnesses[i] = access_score
+            # Vectorized item fitness calculation
+            dists = np.sqrt((solution[:, 0] - door_x)**2 + (solution[:, 1] - door_y)**2)
+            item_fitnesses = (1.0 / (1.0 + dists)) * items_props[:, 5]
             
             # Find worst items using power-law selection (tau parameter)
             # Rank items by fitness (lower = worse)
@@ -1727,113 +1621,84 @@ class ExtremalOptimization:
             selected_rank_idx = np.random.choice(n, p=probs)
             item_to_mutate = ranks[selected_rank_idx]
             
-            # Mutate the selected item (try new random position)
+            # Mutate the selected item (try new random positions in parallel)
             old_pos = solution[item_to_mutate].copy()
             
             item_len = items_props[item_to_mutate, 0]
             item_wid = items_props[item_to_mutate, 1]
             can_rotate = items_props[item_to_mutate, 3]
-            
-            rotation = old_pos[3]
-            if can_rotate and random.random() > 0.7:
-                rotation = random.choice([0, 90, 180, 270])
-            
-            if int(rotation) % 180 == 0:
-                dim_x, dim_y = item_len, item_wid
-            else:
-                dim_x, dim_y = item_wid, item_len
-            
             wh_len, wh_wid, wh_hgt = wh_dims[0], wh_dims[1], wh_dims[2]
-            
-            # --- Gravity Calculation Prep ---
-            # Pre-calculate other items' bboxes ONCE
-            mask = np.arange(num_items) != item_to_mutate
-            other_solution = solution[mask]
-            other_props = items_props[mask]
-            
-            other_x = other_solution[:, 0]
-            other_y = other_solution[:, 1]
-            other_z = other_solution[:, 2]
-            other_rot = other_solution[:, 3]
-            other_l = other_props[:, 0]
-            other_w = other_props[:, 1]
-            other_h = other_props[:, 2]
-            
-            swap_mask = (other_rot.astype(int) % 180 != 0)
-            cur_l = np.where(swap_mask, other_w, other_l)
-            cur_w = np.where(swap_mask, other_l, other_w)
-            
-            other_bbox = np.zeros((len(other_solution), 4))
-            other_bbox[:, 0] = other_x - cur_l / 2
-            other_bbox[:, 1] = other_y - cur_w / 2
-            other_bbox[:, 2] = other_x + cur_l / 2
-            other_bbox[:, 3] = other_y + cur_w / 2
-            
-            # Retry loop for floor priority
-            best_x, best_y, best_z = 0, 0, float('inf')
-            best_rotation = 0
-            
-            # Corrected Mutation Logic:
-            # 1. Randomize position or pick a random valid zone to seed.
-            # 2. Let repair_solution_compact do the heavy lifting.
-            
             has_allocation_zones = allocation_zones is not None and len(allocation_zones) > 0
             
-            seed_x, seed_y, seed_z = 0, 0, 0
+            # Generate multiple candidate mutations for parallel evaluation
+            candidate_args = []
+            for _ in range(num_parallel_candidates):
+                # Determine rotation
+                rotation = old_pos[3]
+                if can_rotate and random.random() > 0.7:
+                    rotation = random.choice([0, 90, 180, 270])
+                
+                if int(rotation) % 180 == 0:
+                    dx, dy = item_len, item_wid
+                else:
+                    dx, dy = item_wid, item_len
+                
+                # Generate seed position
+                if has_allocation_zones:
+                    seed_zone = random.choice(allocation_zones)
+                    z_min_x, z_max_x = seed_zone['x1'], seed_zone['x2']
+                    z_min_y, z_max_y = seed_zone['y1'], seed_zone['y2']
+                    
+                    safe_min_x = z_min_x + dx/2
+                    safe_max_x = z_max_x - dx/2
+                    safe_min_y = z_min_y + dy/2
+                    safe_max_y = z_max_y - dy/2
+                    
+                    if safe_max_x < safe_min_x: safe_max_x = safe_min_x = (z_min_x + z_max_x)/2
+                    if safe_max_y < safe_min_y: safe_max_y = safe_min_y = (z_min_y + z_max_y)/2
+                    
+                    seed_x = random.uniform(safe_min_x, safe_max_x)
+                    seed_y = random.uniform(safe_min_y, safe_max_y)
+                    seed_z = seed_zone.get('z1', 0)
+                else:
+                    seed_x = random.uniform(dx/2, wh_len - dx/2)
+                    seed_y = random.uniform(dy/2, wh_wid - dy/2)
+                    seed_z = 0
+                
+                candidate_args.append((
+                    solution, item_to_mutate, items_props, wh_dims, valid_z, 
+                    allocation_zones, exclusion_zones_arr, current_weights,
+                    seed_x, seed_y, seed_z, rotation
+                ))
             
-            if has_allocation_zones:
-                 # Pick a random zone to start in
-                 seed_zone = random.choice(allocation_zones)
-                 
-                 # Random pos in that zone
-                 z_min_x = seed_zone['x1']
-                 z_max_x = seed_zone['x2']
-                 z_min_y = seed_zone['y1']
-                 z_max_y = seed_zone['y2']
-                 
-                 # Adjust for item size
-                 item_h = items_props[item_to_mutate, 2]
-                 if int(rotation) % 180 == 0:
-                     dx, dy = item_len, item_wid
-                 else:
-                     dx, dy = item_wid, item_len
-                 
-                 safe_min_x = z_min_x + dx/2
-                 safe_max_x = z_max_x - dx/2
-                 safe_min_y = z_min_y + dy/2
-                 safe_max_y = z_max_y - dy/2
-                 
-                 if safe_max_x < safe_min_x: safe_max_x = safe_min_x = (z_min_x + z_max_x)/2
-                 if safe_max_y < safe_min_y: safe_max_y = safe_min_y = (z_min_y + z_max_y)/2
-                 
-                 seed_x = random.uniform(safe_min_x, safe_max_x)
-                 seed_y = random.uniform(safe_min_y, safe_max_y)
-                 seed_z = seed_zone.get('z1', 0)
+            # Evaluate candidates in parallel
+            if process_count > 1 and len(candidate_args) > 1:
+                results = pool.starmap(eo_evaluate_mutation, candidate_args)
             else:
-                 # Full warehouse random
-                 seed_x = random.uniform(0, wh_len)
-                 seed_y = random.uniform(0, wh_wid)
-                 seed_z = 0
+                # Serial fallback
+                results = [eo_evaluate_mutation(*args) for args in candidate_args]
             
-            # Apply seed
-            solution[item_to_mutate] = [seed_x, seed_y, seed_z, rotation]
+            # Find best candidate
+            best_candidate_idx = -1
+            best_candidate_fitness = best_fitness
+            for i, (mutated_sol, fitness, su, acc, sta) in enumerate(results):
+                if fitness > best_candidate_fitness:
+                    best_candidate_fitness = fitness
+                    best_candidate_idx = i
             
-            # Apply gravity repair to ensure no floating items and strict zone adherence
-            # This calls the SAME function we fixed for GA, so it iterates ALL zones and layers.
-            solution = repair_solution_compact(solution, items_props, wh_dims, allocation_zones, valid_z)
-            new_fitness, su, acc, sta, grp = fitness_function_numpy(
-                solution=solution, items_props=items_props, warehouse_dims=wh_dims, 
-                weights=current_weights, valid_z=valid_z, exclusion_zones_arr=exclusion_zones_arr)
-
-            
-            # Accept if better, otherwise revert
-            if new_fitness > best_fitness:
+            # Accept best if it improved
+            if best_candidate_idx >= 0:
+                best_sol_result = results[best_candidate_idx]
+                solution = best_sol_result[0]
+                new_fitness = best_sol_result[1]
+                su, acc, sta = best_sol_result[2], best_sol_result[3], best_sol_result[4]
                 best_fitness = new_fitness
                 best_solution = solution.copy()
                 time_to_best = time.time() - start_time
             else:
-                # Revert mutation
-                solution[item_to_mutate] = old_pos
+                # Keep old position - no improvement found
+                new_fitness = best_fitness
+                su, acc, sta = 0, 0, 0
         
             # Callback for progress updates
             if callback and (iteration % 10 == 0 or iteration == self.iterations - 1):
@@ -1870,9 +1735,10 @@ class ExtremalOptimization:
 
 class HybridOptimizer:
     """Hybrid optimizer combining GA global search with EO local refinement."""
-    def __init__(self, ga_generations=500, eo_iterations=1000):
+    def __init__(self, ga_generations=500, eo_iterations=1000, population_size=100):
         self.ga_generations = ga_generations
         self.eo_iterations = eo_iterations
+        self.population_size = population_size
         
     def optimize(self, items, warehouse, weights=None, callback=None, optimization_state=None):
         num_items = len(items)
@@ -1891,7 +1757,7 @@ class HybridOptimizer:
 
 
         
-        ga = GeneticAlgorithm(generations=self.ga_generations)
+        ga = GeneticAlgorithm(generations=self.ga_generations, population_size=self.population_size)
         ga_solution, ga_fitness, ga_time_to_best = ga.optimize(
             items, warehouse, weights, ga_callback, optimization_state
         )
@@ -1908,13 +1774,14 @@ class HybridOptimizer:
             if ex_zones:
                 exclusion_zones_arr = np.array([[z['x1'], z['y1'], z['x2'], z['y2']] for z in ex_zones])
         
-        items_props = np.zeros((num_items, 8))
+        items_props = np.zeros((num_items, 9))
         for i, item in enumerate(items):
             items_props[i] = [
                 item['length'], item['width'], item['height'],
                 item['can_rotate'], item['stackable'],
                 item['access_freq'], item.get('weight', 0),
-                hash(item.get('category', '')) % 10000 
+                hash(item.get('category', '')) % 10000,
+                item.get('fragility', 0)
             ]
         
         wh_dims = (warehouse['length'], warehouse['width'], warehouse['height'], 
@@ -1943,20 +1810,21 @@ class HybridOptimizer:
         
         ga_helper = GeneticAlgorithm()
         
-        # EO refinement phase
+        # Use singleton pool for parallel EO evaluation
+        pool = get_process_pool()
+        process_count = pool._processes if hasattr(pool, '_processes') else multiprocessing.cpu_count()
+        num_parallel_candidates = max(4, process_count)
+        
+        # EO refinement phase (with parallel candidate evaluation)
         for iteration in range(self.eo_iterations):
             if optimization_state and not optimization_state['running']:
                 break
             
-            # Calculate individual item fitnesses
-            item_fitnesses = np.zeros(num_items)
+            # Calculate individual item fitnesses - vectorized
             door_x = wh_dims[3] if len(wh_dims) >= 5 else 0
             door_y = wh_dims[4] if len(wh_dims) >= 5 else 0
-            
-            for i in range(num_items):
-                dist = np.sqrt((solution[i, 0] - door_x)**2 + (solution[i, 1] - door_y)**2)
-                access_score = 1.0 / (1.0 + dist) * items_props[i, 5]
-                item_fitnesses[i] = access_score
+            dists = np.sqrt((solution[:, 0] - door_x)**2 + (solution[:, 1] - door_y)**2)
+            item_fitnesses = (1.0 / (1.0 + dists)) * items_props[:, 5]
             
             # Power-law selection for worst items
             ranks = np.argsort(item_fitnesses)
@@ -1969,185 +1837,77 @@ class HybridOptimizer:
             item_to_mutate = ranks[selected_rank_idx]
             
             old_pos = solution[item_to_mutate].copy()
-            
             item_len = items_props[item_to_mutate, 0]
             item_wid = items_props[item_to_mutate, 1]
             can_rotate = items_props[item_to_mutate, 3]
-            
-            rotation = old_pos[3]
-            if can_rotate and random.random() > 0.7:
-                rotation = random.choice([0, 90, 180, 270])
-            
-            if int(rotation) % 180 == 0:
-                dim_x, dim_y = item_len, item_wid
-            else:
-                dim_x, dim_y = item_wid, item_len
-            
             wh_len, wh_wid, wh_hgt = wh_dims[0], wh_dims[1], wh_dims[2]
+            has_allocation_zones = allocation_zones is not None and len(allocation_zones) > 0
             
-            # --- Gravity Calculation Prep ---
-            # Pre-calculate other items' bboxes ONCE
-            mask = np.arange(num_items) != item_to_mutate
-            other_solution = solution[mask]
-            other_props = items_props[mask]
-            
-            other_x = other_solution[:, 0]
-            other_y = other_solution[:, 1]
-            other_z = other_solution[:, 2]
-            other_rot = other_solution[:, 3]
-            other_l = other_props[:, 0]
-            other_w = other_props[:, 1]
-            other_h = other_props[:, 2]
-            
-            swap_mask = (other_rot.astype(int) % 180 != 0)
-            cur_l = np.where(swap_mask, other_w, other_l)
-            cur_w = np.where(swap_mask, other_l, other_w)
-            
-            other_bbox = np.zeros((len(other_solution), 4))
-            other_bbox[:, 0] = other_x - cur_l / 2
-            other_bbox[:, 1] = other_y - cur_w / 2
-            other_bbox[:, 2] = other_x + cur_l / 2
-            other_bbox[:, 3] = other_y + cur_w / 2
-            
-            # Retry loop for floor priority
-            best_x, best_y, best_z = 0, 0, float('inf')
-            
-            for attempt in range(50):
-                # Check if we should use allocation zones
-                has_allocation_zones = allocation_zones is not None and len(allocation_zones) > 0
+            # Generate multiple candidate mutations for parallel evaluation
+            candidate_args = []
+            for _ in range(num_parallel_candidates):
+                rotation = old_pos[3]
+                if can_rotate and random.random() > 0.7:
+                    rotation = random.choice([0, 90, 180, 270])
                 
-                zone_z1 = 0
-                zone_z2 = wh_hgt
-                if has_allocation_zones:
-                    # Find zones that can fit this item
-                    item_hgt = items_props[item_to_mutate, 2]
-                    valid_zones = []
-                    for zone in allocation_zones:
-                        zone_width = zone['x2'] - zone['x1']
-                        zone_depth = zone['y2'] - zone['y1']
-                        zone_z1_val = zone.get('z1', 0)
-                        zone_z2 = zone.get('z2', wh_hgt)
-                        
-                        if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2 - zone_z1_val):
-                            valid_zones.append(zone)
-                    
-                    if valid_zones:
-                        # Sort zones by Z height (Bottom Shelf First)
-                        valid_zones.sort(key=lambda z: z.get('z1', 0))
-                        
-                        # Zone Selection Heuristic:
-                        # Strictly Sequential: 0, 1, 2, ... looping if needed
-                        zone_idx = attempt % len(valid_zones)
-                        
-                        # Safety clamp
-                        zone_idx = min(zone_idx, len(valid_zones) - 1)
-                        zone = valid_zones[zone_idx]
-                        
-                        zone_z1 = zone.get('z1', 0)
-                        zone_z2 = zone.get('z2', wh_hgt)
-                        
-                        min_x = zone['x1'] + dim_x / 2
-                        max_x = zone['x2'] - dim_x / 2
-                        min_y = zone['y1'] + dim_y / 2
-                        max_y = zone['y2'] - dim_y / 2
-                        
-                        if max_x < min_x: max_x = min_x = (zone['x1'] + zone['x2']) / 2
-                        if max_y < min_y: max_y = min_y = (zone['y1'] + zone['y2']) / 2
-                        
-                        # Dense Pact Heuristic (Zone)
-                        if attempt < 5:
-                            x = min_x
-                            y = min_y
-                        elif attempt < 45 and len(other_bbox) > 0:
-                            rand_idx = random.randint(0, len(other_bbox)-1)
-                            ref_box = other_bbox[rand_idx]
-                            if random.random() < 0.5:
-                                x = ref_box[2] + dim_x / 2
-                                y = ref_box[1] + dim_y / 2
-                            else:
-                                x = ref_box[0] + dim_x / 2
-                                y = ref_box[3] + dim_y / 2
-                            x += random.uniform(-1, 1)
-                            y += random.uniform(-1, 1)
-                            x = max(min_x, min(max_x, x))
-                            y = max(min_y, min(max_y, y))
-                        else:
-                            x = round(random.uniform(min_x, max_x))
-                            y = round(random.uniform(min_y, max_y))
-                    else:
-                        min_x = dim_x / 2
-                        max_x = wh_len - dim_x / 2
-                        min_y = dim_y / 2
-                        max_y = wh_wid - dim_y / 2
-                        
-                        if max_x < min_x: max_x = min_x
-                        if max_y < min_y: max_y = min_y
-                        
-                        # Dense Pact Heuristic (Global)
-                        if attempt < 3:
-                             x = min_x
-                             y = min_y
-                        elif attempt < 6 and len(other_bbox) > 0:
-                             rand_idx = random.randint(0, len(other_bbox)-1)
-                             ref_box = other_bbox[rand_idx]
-                             if random.random() < 0.5:
-                                 x = ref_box[2] + dim_x / 2
-                                 y = ref_box[1] + dim_y / 2
-                             else:
-                                 x = ref_box[0] + dim_x / 2
-                                 y = ref_box[3] + dim_y / 2
-
-                             x = max(min_x, min(max_x, x))
-                             y = max(min_y, min(max_y, y))
-                        else:
-                             x = round(random.uniform(min_x, max_x))
-                             y = round(random.uniform(min_y, max_y))
+                if int(rotation) % 180 == 0:
+                    dx, dy = item_len, item_wid
                 else:
-                    min_x = dim_x / 2
-                    max_x = wh_len - dim_x / 2
-                    min_y = dim_y / 2
-                    max_y = wh_wid - dim_y / 2
+                    dx, dy = item_wid, item_len
+                
+                if has_allocation_zones:
+                    seed_zone = random.choice(allocation_zones)
+                    z_min_x, z_max_x = seed_zone['x1'], seed_zone['x2']
+                    z_min_y, z_max_y = seed_zone['y1'], seed_zone['y2']
                     
-                    if max_x < min_x: max_x = min_x
-                    if max_y < min_y: max_y = min_y
+                    safe_min_x = z_min_x + dx/2
+                    safe_max_x = z_max_x - dx/2
+                    safe_min_y = z_min_y + dy/2
+                    safe_max_y = z_max_y - dy/2
                     
-                    x = round(random.uniform(min_x, max_x))
-                    y = round(random.uniform(min_y, max_y))
+                    if safe_max_x < safe_min_x: safe_max_x = safe_min_x = (z_min_x + z_max_x)/2
+                    if safe_max_y < safe_min_y: safe_max_y = safe_min_y = (z_min_y + z_max_y)/2
+                    
+                    seed_x = random.uniform(safe_min_x, safe_max_x)
+                    seed_y = random.uniform(safe_min_y, safe_max_y)
+                    seed_z = seed_zone.get('z1', 0)
+                else:
+                    seed_x = random.uniform(dx/2, wh_len - dx/2)
+                    seed_y = random.uniform(dy/2, wh_wid - dy/2)
+                    seed_z = 0
                 
-                z = calculate_z_for_item(x, y, dim_x + 0.001, dim_y + 0.001, other_bbox, other_z, other_h)
-                
-                # Enforce Layer Floor
-                z = max(z, zone_z1)
-                
-                # Layer Snap: If item protrudes through ceiling of current layer, snap to next layer floor
-                if z + item_hgt > zone_z2 and zone_z2 < wh_hgt:
-                    z = zone_z2
-                
-                if z < best_z:
-                    best_x, best_y, best_z = x, y, z
-                
-                if z == zone_z1:
-                    break
+                candidate_args.append((
+                    solution, item_to_mutate, items_props, wh_dims, valid_z,
+                    allocation_zones, exclusion_zones_arr, current_weights,
+                    seed_x, seed_y, seed_z, rotation
+                ))
             
-            if best_z > 50000:
-                best_z -= 100000.0
+            # Evaluate candidates in parallel
+            if process_count > 1 and len(candidate_args) > 1:
+                results = pool.starmap(eo_evaluate_mutation, candidate_args)
+            else:
+                results = [eo_evaluate_mutation(*args) for args in candidate_args]
             
-            x, y, z = best_x, best_y, best_z
-            solution[item_to_mutate] = [x, y, z, rotation]
+            # Find best candidate
+            best_candidate_idx = -1
+            best_candidate_fitness = best_fitness
+            for i, (mutated_sol, fitness, su, acc, sta) in enumerate(results):
+                if fitness > best_candidate_fitness:
+                    best_candidate_fitness = fitness
+                    best_candidate_idx = i
             
-            # Apply gravity repair to ensure no floating items
-            solution = repair_solution_compact(solution, items_props, wh_dims, allocation_zones, valid_z)
-            
-            new_fitness, su, acc, sta, grp = fitness_function_numpy(
-                solution=solution, items_props=items_props, warehouse_dims=wh_dims, 
-                weights=current_weights, valid_z=valid_z, exclusion_zones_arr=exclusion_zones_arr)
-            
-            if new_fitness > best_fitness:
+            # Accept best if it improved
+            if best_candidate_idx >= 0:
+                best_sol_result = results[best_candidate_idx]
+                solution = best_sol_result[0]
+                new_fitness = best_sol_result[1]
+                su, acc, sta = best_sol_result[2], best_sol_result[3], best_sol_result[4]
                 best_fitness = new_fitness
                 best_solution = solution.copy()
                 time_to_best = time.time() - start_time
             else:
-                solution[item_to_mutate] = old_pos
+                new_fitness = best_fitness
+                su, acc, sta = 0, 0, 0
             
             # Callback for progress updates (70-100%)
             if callback and (iteration % 10 == 0 or iteration == self.eo_iterations - 1):
@@ -2216,7 +1976,7 @@ class HybridOptimizer:
                 callback(total, avg_fit, best_fit, solution, space, access, stability, message=msg)
 
         
-        ga = GeneticAlgorithm(generations=self.ga_generations)
+        ga = GeneticAlgorithm(generations=self.ga_generations, population_size=self.population_size)
         final_solution, final_fitness, final_time = ga.optimize(
              items, warehouse, weights, ga_callback, optimization_state, initial_solution=eo_solution_list
         )

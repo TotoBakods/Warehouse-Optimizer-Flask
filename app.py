@@ -14,6 +14,7 @@ import io
 import csv
 import os
 import gc
+import uuid
 
 from database import (
     init_db, migrate_db, get_all_items, get_item_by_id, get_warehouse_config,
@@ -45,6 +46,18 @@ optimization_state = {
 
 }
 
+# Global state for algorithm comparison
+comparison_state = {
+    'running': False,
+    'current_algorithm': None,
+    'current_algorithm_index': 0,
+    'total_algorithms': 4,
+    'progress': 0,
+    'message': 'Idle',
+    'results': {},
+    'current_algo_progress': 0
+}
+
 def finalize_optimization(solution, algorithm, weights, start_time, warehouse_id=1, time_to_best=0):
     if not optimization_state['running']:
         return
@@ -66,7 +79,7 @@ def finalize_optimization(solution, algorithm, weights, start_time, warehouse_id
             
         # --- PyBullet Physics Refinement ---
         try:
-             # Prepare props for physics engine
+            # Prepare props for physics engine
             num_items = len(items)
             items_props = np.zeros((num_items, 8), dtype=np.float32)
             for i, item in enumerate(items):
@@ -80,14 +93,40 @@ def finalize_optimization(solution, algorithm, weights, start_time, warehouse_id
                        warehouse.get('door_x', 0), warehouse.get('door_y', 0))
             layer_heights = warehouse.get('layer_heights', [])
             
+            # Convert list-based solution (from EO/Hybrid) to numpy array if needed
+            if isinstance(solution, list) and len(solution) > 0:
+                item_id_to_idx = {item['id']: i for i, item in enumerate(items)}
+                solution_arr = np.zeros((num_items, 4), dtype=np.float32)
+                for sol_item in solution:
+                    idx = item_id_to_idx.get(sol_item['id'])
+                    if idx is not None:
+                        solution_arr[idx] = [sol_item['x'], sol_item['y'], sol_item['z'], sol_item['rotation']]
+                solution = solution_arr
+                print(f"Converted list solution to numpy array ({num_items} items)")
+                with open('thread_debug.log', 'a') as f: f.write(f"Converted list solution to numpy array ({num_items} items)\n")
+            
             print(f"Running PyBullet Physics Settlement with Layers: {layer_heights}...")
             with open('thread_debug.log', 'a') as f: f.write(f"Running PyBullet Physics Settlement with Layers: {layer_heights}...\n")
 
             # Update solution with physically settled coordinates
-            # Only do this if we have a valid numpy solution array
             if isinstance(solution, np.ndarray) and len(solution) > 0:
-                solution = physics_settle(solution, items_props, wh_dims, layer_heights)
-                print("PyBullet Settlement Complete.")
+                print("Skipping PyBullet Physics Settlement (Bypassed)...")
+                with open('thread_debug.log', 'a') as f: f.write("Skipping PyBullet Physics Settlement (Bypassed)...\n")
+                # solution = physics_settle(solution, items_props, wh_dims, layer_heights)
+                # print("PyBullet Settlement Complete.")
+                # with open('thread_debug.log', 'a') as f: f.write("PyBullet Settlement Complete.\n")
+                
+                # Convert numpy array back to list of dicts for storage
+                solution = [
+                    {
+                        'id': items[i]['id'],
+                        'x': float(solution[i, 0]),
+                        'y': float(solution[i, 1]),
+                        'z': float(solution[i, 2]),
+                        'rotation': int(solution[i, 3])
+                    }
+                    for i in range(num_items)
+                ]
         except Exception as e:
             print(f"Physics Integration Error: {e}")
             with open('thread_debug.log', 'a') as f: f.write(f"Physics Integration Error: {e}\n")
@@ -117,6 +156,8 @@ def finalize_optimization(solution, algorithm, weights, start_time, warehouse_id
             f.write(f"Error in finalize_optimization: {e}\n")
             f.write(traceback.format_exc())
         print(f"Error verify: {e}")
+    finally:
+        gc.collect()
 
     time.sleep(1.1)
 
@@ -361,6 +402,59 @@ def load_generated():
         return jsonify({'success': False, 'message': str(e)})
 
 
+
+@app.route('/api/items/scramble', methods=['POST'])
+def scramble_items_route():
+    try:
+        warehouse_id = optimization_state['current_warehouse_id']
+        count = request.json.get('count', 50)
+        
+        # Get warehouse dims for spatial scrambling
+        warehouse = get_warehouse_config(warehouse_id)
+        wh_len = warehouse['length'] if warehouse else 10.0
+        wh_wid = warehouse['width'] if warehouse else 10.0
+        
+        # Clear existing items
+        clear_data(warehouse_id)
+        
+        categories = ['Electronics', 'Furniture', 'Clothing', 'Books', 'Toys', 'Auto Parts']
+        
+        for i in range(count):
+            cat = random.choice(categories)
+            fragile = random.choice([True, False]) if cat in ['Electronics', 'Toys'] else False
+            stackable = not fragile and random.random() > 0.3
+            
+            # Weighted random dimensions (bias towards smaller/medium)
+            l = round(random.uniform(0.3, 1.5), 2)
+            w = round(random.uniform(0.3, 1.5), 2)
+            h = round(random.uniform(0.2, 1.0), 2)
+            
+            # Random Position (Scramble in warehouse)
+            pos_x = round(random.uniform(0, wh_len - l), 2)
+            pos_y = round(random.uniform(0, wh_wid - w), 2)
+            
+            item = {
+                'id': str(uuid.uuid4()),  # Generate ID to fix KeyError
+                'name': f"Random Item {i+1}",
+                'length': l, 'width': w, 'height': h,
+                'weight': round(random.uniform(2.0, 50.0), 1),
+                'category': cat,
+                'priority': random.choice([1, 2, 3]),
+                'fragility': fragile,
+                'stackable': stackable,
+                'access_freq': round(random.random(), 3),
+                'can_rotate': not fragile,
+                'x': pos_x, 'y': pos_y, 'z': 0.0, 'rotation': 0
+            }
+            add_item(item, warehouse_id)
+            
+        return jsonify({'success': True, 'message': f'Scrambled! Generated {count} random items scattered in warehouse.'})
+    except Exception as e:
+        import traceback
+        print(f"Scramble Error: {e}")
+        print(traceback.format_exc())
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/api/load-sample-data', methods=['POST'])
 def load_sample_data_endpoint():
     warehouse_id = request.args.get('warehouse_id', default=1, type=int)
@@ -426,14 +520,19 @@ def optimize_ga():
     optimization_state['algorithm'] = 'GA'
     optimization_state['start_time'] = time.time()
     optimization_state['current_warehouse_id'] = warehouse_id
-
+    
+    # Extract params first to populate state correctly
+    pop_size = data.get('population_size', 50)
+    generations = data.get('generations', 100)
+    optimization_state['total_generations'] = generations
+    
     def run_optimization():
         with open('thread_debug.log', 'a') as f:
             f.write("Thread started\n")
         print("Thread started")
         
-        pop_size = data.get('population_size', 50)
-        generations = data.get('generations', 100)
+        with open('thread_debug.log', 'a') as f:
+             f.write(f"GA Init: pop_size={pop_size}, generations={generations}\n")
         
         optimizer = GeneticAlgorithm(population_size=pop_size, generations=generations)
         try:
@@ -482,6 +581,10 @@ def optimize_eo():
     optimization_state['algorithm'] = 'EO'
     optimization_state['start_time'] = time.time()
     optimization_state['current_warehouse_id'] = warehouse_id
+    
+    # Extract params
+    iterations = data.get('iterations', 1000)
+    optimization_state['total_iterations'] = iterations
 
     def run_optimization():
         iterations = data.get('iterations', 1000)
@@ -524,11 +627,17 @@ def optimize_hybrid():
     optimization_state['algorithm'] = 'Hybrid'
     optimization_state['start_time'] = time.time()
     optimization_state['current_warehouse_id'] = warehouse_id
-
+    
+    # Store params for status display
+    gen = data.get('generations', 100)
+    iter = data.get('iterations', 1000)
+    optimization_state['total_generations'] = gen
+    
     def run_optimization():
         optimizer = HybridOptimizer(
-            ga_generations=data.get('generations', 100),
-            eo_iterations=data.get('iterations', 1000)
+            ga_generations=gen,
+            eo_iterations=iter,
+            population_size=data.get('population_size', 50)
         )
         try:
             best_solution, best_fitness, time_to_best = optimizer.optimize(
@@ -568,11 +677,18 @@ def optimize_hybrid_eo_ga():
     optimization_state['algorithm'] = 'Hybrid EO-GA'
     optimization_state['start_time'] = time.time()
     optimization_state['current_warehouse_id'] = warehouse_id
-
+    
+    # Store params for status display
+    gen = data.get('generations', 100)
+    iter = data.get('iterations', 1000)
+    optimization_state['total_iterations'] = iter
+    optimization_state['total_generations'] = gen
+    
     def run_optimization():
         optimizer = HybridOptimizer(
-            ga_generations=data.get('generations', 100),
-            eo_iterations=data.get('iterations', 1000)
+            ga_generations=gen,
+            eo_iterations=iter,
+            population_size=data.get('population_size', 50)
         )
         try:
             best_solution, best_fitness, time_to_best = optimizer.optimize_eo_ga(
@@ -590,76 +706,146 @@ def optimize_hybrid_eo_ga():
     return jsonify({'success': True})
 
 
-    return jsonify({'success': True})
-
-
 @app.route('/api/optimize/compare', methods=['POST'])
 def optimize_compare():
-    algorithms = [
-        {'name': 'GA', 'endpoint': '/api/optimize/ga', 'params': {'population_size': 30, 'generations': 50}}, # Reduced for speed in comparison
-        {'name': 'EO', 'endpoint': '/api/optimize/eo', 'params': {'iterations': 100}},
-    ]
+    global comparison_state
+    
+    if comparison_state['running']:
+        return jsonify({'success': False, 'error': 'Comparison already running'})
+    
     data = request.json
     weights = data.get('weights', {'space': 0.5, 'accessibility': 0.4, 'stability': 0.1})
     warehouse_id = data.get('warehouse_id', optimization_state['current_warehouse_id'])
-    results = {}
+    
+    # Use custom algorithms if provided, otherwise use defaults
+    if 'custom_algorithms' in data:
+        algorithms = data['custom_algorithms']
+    else:
+        algorithms = [
+            {'name': 'GA', 'type': 'ga', 'params': {'population_size': 30, 'generations': 50}, 'description': 'Genetic Algorithm - Evolves population of solutions'},
+            {'name': 'EO', 'type': 'eo', 'params': {'iterations': 100}, 'description': 'Extremal Optimization - Improves worst-performing items'},
+            {'name': 'Hybrid GA-EO', 'type': 'ga-eo', 'params': {'generations': 30, 'iterations': 50}, 'description': 'GA global search + EO local refinement'},
+            {'name': 'Hybrid EO-GA', 'type': 'eo-ga', 'params': {'generations': 30, 'iterations': 50}, 'description': 'EO exploration + GA refinement'},
+        ]
+    
+    # Reset comparison state
+    comparison_state = {
+        'running': True,
+        'current_algorithm': None,
+        'current_algorithm_index': 0,
+        'total_algorithms': len(algorithms),
+        'progress': 0,
+        'message': 'Starting comparison...',
+        'results': {},
+        'current_algo_progress': 0
+    }
 
-    def run_single_optimization(algo):
-        try:
-            items = get_all_items(warehouse_id)
-            if not items:
-                results[algo['name']] = {'error': 'No items'}
-                return
-
-            warehouse = get_warehouse_config(warehouse_id)
-            start_time = time.time()
+    def run_comparison():
+        for idx, algo in enumerate(algorithms):
+            if not comparison_state['running']:
+                break
+                
+            comparison_state['current_algorithm'] = algo['name']
+            comparison_state['current_algorithm_index'] = idx + 1
+            comparison_state['message'] = f"Running {algo['name']}: {algo['description']}"
+            comparison_state['current_algo_progress'] = 0
             
-            solution = None
-            fitness = 0
-            time_to_best = 0
+            # Calculate overall progress (each algo is 25% of total)
+            base_progress = (idx / len(algorithms)) * 100
+            
+            def algo_callback(progress, avg_fit, best_fit, solution, space, access, stability, message=None):
+                comparison_state['current_algo_progress'] = progress
+                algo_contribution = (1 / len(algorithms)) * 100
+                comparison_state['progress'] = base_progress + (progress / 100) * algo_contribution
+                if message:
+                    comparison_state['message'] = f"{algo['name']}: {message}"
+            
+            try:
+                items = get_all_items(warehouse_id)
+                if not items:
+                    comparison_state['results'][algo['name']] = {'error': 'No items'}
+                    continue
 
-            if algo['name'] == 'GA':
-                optimizer = GeneticAlgorithm(
-                    population_size=algo['params']['population_size'],
-                    generations=algo['params']['generations']
+                warehouse = get_warehouse_config(warehouse_id)
+                start_time = time.time()
+                
+                solution = None
+                fitness = 0
+                time_to_best = 0
+
+                if algo['type'] == 'ga':
+                    optimizer = GeneticAlgorithm(
+                        population_size=algo['params']['population_size'],
+                        generations=algo['params']['generations']
+                    )
+                    solution, fitness, time_to_best = optimizer.optimize(items, warehouse, weights, callback=algo_callback)
+                elif algo['type'] == 'eo':
+                    optimizer = ExtremalOptimization(iterations=algo['params']['iterations'])
+                    solution, fitness, time_to_best = optimizer.optimize(items, warehouse, weights, callback=algo_callback)
+                elif algo['type'] == 'ga-eo':
+                    optimizer = HybridOptimizer(
+                        ga_generations=algo['params']['generations'],
+                        eo_iterations=algo['params']['iterations'],
+                        population_size=algo['params'].get('population_size', 50)
+                    )
+                    solution, fitness, time_to_best = optimizer.optimize(items, warehouse, weights, callback=algo_callback)
+                elif algo['type'] == 'eo-ga':
+                    optimizer = HybridOptimizer(
+                        ga_generations=algo['params']['generations'],
+                        eo_iterations=algo['params']['iterations'],
+                        population_size=algo['params'].get('population_size', 50)
+                    )
+                    solution, fitness, time_to_best = optimizer.optimize_eo_ga(items, warehouse, weights, callback=algo_callback)
+                
+                end_time = time.time()
+                execution_time = end_time - start_time
+                
+                # Calculate detailed metrics
+                ga_calc = GeneticAlgorithm()
+                final_fitness, space_util, accessibility, stability, grouping = ga_calc.fitness_function(
+                    solution, items, warehouse, weights
                 )
-                solution, fitness, time_to_best = optimizer.optimize(items, warehouse, weights)
-            elif algo['name'] == 'EO':
-                optimizer = ExtremalOptimization(iterations=algo['params']['iterations'])
-                solution, fitness, time_to_best = optimizer.optimize(items, warehouse, weights)
-            
-            end_time = time.time()
-            execution_time = end_time - start_time
-            
-            # Calculate detailed metrics for the best solution
-            ga_calc = GeneticAlgorithm()
-            final_fitness, space_util, accessibility, stability, grouping = ga_calc.fitness_function(
-                solution, items, warehouse, weights
-            )
 
-            # finalize_optimization(solution, algo['name'], weights, start_time, warehouse_id) # Optional: don't save comparison runs to history to avoid clutter? Or do? Let's save.
-            save_solution(solution, algo['name'] + "_COMPARE", final_fitness, space_util, accessibility, stability, grouping, execution_time, warehouse_id, time_to_best)
+                save_solution(solution, algo['name'] + "_COMPARE", final_fitness, space_util, accessibility, stability, grouping, execution_time, warehouse_id, time_to_best)
 
-            results[algo['name']] = {
-                'fitness': final_fitness,
-                'time': execution_time,
-                'time_to_best': time_to_best,
-                'space_utilization': space_util,
-                'accessibility': accessibility,
-                'stability': stability,
-                'grouping': grouping
-            }
+                comparison_state['results'][algo['name']] = {
+                    'fitness': final_fitness,
+                    'time': execution_time,
+                    'time_to_best': time_to_best,
+                    'space_utilization': space_util,
+                    'accessibility': accessibility,
+                    'stability': stability,
+                    'grouping': grouping,
+                    'status': 'completed'
+                }
+                
+                comparison_state['message'] = f"✓ {algo['name']} completed: Fitness={final_fitness:.4f}"
 
-        except Exception as e:
-            print(f"Error in {algo['name']}: {e}")
-            results[algo['name']] = {'error': str(e)}
+            except Exception as e:
+                print(f"Error in {algo['name']}: {e}")
+                comparison_state['results'][algo['name']] = {'error': str(e), 'status': 'error'}
+        
+        comparison_state['running'] = False
+        comparison_state['progress'] = 100
+        comparison_state['message'] = f"Comparison complete! {len(comparison_state['results'])} algorithms tested."
+    
+    # Run in background thread
+    compare_thread = threading.Thread(target=run_comparison)
+    compare_thread.start()
+    
+    return jsonify({'success': True, 'message': 'Comparison started'})
 
-    # Run sequentially for fair comparison of CPU (or parallel if we want true wall clock, but Python GIL...)
-    # Sequential is better for stable timing comparison on single machine
-    for algo in algorithms:
-        run_single_optimization(algo)
 
-    return jsonify({'success': True, 'results': results})
+@app.route('/api/optimize/compare/status', methods=['GET'])
+def get_comparison_status():
+    return jsonify(comparison_state)
+
+
+@app.route('/api/optimize/compare/stop', methods=['POST'])
+def stop_comparison():
+    comparison_state['running'] = False
+    comparison_state['message'] = 'Comparison stopped by user'
+    return jsonify({'success': True})
 
 
 @app.route('/api/optimize/status', methods=['GET'])

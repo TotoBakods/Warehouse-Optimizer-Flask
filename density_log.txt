@@ -1,9 +1,0 @@
-Testing Packing Density...
-Running repair with Bad GA Input (Small First, Large Last)...
-
-Results:
-Item 2 (Dim 50.0x50.0) pushed to Layer 2 (Z=50.0)
-
-Layer 1 Utilization: 7500.0/10000 (75.0%)
-Items in Layer 2: 1
-[FAIL] Optimization failed to pack all items in Layer 1 despite theoretical fit.

@@ -20,7 +20,72 @@ document.addEventListener('DOMContentLoaded', () => {
     loadWarehouseConfig(); // Initial load
     loadZones(); // Ensure zones are loaded on startup
     switchView('controls');
+    updateAlgorithmParams(); // Initialize algorithm params
 });
+
+// --- Algorithm Parameters ---
+function updateAlgorithmParams() {
+    const algo = document.getElementById('algorithm-select').value;
+    const container = document.getElementById('algorithm-params');
+    const compareParams = document.getElementById('compare-params');
+
+    // Toggle visibility based on mode
+    if (algo === 'compare') {
+        if (compareParams) compareParams.style.display = 'block';
+        if (container) container.style.display = 'none';
+        return; // No need to render standard params
+    } else {
+        if (compareParams) compareParams.style.display = 'none';
+        if (container) container.style.display = 'block';
+    }
+
+    if (!container) return;
+
+    const gaParams = `
+        <div class="input-group">
+            <label>Population Size</label>
+            <input type="number" id="population-size" value="50">
+        </div>
+        <div class="input-group">
+            <label>Generations</label>
+            <input type="number" id="generations" value="100">
+        </div>
+    `;
+
+    const eoParams = `
+        <div class="input-group">
+            <label>Iterations</label>
+            <input type="number" id="generations" value="500">
+        </div>
+        <div class="input-group">
+            <label>Tau (Selection Pressure)</label>
+            <input type="number" id="eo-tau" value="1.5" step="0.1" min="1.0" max="3.0">
+        </div>
+    `;
+
+    const hybridParams = `
+        <div class="input-group">
+            <label>Population Size</label>
+            <input type="number" id="population-size" value="30">
+        </div>
+        <div class="input-group">
+            <label>GA Generations</label>
+            <input type="number" id="generations" value="50">
+        </div>
+        <div class="input-group">
+            <label>EO Iterations</label>
+            <input type="number" id="eo-iterations" value="100">
+        </div>
+    `;
+
+    if (algo === 'ga') {
+        container.innerHTML = gaParams;
+    } else if (algo === 'eo') {
+        container.innerHTML = eoParams;
+    } else {
+        container.innerHTML = hybridParams;
+    }
+}
 
 // --- UI Navigation ---
 function switchView(viewName) {
@@ -127,7 +192,8 @@ function onMouseClick(event) {
             <div style="font-size:0.8rem; color:#bbb;">
                 ${data.width}x${data.height}x${data.length}m<br>
                 Weight: ${data.weight}kg<br>
-                Pos: ${data.x.toFixed(2)}, ${data.y.toFixed(2)}, ${data.z.toFixed(2)}
+                Pos: ${data.x.toFixed(2)}, ${data.y.toFixed(2)}, ${data.z.toFixed(2)}<br>
+                Fragile: ${data.fragility ? '<span style="color:#FF6B8A">Yes ⚠️</span>' : '<span style="color:#00FF9D">No</span>'}
             </div>
         `;
         // Select logic could go here (highlighting)
@@ -179,8 +245,11 @@ function loadWarehouseConfig() {
             document.getElementById('warehouse-length').value = config.length;
             document.getElementById('warehouse-width').value = config.width;
             document.getElementById('warehouse-height').value = config.height;
-            document.getElementById('warehouse-grid-size').value = config.grid_size || 1;
-            document.getElementById('warehouse-levels').value = config.levels || 1;
+            // These inputs may not exist in current HTML layout - check before setting
+            const gridSizeEl = document.getElementById('warehouse-grid-size');
+            if (gridSizeEl) gridSizeEl.value = config.grid_size || 1;
+            const levelsEl = document.getElementById('warehouse-levels');
+            if (levelsEl) levelsEl.value = config.levels || 1;
             document.getElementById('warehouse-door-x').value = config.door_x || 0;
             document.getElementById('warehouse-door-y').value = config.door_y || 0;
             loadZones();
@@ -216,8 +285,19 @@ function createRectangularGrid(L, W, step, color, opacity = 0.2, depthTest = tru
 }
 
 function renderWarehouse() {
-    // Clear old
-    while (warehouseGroup.children.length > 0) warehouseGroup.remove(warehouseGroup.children[0]);
+    // Clear old - properly dispose to prevent memory leaks
+    while (warehouseGroup.children.length > 0) {
+        const obj = warehouseGroup.children[0];
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+            if (Array.isArray(obj.material)) {
+                obj.material.forEach(m => m.dispose());
+            } else {
+                obj.material.dispose();
+            }
+        }
+        warehouseGroup.remove(obj);
+    }
 
     const { length, width, height, grid_size } = warehouseConfig;
 
@@ -350,29 +430,130 @@ function updateVisualization() {
         });
 }
 
+// Helper for 6-axis dimensions
+function getRotatedDims(l, w, h, rotationCode) {
+    const code = Math.round(rotationCode) % 6;
+    switch (code) {
+        case 0: return { dx: l, dy: w, dz: h };
+        case 1: return { dx: w, dy: l, dz: h };
+        case 2: return { dx: l, dy: h, dz: w };
+        case 3: return { dx: h, dy: l, dz: w };
+        case 4: return { dx: w, dy: h, dz: l };
+        case 5: return { dx: h, dy: w, dz: l };
+        default: return { dx: l, dy: w, dz: h };
+    }
+}
+
 function renderItems(items) {
-    while (itemsGroup.children.length > 0) itemsGroup.remove(itemsGroup.children[0]);
+    // Properly dispose of geometries and materials to prevent memory leaks
+    while (itemsGroup.children.length > 0) {
+        const mesh = itemsGroup.children[0];
+        if (mesh.geometry) mesh.geometry.dispose();
+        if (mesh.material) {
+            if (Array.isArray(mesh.material)) {
+                mesh.material.forEach(m => m.dispose());
+            } else {
+                mesh.material.dispose();
+            }
+        }
+        itemsGroup.remove(mesh);
+    }
     if (pickerPathGroup) {
-        while (pickerPathGroup.children.length > 0) pickerPathGroup.remove(pickerPathGroup.children[0]);
+        while (pickerPathGroup.children.length > 0) {
+            const obj = pickerPathGroup.children[0];
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) obj.material.dispose();
+            pickerPathGroup.remove(obj);
+        }
     }
 
     const mode = document.getElementById('color-mode') ? document.getElementById('color-mode').value : 'category';
     const showPath = document.getElementById('show-path') ? document.getElementById('show-path').checked : false;
 
+    // Count overflow items (items that don't fit - placed at Z >= 1000)
+    const OVERFLOW_Z_THRESHOLD = 1000;
+    const overflowItems = items.filter(i => i.z >= OVERFLOW_Z_THRESHOLD);
+    const fittingItems = items.filter(i => i.z < OVERFLOW_Z_THRESHOLD);
+
+    // Update overflow indicator in UI
+    let overflowIndicator = document.getElementById('overflow-indicator');
+    if (!overflowIndicator) {
+        // Create indicator if it doesn't exist
+        const container = document.getElementById('progress-panel') || document.body;
+        overflowIndicator = document.createElement('div');
+        overflowIndicator.id = 'overflow-indicator';
+        overflowIndicator.style.cssText = 'padding: 8px 12px; margin-top: 10px; border-radius: 6px; font-size: 0.85rem; display: none;';
+        container.appendChild(overflowIndicator);
+    }
+
+    if (overflowItems.length > 0) {
+        overflowIndicator.style.display = 'block';
+        overflowIndicator.style.background = 'rgba(255, 0, 85, 0.2)';
+        overflowIndicator.style.border = '1px solid #FF0055';
+        overflowIndicator.style.color = '#FF6B8A';
+
+        // Build list of unplaced items (show first 10, with expand option)
+        const showCount = Math.min(overflowItems.length, 10);
+        let itemsList = overflowItems.slice(0, showCount).map(item =>
+            `<div style="padding: 2px 0; font-size: 0.75rem; color: #ccc;">
+                • ${item.name || item.id} <span style="color:#888;">(${item.category || 'N/A'}) ${item.length}×${item.width}×${item.height}</span>
+            </div>`
+        ).join('');
+
+        if (overflowItems.length > 10) {
+            itemsList += `<div style="padding: 2px 0; font-size: 0.75rem; color: #888;">... and ${overflowItems.length - 10} more</div>`;
+        }
+
+        overflowIndicator.innerHTML = `
+            <div style="cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none';">
+                ⚠️ <strong>${overflowItems.length}</strong> items don't fit (${fittingItems.length}/${items.length} placed) 
+                <span style="font-size: 0.7rem; color: #888;">▼ click to expand</span>
+            </div>
+            <div style="display: none; margin-top: 8px; max-height: 200px; overflow-y: auto;">
+                ${itemsList}
+            </div>
+        `;
+    } else {
+        overflowIndicator.style.display = 'none';
+    }
+
     // Calculate stats for heatmaps
     let maxWeight = 0;
     let maxAccess = 0;
-    items.forEach(i => {
+    fittingItems.forEach(i => {
         if (i.weight > maxWeight) maxWeight = i.weight;
         if (i.access_freq > maxAccess) maxAccess = i.access_freq;
     });
 
     if (showPath) {
-        renderPickerPath(items);
+        renderPickerPath(fittingItems);
     }
 
-    items.forEach(item => {
-        const geometry = new THREE.BoxGeometry(item.length, item.height, item.width);
+    // Only render items that fit (skip overflow)
+    fittingItems.forEach(item => {
+        // Handle 6-Axis Rotation
+        const rotCode = item.rotation || 0;
+        const dims = getRotatedDims(item.length, item.width, item.height, rotCode);
+
+        // Geometry uses rotated world-aligned dimensions
+        // Note: In ThreeJS BoxGeometry is (width, height, depth) -> (x, y, z)
+        // In our app: 
+        // L -> X, W -> Z (Depth), H -> Y (Height)
+        // Wait, check coordinate mapping in renderWarehouse:
+        // floor rotation x = -Math.PI/2 implies Y is up.
+        // warehouse length (X), width (Y in floor plane -> Z in world), height (Z in floor -> Y in world)
+        // BoxGeometry(L, H, W) ??
+        // Let's verify standard mapping:
+        // BoxGeometry(width, height, depth) = (x, y, z)
+        // Our Dims: dx(X), dy(Z_depth), dz(Y_height) ?
+        // getRotatedDims returns dx, dy, dz relative to L, W, H input.
+        // Optimizer: L=X, W=Y, H=Z.
+        // Frontend: L=X, W=Z, H=Y.
+        // So passed dx -> Box Width (X)
+        // passed dy -> Box Depth (Z)
+        // passed dz -> Box Height (Y)
+
+        const geometry = new THREE.BoxGeometry(dims.dx, dims.dz, dims.dy);
         const color = getItemColor(item, mode, maxWeight, maxAccess);
         const material = new THREE.MeshStandardMaterial({
             color: color,
@@ -381,13 +562,27 @@ function renderItems(items) {
         });
 
         const mesh = new THREE.Mesh(geometry, material);
+
+        // Position
+        // Optimizer pos is Bottom-Left-Front corner? Or Center?
+        // Optimizer outputs Center X, Center Y (depth), Bottom Z (height).
+        // ThreeJS Box is centered at local (0,0,0).
+        // item.x -> Center X
+        // item.y -> Center Depth (Z in world)
+        // item.z -> Bottom Height (Y in world)
+
+        // Convert to ThreeJS coords:
+        // World X = item.x - warehouseLength/2
+        // World Z = item.y - warehouseWidth/2
+        // World Y = item.z + dims.dz/2
+
         mesh.position.set(
-            item.x - warehouseConfig.length / 2, // Adjust for center origin
-            item.z + item.height / 2,
+            item.x - warehouseConfig.length / 2,
+            item.z + dims.dz / 2,
             item.y - warehouseConfig.width / 2
         );
-        mesh.rotation.y = -item.rotation * (Math.PI / 180); // Database stores degrees
 
+        // No extra rotation needed since we handled it in Dimensions
         mesh.userData = item;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -451,14 +646,20 @@ function renderPickerPath(items) {
 
 function getItemColor(item, mode, maxWeight, maxAccess) {
     if (mode === 'category') {
-        const colors = {
-            'Electronics': 0x00F0FF,
-            'Furniture': 0x7000FF,
-            'Fragile': 0xFF0055,
-            'Heavy': 0xFFD600,
-            'General': 0xAAAAAA
-        };
-        return colors[item.category] || 0x888888;
+        // Hash string to color
+        const str = item.category || 'General';
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        // Use HSL for pleasing colors
+        const hue = Math.abs(hash % 360);
+        const saturation = 70;
+        const lightness = 50;
+
+        return new THREE.Color(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+
     } else if (mode === 'weight') {
         // Green (light) -> Red (heavy)
         const t = maxWeight > 0 ? (item.weight / maxWeight) : 0;
@@ -469,25 +670,220 @@ function getItemColor(item, mode, maxWeight, maxAccess) {
         const t = maxAccess > 0 ? (item.access_freq / maxAccess) : 0;
         const color = new THREE.Color().setHSL(0.66 - (t * 0.66), 1, 0.5); // 0.66=Blue, 0=Red
         return color;
+    } else if (mode === 'fragility') {
+        // Fragile (1) -> Red (0 hue), Robust (0) -> Green (120 hue = 0.33)
+        // If fragility is boolean 0/1, map directly.
+        const isFragile = item.fragility === 1 || item.fragility === true;
+        return isFragile ? new THREE.Color(0xFF0055) : new THREE.Color(0x00FF9D);
     }
     return 0x888888;
 }
 
+// --- Picker Path ---
+
+function togglePickerPath() {
+    const showPath = document.getElementById('show-path').checked;
+    const configPanel = document.getElementById('picker-path-config');
+
+    if (showPath) {
+        if (configPanel) configPanel.style.display = 'block';
+    } else {
+        if (configPanel) configPanel.style.display = 'none';
+        clearPickerPath();
+    }
+}
+
+function clearPickerPath() {
+    while (pickerPathGroup.children.length > 0) {
+        const obj = pickerPathGroup.children[0];
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+        pickerPathGroup.remove(obj);
+    }
+}
+
+function generatePickerPath() {
+    clearPickerPath();
+
+    const itemCount = parseInt(document.getElementById('picker-item-count').value) || 5;
+    const selectionMode = document.getElementById('picker-selection-mode').value;
+
+    // Get all items as array
+    const items = Object.values(allItemsData).filter(i => i.z < 1000); // Only placed items
+    if (items.length === 0) {
+        alert('No items to create path for');
+        return;
+    }
+
+    // Door position
+    const doorX = warehouseConfig.door_x || 0;
+    const doorY = warehouseConfig.door_y || 0;
+    const whLength = warehouseConfig.length || 20;
+    const whWidth = warehouseConfig.width || 20;
+
+    // Select items based on mode
+    let selectedItems = [];
+
+    if (selectionMode === 'access') {
+        // Sort by access frequency (highest first)
+        selectedItems = [...items].sort((a, b) => (b.access_freq || 0) - (a.access_freq || 0)).slice(0, itemCount);
+    } else if (selectionMode === 'random') {
+        // Random selection
+        const shuffled = [...items].sort(() => Math.random() - 0.5);
+        selectedItems = shuffled.slice(0, itemCount);
+    } else if (selectionMode === 'nearest') {
+        // Sort by distance from door
+        selectedItems = [...items].sort((a, b) => {
+            const distA = Math.sqrt(Math.pow(a.x - doorX, 2) + Math.pow(a.y - doorY, 2));
+            const distB = Math.sqrt(Math.pow(b.x - doorX, 2) + Math.pow(b.y - doorY, 2));
+            return distA - distB;
+        }).slice(0, itemCount);
+    }
+
+    if (selectedItems.length === 0) return;
+
+    // Simple greedy path: start at door, go to nearest unvisited, repeat
+    const pathPoints = [];
+    const startPoint = new THREE.Vector3(doorX - whLength / 2, 0.2, doorY - whWidth / 2);
+    pathPoints.push(startPoint);
+
+    const visited = new Set();
+    let currentPos = { x: doorX, y: doorY };
+
+    while (visited.size < selectedItems.length) {
+        let nearestItem = null;
+        let nearestDist = Infinity;
+
+        for (const item of selectedItems) {
+            if (visited.has(item.id)) continue;
+            const dist = Math.sqrt(Math.pow(item.x - currentPos.x, 2) + Math.pow(item.y - currentPos.y, 2));
+            if (dist < nearestDist) {
+                nearestDist = dist;
+                nearestItem = item;
+            }
+        }
+
+        if (nearestItem) {
+            visited.add(nearestItem.id);
+            const itemPoint = new THREE.Vector3(
+                nearestItem.x - whLength / 2,
+                (nearestItem.z || 0) + (nearestItem.height || 0.5) / 2,
+                nearestItem.y - whWidth / 2
+            );
+            pathPoints.push(itemPoint);
+            currentPos = { x: nearestItem.x, y: nearestItem.y };
+        }
+    }
+
+    // Draw path line
+    const geometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+    const material = new THREE.LineBasicMaterial({ color: 0xFFD600, linewidth: 3 });
+    const pathLine = new THREE.Line(geometry, material);
+    pickerPathGroup.add(pathLine);
+
+    // Add markers at each stop
+    for (let i = 1; i < pathPoints.length; i++) {
+        const markerGeo = new THREE.SphereGeometry(0.15, 16, 16);
+        const markerMat = new THREE.MeshBasicMaterial({ color: 0xFF0055 });
+        const marker = new THREE.Mesh(markerGeo, markerMat);
+        marker.position.copy(pathPoints[i]);
+        pickerPathGroup.add(marker);
+
+        // Add number label (simple sprite)
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFD600';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i.toString(), 32, 32);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMat = new THREE.SpriteMaterial({ map: texture });
+        const sprite = new THREE.Sprite(spriteMat);
+        sprite.position.copy(pathPoints[i]);
+        sprite.position.y += 0.5;
+        sprite.scale.set(0.5, 0.5, 0.5);
+        pickerPathGroup.add(sprite);
+    }
+
+    console.log(`Generated picker path with ${pathPoints.length - 1} stops`);
+}
+
 // --- Optimization Controls ---
+
+
 
 function startOptimization() {
     const algo = document.getElementById('algorithm-select').value;
 
     const params = {
         warehouse_id: currentWarehouseId,
-        population_size: parseInt(document.getElementById('population-size').value),
-        generations: parseInt(document.getElementById('generations').value),
         weights: {
             space: parseFloat(document.getElementById('weight-space').value),
             accessibility: parseFloat(document.getElementById('weight-accessibility').value),
             stability: parseFloat(document.getElementById('weight-stability').value)
         }
     };
+
+    if (algo === 'ga') {
+        params.population_size = parseInt(document.getElementById('population-size').value);
+        params.generations = parseInt(document.getElementById('generations').value);
+    } else if (algo === 'eo') {
+        // For EO, the 'generations' input is labeled 'Iterations' in the UI
+        params.iterations = parseInt(document.getElementById('generations').value);
+        const tauEl = document.getElementById('eo-tau');
+        if (tauEl) params.tau = parseFloat(tauEl.value);
+    } else if (algo === 'compare') {
+        // Collect custom comparison parameters
+        params.custom_algorithms = [
+            {
+                name: 'GA', type: 'ga',
+                params: {
+                    population_size: parseInt(document.getElementById('cmp-ga-pop').value) || 30,
+                    generations: parseInt(document.getElementById('cmp-ga-gen').value) || 50
+                },
+                description: 'Genetic Algorithm (Custom)'
+            },
+            {
+                name: 'EO', type: 'eo',
+                params: {
+                    iterations: parseInt(document.getElementById('cmp-eo-iter').value) || 100
+                },
+                description: 'Extremal Optimization (Custom)'
+            },
+            {
+                name: 'Hybrid GA-EO', type: 'ga-eo',
+                params: {
+                    generations: parseInt(document.getElementById('cmp-hyb1-gen').value) || 20,
+                    iterations: parseInt(document.getElementById('cmp-hyb1-iter').value) || 50
+                },
+                description: 'GA -> EO (Custom)'
+            },
+            {
+                name: 'Hybrid EO-GA', type: 'eo-ga',
+                params: {
+                    iterations: parseInt(document.getElementById('cmp-hyb2-iter').value) || 50,
+                    generations: parseInt(document.getElementById('cmp-hyb2-gen').value) || 20
+                },
+                description: 'EO -> GA (Custom)'
+            }
+        ];
+    } else {
+        // Hybrid logic
+        const popEl = document.getElementById('population-size');
+        if (popEl) params.population_size = parseInt(popEl.value);
+
+        const genEl = document.getElementById('generations');
+        if (genEl) params.generations = parseInt(genEl.value);
+
+        const iterEl = document.getElementById('eo-iterations');
+        if (iterEl) params.iterations = parseInt(iterEl.value);
+    }
+
+    console.log("Starting optimization with params:", params);
 
     // Ensure allItemsData is populated before starting optimization
     fetch(`${API_BASE_URL}/api/items?warehouse_id=${currentWarehouseId}`)
@@ -508,7 +904,7 @@ function startOptimizationRequest(algo, params) {
 
     // Fix API endpoint logic based on algo
     let endpoint = `/api/optimize/${algo}`;
-    if (algo.includes('hybrid')) endpoint = '/api/optimize/ga-eo'; // Simplified for now
+    // The previous forced mapping to ga-eo is removed to support eo-ga correctly.
 
     fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -591,6 +987,26 @@ function startPolling() {
                     }
                 }
 
+                // Update Extended Status Info
+                const statusAlgo = document.getElementById('status-algo');
+                const statusGen = document.getElementById('status-gen');
+                const statusPlaced = document.getElementById('status-placed');
+                const statusElapsed = document.getElementById('status-elapsed');
+
+                if (statusAlgo) statusAlgo.textContent = status.algorithm || document.getElementById('algorithm-select')?.value?.toUpperCase() || '-';
+                if (statusGen) {
+                    const gen = status.generation || status.iteration || Math.round(progress);
+                    const total = status.total_generations || status.total_iterations || 100;
+                    statusGen.textContent = `${gen}/${total}`;
+                }
+                if (statusPlaced && status.best_solution) {
+                    const placed = status.best_solution.filter(s => s.z < 1000).length;
+                    const total = status.best_solution.length;
+                    statusPlaced.textContent = `${placed}/${total}`;
+                }
+                if (statusElapsed && status.elapsed_time) {
+                    statusElapsed.textContent = status.elapsed_time.toFixed(1) + 's';
+                }
 
                 if (status.best_solution && status.best_solution.length > 0) {
                     console.log('[DEBUG] best_solution items:', status.best_solution.length);
@@ -632,6 +1048,9 @@ function loadAnalytics() {
             if (mAccess) mAccess.textContent = data.accessibility.toFixed(2);
             if (mStab) mStab.textContent = (data.stability * 100).toFixed(1) + '%';
             if (mCount) mCount.textContent = data.total_items;
+
+            // Also update rendered count
+            countRenderedBoxes();
         });
 
     fetch(`${API_BASE_URL}/api/metrics/categories?warehouse_id=${currentWarehouseId}`)
@@ -811,6 +1230,7 @@ function loadItemsList() {
                     <td style="padding: 8px;">${item.name || item.id}</td>
                     <td style="padding: 8px; color: var(--accent-primary)">${item.width}x${item.height}x${item.length}</td>
                     <td style="padding: 8px;">${item.category}</td>
+                    <td style="padding: 8px;">${item.fragility ? '⚠️' : '🛡️'}</td>
                 `;
                 table.appendChild(tr);
             });
@@ -878,9 +1298,24 @@ function editZone(id) {
 
 
 function renderZones(zones) {
-    // Clear old zones
-    // Assuming exclusionZonesGroup was defined in initThreeJS
+    // Clear old zones - properly dispose to prevent memory leaks
+    function disposeObject(obj) {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+            if (Array.isArray(obj.material)) {
+                obj.material.forEach(m => m.dispose());
+            } else {
+                obj.material.dispose();
+            }
+        }
+        // Recursively dispose children
+        while (obj.children && obj.children.length > 0) {
+            disposeObject(obj.children[0]);
+            obj.remove(obj.children[0]);
+        }
+    }
     while (exclusionZonesGroup.children.length > 0) {
+        disposeObject(exclusionZonesGroup.children[0]);
         exclusionZonesGroup.remove(exclusionZonesGroup.children[0]);
     }
 
@@ -999,6 +1434,24 @@ function updateZonesList(zones) {
     const container = document.getElementById('zones-list');
     if (!container) return;
 
+    // Calculate item counts per zone from allItemsData
+    const itemCounts = {};
+    zones.forEach(z => {
+        if (z.zone_type === 'allocation') {
+            let count = 0;
+            Object.values(allItemsData).forEach(item => {
+                // Check if item center is within zone bounds
+                if (item.x >= z.x1 && item.x <= z.x2 &&
+                    item.y >= z.y1 && item.y <= z.y2 &&
+                    (item.z || 0) >= (z.z1 || 0) &&
+                    (item.z || 0) < (z.z2 || 999)) {
+                    count++;
+                }
+            });
+            itemCounts[z.id] = count;
+        }
+    });
+
     container.innerHTML = zones.map(z => {
         const isAlloc = z.zone_type === 'allocation';
         const layerInfo = (z.metadata && z.metadata.layer_heights && z.metadata.layer_heights.length > 0)
@@ -1006,6 +1459,9 @@ function updateZonesList(zones) {
             : ((z.metadata && z.metadata.levels)
                 ? `(Layers: ${z.metadata.levels})`
                 : '');
+
+        // Show item count for allocation zones
+        const itemCountStr = isAlloc ? `<span style="color: var(--accent-primary); font-weight: 600;">📦 ${itemCounts[z.id] || 0} items</span>` : '';
 
         return `
         <div class="data-card" style="margin-bottom: 5px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
@@ -1018,6 +1474,7 @@ function updateZonesList(zones) {
                     Z: ${z.z1 || 0}-${z.z2 || 'Max'} 
                     ${layerInfo}
                 </div>
+                ${itemCountStr}
             </div>
             <div>
                  <button class="btn" style="padding: 4px 8px; font-size: 0.7rem; margin-right:5px; background: var(--accent-primary);" onclick="editZone(${z.id})">EDIT</button>
@@ -1175,11 +1632,11 @@ function applyPreset(name) {
     console.log('Applying preset:', name);
 
     if (name === '4-shelves') {
-        // 1. Update Config
+        // 1. Update Config - Compact Physics Warehouse
         const newConfig = {
-            name: "Warehouse 4-Shelves",
-            length: 20,
-            width: 15,
+            name: "Physics Alloc (Compact)",
+            length: 10,
+            width: 10,
             height: 6,
             levels: 2,
             grid_size: 1,
@@ -1196,14 +1653,42 @@ function applyPreset(name) {
             .then(d => {
                 console.log('Config response:', d);
                 if (d.success) {
-                    // 2. Clear Zones & Add New Ones
+                    // 2. Clear Zones & Add New Zones 
                     clearZones().then(() => {
-                        const zones = [
-                            { name: 'Shelf A', x1: 2, y1: 2, x2: 8, y2: 6, zone_type: 'allocation', metadata: { levels: 2 } },
-                            { name: 'Shelf B', x1: 12, y1: 2, x2: 18, y2: 6, zone_type: 'allocation', metadata: { levels: 2 } },
-                            { name: 'Shelf C', x1: 2, y1: 9, x2: 8, y2: 13, zone_type: 'allocation', metadata: { levels: 2 } },
-                            { name: 'Shelf D', x1: 12, y1: 9, x2: 18, y2: 13, zone_type: 'allocation', metadata: { levels: 2 } }
+                        const zones = [];
+                        // Compact Layout: 10x10
+                        // 4 Stacks of 3x3m
+                        // Gap: 2m
+                        // Shelf A (Top-Left): X:1-4, Y:1-4
+                        // Shelf B (Top-Right): X:6-9, Y:1-4
+                        // Shelf C (Bottom-Left): X:1-4, Y:6-9
+                        // Shelf D (Bottom-Right): X:6-9, Y:6-9
+
+                        const stacks = [
+                            { name: 'Shelf A', x1: 1, y1: 1, x2: 4, y2: 4 },
+                            { name: 'Shelf B', x1: 6, y1: 1, x2: 9, y2: 4 },
+                            { name: 'Shelf C', x1: 1, y1: 6, x2: 4, y2: 9 },
+                            { name: 'Shelf D', x1: 6, y1: 6, x2: 9, y2: 9 }
                         ];
+
+                        stacks.forEach(s => {
+                            // Bottom Zone (Heavy) - Z: 0-3
+                            zones.push({
+                                name: `${s.name} (Bottom)`,
+                                x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2,
+                                z1: 0, z2: 3,
+                                zone_type: 'allocation',
+                                metadata: { levels: 1 }
+                            });
+                            // Top Zone (Fragile) - Z: 3-6
+                            zones.push({
+                                name: `${s.name} (Top)`,
+                                x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2,
+                                z1: 3, z2: 6,
+                                zone_type: 'allocation',
+                                metadata: { levels: 1 }
+                            });
+                        });
 
                         const promises = zones.map(z =>
                             fetch(`${API_BASE_URL}/api/warehouse/zones`, {
@@ -1215,7 +1700,7 @@ function applyPreset(name) {
 
                         Promise.all(promises).then(() => {
                             loadWarehouseConfig();
-                            alert('Preset Applied: 4 Shelves (2 Layers)');
+                            alert('Preset Applied: 4 Stacks (8 Zones)');
                         });
                     });
                 }
@@ -1267,6 +1752,40 @@ function deleteAllItems() {
             }
         })
         .catch(error => console.error('Error:', error));
+}
+
+function scrambleItems() {
+    if (!confirm('This will DELETE all current items and generate 50 RANDOM ones. Continue?')) {
+        return;
+    }
+
+    const btn = event.srcElement; // Get button to show loading state
+    const originalText = btn.textContent;
+    btn.textContent = 'SCRAMBLING...';
+    btn.disabled = true;
+
+    fetch(`${API_BASE_URL}/api/items/scramble`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ count: 50 })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadItems();
+                updateVisualization();
+                // alert('Values Scrambled!'); 
+            } else {
+                alert('Error scrambling: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error))
+        .finally(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
 }
 
 
@@ -1342,6 +1861,8 @@ function uploadCSV() {
         });
 }
 
+let comparisonInterval = null;
+
 function runComparison() {
     const weights = {
         space: parseFloat(document.getElementById('weight-space').value),
@@ -1352,7 +1873,12 @@ function runComparison() {
     const modal = document.getElementById('comparison-modal');
     const content = document.getElementById('comparison-results-content');
     modal.style.display = 'flex';
-    content.innerHTML = '<div style="text-align:center;">Running optimizations... please wait.<br><div class="dot active" style="margin:20px auto;"></div></div>';
+    content.innerHTML = `
+        <div style="text-align:center; padding: 20px;">
+            <div style="font-size: 1.2rem; color: var(--accent-primary); margin-bottom: 15px;">Starting Algorithm Comparison...</div>
+            <div class="dot active" style="margin:20px auto;"></div>
+        </div>
+    `;
 
     fetch(`${API_BASE_URL}/api/optimize/compare`, {
         method: 'POST',
@@ -1364,51 +1890,149 @@ function runComparison() {
     }).then(res => res.json())
         .then(data => {
             if (data.success) {
-                let html = '<table style="width:100%; border-collapse:collapse; text-align:left;">';
-                html += '<thead><tr style="border-bottom:1px solid #444; color:var(--accent-primary);">';
-                html += '<th style="padding:10px;">Metric</th>';
-                Object.keys(data.results).forEach(algo => {
-                    html += `<th style="padding:10px;">${algo}</th>`;
-                });
-                html += '</tr></thead><tbody>';
-
-                const metrics = [
-                    { key: 'fitness', label: 'Total Fitness' },
-                    { key: 'time', label: 'Time (s)' },
-                    { key: 'space_utilization', label: 'Space Util' },
-                    { key: 'accessibility', label: 'Accessibility' },
-                    { key: 'stability', label: 'Stability' }
-                ];
-
-                metrics.forEach(m => {
-                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">`;
-                    html += `<td style="padding:10px; color:#fff;">${m.label}</td>`;
-                    Object.keys(data.results).forEach(algo => {
-                        let val = data.results[algo][m.key];
-                        if (typeof val === 'number') {
-                            if (m.key === 'time') val = val.toFixed(4) + 's';
-                            else if (m.key === 'fitness') val = val.toFixed(4);
-                            else if (m.key === 'accessibility') val = val.toFixed(4);
-                            else val = (val * 100).toFixed(1) + '%';
-                        }
-
-                        // Highlight winner (simple logic)
-                        // This logic could be more robust, but good enough for now
-                        let color = '#8899A6';
-                        html += `<td style="padding:10px; color:${color};">${val}</td>`;
-                    });
-                    html += '</tr>';
-                });
-                html += '</tbody></table>';
-
-                content.innerHTML = html;
+                // Start polling for status
+                startComparisonPolling();
             } else {
-                content.innerHTML = 'Error: ' + JSON.stringify(data);
+                content.innerHTML = 'Error: ' + (data.error || JSON.stringify(data));
             }
         })
         .catch(err => {
             content.innerHTML = 'Error: ' + err;
         });
+}
+
+function startComparisonPolling() {
+    const content = document.getElementById('comparison-results-content');
+
+    comparisonInterval = setInterval(() => {
+        fetch(`${API_BASE_URL}/api/optimize/compare/status`)
+            .then(res => res.json())
+            .then(status => {
+                let html = `
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 1.1rem; color: var(--accent-primary);">
+                                Algorithm ${status.current_algorithm_index || 0}/${status.total_algorithms}
+                            </span>
+                            <span style="font-family: 'JetBrains Mono'; color: var(--success);">
+                                ${Math.round(status.progress || 0)}%
+                            </span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, var(--accent-primary), var(--success)); height: 100%; width: ${status.progress || 0}%; transition: width 0.3s;"></div>
+                        </div>
+                        <div style="margin-top: 10px; color: var(--text-muted); font-size: 0.9rem;">
+                            ${status.message || 'Processing...'}
+                        </div>
+                    </div>
+                `;
+
+                // Show completed results as they come in
+                if (status.results && Object.keys(status.results).length > 0) {
+                    html += `<div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
+                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Completed Results:</div>`;
+
+                    for (const [algo, result] of Object.entries(status.results)) {
+                        const color = algo === 'GA' ? '#00f0ff' : algo === 'EO' ? '#7000ff' : algo.includes('GA-EO') ? '#ff0055' : '#ffd600';
+                        const statusIcon = result.status === 'completed' ? '✓' : result.status === 'error' ? '✗' : '⋯';
+
+                        html += `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span style="color: ${color}; font-weight: bold;">${statusIcon} ${algo}</span>
+                            ${result.fitness ? `<span style="font-family: 'JetBrains Mono';">Fitness: ${result.fitness.toFixed(4)} | Time: ${result.time.toFixed(2)}s</span>` : `<span style="color: #ff6b8a;">${result.error || 'Running...'}</span>`}
+                        </div>`;
+                    }
+                    html += '</div>';
+                }
+
+                content.innerHTML = html;
+
+                // Check if done
+                if (!status.running) {
+                    clearInterval(comparisonInterval);
+                    comparisonInterval = null;
+
+                    // Show final results table
+                    setTimeout(() => showFinalComparisonResults(status.results), 500);
+                }
+            })
+            .catch(err => {
+                console.error('Polling error:', err);
+            });
+    }, 500);
+}
+
+function showFinalComparisonResults(results) {
+    const content = document.getElementById('comparison-results-content');
+
+    if (!results || Object.keys(results).length === 0) {
+        content.innerHTML = '<div style="color: var(--danger);">No results available.</div>';
+        return;
+    }
+
+    let html = '<div style="margin-bottom: 15px; color: var(--success); font-size: 1.1rem;">✓ Comparison Complete!</div>';
+    html += '<table style="width:100%; border-collapse:collapse; text-align:left;">';
+    html += '<thead><tr style="border-bottom:1px solid #444; color:var(--accent-primary);">';
+    html += '<th style="padding:10px;">Metric</th>';
+
+    const algos = Object.keys(results);
+    algos.forEach(algo => {
+        const color = algo === 'GA' ? '#00f0ff' : algo === 'EO' ? '#7000ff' : algo.includes('GA-EO') ? '#ff0055' : '#ffd600';
+        html += `<th style="padding:10px; color: ${color};">${algo}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    const metrics = [
+        { key: 'fitness', label: 'Total Fitness', higher: true },
+        { key: 'time', label: 'Total Time (s)', higher: false },
+        { key: 'time_to_best', label: 'Time to Best (s)', higher: false },
+        { key: 'space_utilization', label: 'Space Util', higher: true },
+        { key: 'accessibility', label: 'Accessibility', higher: true },
+        { key: 'stability', label: 'Stability', higher: true }
+    ];
+
+    metrics.forEach(m => {
+        // Find best value
+        let bestVal = null;
+        algos.forEach(algo => {
+            const val = results[algo][m.key];
+            if (typeof val === 'number') {
+                if (bestVal === null) bestVal = val;
+                else if (m.higher && val > bestVal) bestVal = val;
+                else if (!m.higher && val < bestVal) bestVal = val;
+            }
+        });
+
+        html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">`;
+        html += `<td style="padding:10px; color:#fff;">${m.label}</td>`;
+
+        algos.forEach(algo => {
+            let val = results[algo][m.key];
+            let displayVal = val;
+
+            if (typeof val === 'number') {
+                if (m.key === 'time' || m.key === 'time_to_best') displayVal = val.toFixed(3) + 's';
+                else if (m.key === 'fitness' || m.key === 'accessibility') displayVal = val.toFixed(4);
+                else displayVal = (val * 100).toFixed(1) + '%';
+            }
+
+            // Highlight winner
+            const isBest = typeof val === 'number' && Math.abs(val - bestVal) < 0.0001;
+            const color = isBest ? 'var(--success)' : '#8899A6';
+            const weight = isBest ? 'bold' : 'normal';
+
+            html += `<td style="padding:10px; color:${color}; font-weight:${weight};">${displayVal || '-'}</td>`;
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+
+    // Add stop button replacement
+    html += `<div style="margin-top: 20px; text-align: center;">
+        <button class="btn" onclick="document.getElementById('comparison-modal').style.display='none'" 
+                style="background: var(--accent-primary); padding: 10px 30px;">Close</button>
+    </div>`;
+
+    content.innerHTML = html;
 }
 
 // --- Benchmark Functions ---
@@ -1531,4 +2155,16 @@ function clearAlgoPerformance() {
         .catch(err => {
             alert('Network error: ' + err);
         });
+}
+
+// Count actual 3D boxes rendered in the scene (not from items data)
+function countRenderedBoxes() {
+    const count = itemsGroup ? itemsGroup.children.length : 0;
+    const mRendered = document.getElementById('metric-rendered');
+    if (mRendered) {
+        mRendered.textContent = count;
+        mRendered.style.color = count > 0 ? '#00f0ff' : '#ff6b8a';
+    }
+    console.log(`📦 3D Boxes rendered: ${count}`);
+    return count;
 }

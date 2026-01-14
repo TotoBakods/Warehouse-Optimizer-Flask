@@ -65,6 +65,7 @@
                         <option value="weight">Weight</option>
                         <option value="priority">Priority</option>
                         <option value="access">Access Frequency</option>
+                        <option value="fragility">Fragility</option>
                     </select>
                 </div>
             </div>
@@ -87,11 +88,12 @@
                     <div class="input-group">
                         <label>Algorithm</label>
                         <div class="select-wrapper">
-                            <select id="algorithm-select">
+                            <select id="algorithm-select" onchange="updateAlgorithmParams()">
                                 <option value="ga">Genetic Algorithm</option>
                                 <option value="eo">Extremal Optimization</option>
                                 <option value="ga-eo">Hybrid (GA + EO)</option>
                                 <option value="eo-ga">Hybrid (EO + GA)</option>
+                                <option value="compare">Compare All Algorithms</option>
                             </select>
                         </div>
                     </div>
@@ -115,6 +117,14 @@
                             style="width: 0%; height: 100%; background: var(--accent-primary); transition: width 0.3s;">
                         </div>
                     </div>
+                    <!-- Extended Status Info -->
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
+                        <div>Algorithm: <span id="status-algo" style="color: var(--text-main);">-</span></div>
+                        <div>Gen/Iter: <span id="status-gen" style="color: var(--text-main);">-</span></div>
+                        <div>Placed: <span id="status-placed" style="color: var(--success);">-</span></div>
+                        <div>Elapsed: <span id="status-elapsed" style="color: var(--text-main);">-</span></div>
+                    </div>
                     <div
                         style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
                         <span>Best Fitness:</span>
@@ -125,13 +135,52 @@
 
                 <div class="panel-section">
                     <div class="section-title">Parameters</div>
-                    <div class="input-group">
-                        <label>Population Size</label>
-                        <input type="number" id="population-size" value="50">
+                    <div id="algorithm-params">
+                        <!-- GA params (default fallback) -->
+                        <div class="input-group">
+                            <label>Population Size</label>
+                            <input type="number" id="population-size" value="50">
+                        </div>
+                        <div class="input-group">
+                            <label>Generations</label>
+                            <input type="number" id="generations" value="100">
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label>Generations</label>
-                        <input type="number" id="generations" value="100">
+
+                    <div id="compare-params" style="display:none;">
+                        <div
+                            style="margin-bottom: 10px; border-left: 2px solid var(--accent-primary); padding-left: 8px;">
+                            <label style="color: var(--accent-primary);">Genetic Algorithm</label>
+                            <div class="data-grid" style="grid-template-columns: 1fr 1fr; gap:5px;">
+                                <div class="input-group"><label>Pop</label><input type="number" id="cmp-ga-pop"
+                                        value="30"></div>
+                                <div class="input-group"><label>Gen</label><input type="number" id="cmp-ga-gen"
+                                        value="50"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 10px; border-left: 2px solid #7000ff; padding-left: 8px;">
+                            <label style="color: #7000ff;">Extremal Opt</label>
+                            <div class="input-group"><label>Iterations</label><input type="number" id="cmp-eo-iter"
+                                    value="100"></div>
+                        </div>
+                        <div style="margin-bottom: 10px; border-left: 2px solid #ff0055; padding-left: 8px;">
+                            <label style="color: #ff0055;">Hybrid GA-EO</label>
+                            <div class="data-grid" style="grid-template-columns: 1fr 1fr; gap:5px;">
+                                <div class="input-group"><label>GA Gen</label><input type="number" id="cmp-hyb1-gen"
+                                        value="20"></div>
+                                <div class="input-group"><label>EO Iter</label><input type="number" id="cmp-hyb1-iter"
+                                        value="50"></div>
+                            </div>
+                        </div>
+                        <div style="border-left: 2px solid #FFD600; padding-left: 8px;">
+                            <label style="color: #FFD600;">Hybrid EO-GA</label>
+                            <div class="data-grid" style="grid-template-columns: 1fr 1fr; gap:5px;">
+                                <div class="input-group"><label>EO Iter</label><input type="number" id="cmp-hyb2-iter"
+                                        value="50"></div>
+                                <div class="input-group"><label>GA Gen</label><input type="number" id="cmp-hyb2-gen"
+                                        value="20"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -148,9 +197,26 @@
                     </div>
                     <div style="margin-top: 10px;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" id="show-path" onchange="updateVisualization()">
+                            <input type="checkbox" id="show-path" onchange="togglePickerPath()">
                             <span>Show Picker Path</span>
                         </label>
+                    </div>
+                    <div id="picker-path-config"
+                        style="display:none; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                        <div class="input-group" style="margin-bottom: 8px;">
+                            <label>Items to Pick</label>
+                            <input type="number" id="picker-item-count" value="5" min="1" max="50">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 8px;">
+                            <label>Selection Mode</label>
+                            <select id="picker-selection-mode"
+                                style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px;">
+                                <option value="access">Top Access Frequency</option>
+                                <option value="random">Random</option>
+                                <option value="nearest">Nearest to Door</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="generatePickerPath()" style="width: 100%;">GENERATE PATH</button>
                     </div>
                 </div>
 
@@ -181,10 +247,6 @@
                         style="margin-top: 10px;">
                         STOP
                     </button>
-                    <button class="btn" id="compare-btn" onclick="runComparison()"
-                        style="margin-top: 10px; background: var(--bg-dark-secondary); border: 1px solid var(--border-color);">
-                        COMPARE ALGORITHMS (GA vs EO)
-                    </button>
                 </div>
             </div>
 
@@ -197,6 +259,9 @@
                             ALL ITEMS</button>
                         <button class="btn" onclick="document.getElementById('file-upload').click()">IMPORT CSV</button>
                         <input type="file" id="file-upload" accept=".csv" style="display:none" onchange="uploadCSV()">
+                        <button class="btn" onclick="scrambleItems()"
+                            style="background: var(--bg-dark-secondary); border: 1px solid var(--accent-primary); color: var(--accent-primary);">SCRAMBLE
+                            (RANDOMIZE)</button>
                         <button class="btn" onclick="exportCSV()">EXPORT LAYOUT</button>
                     </div>
                 </div>
@@ -230,7 +295,14 @@
                             <div class="data-label">Total Items</div>
                             <div class="data-value" id="metric-count">0</div>
                         </div>
+                        <div class="data-card">
+                            <div class="data-label">Rendered 3D</div>
+                            <div class="data-value" id="metric-rendered">0</div>
+                        </div>
                     </div>
+                    <button class="btn" onclick="countRenderedBoxes()" style="margin-top: 10px; width: 100%;">
+                        📦 COUNT 3D BOXES
+                    </button>
                 </div>
                 <!-- Mini Charts -->
                 <div class="panel-section">
@@ -320,8 +392,8 @@
                 <div class="panel-section">
                     <div class="section-title">Presets</div>
                     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                        <button class="btn" style="flex:1" onclick="applyPreset('4-shelves')">4 Shelves (2
-                            Layers)</button>
+                        <button class="btn" style="flex:1" onclick="applyPreset('4-shelves')">Physics Setup
+                            (Compact)</button>
                         <button class="btn"
                             style="flex:1; background: var(--bg-dark-secondary); border: 1px solid var(--border-color);"
                             onclick="applyPreset('clear')">Clear All</button>
@@ -340,11 +412,15 @@
                         <label>Height (m)</label>
                         <input type="number" id="warehouse-height">
                     </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px; margin-bottom: 5px;">
+                        Door Location (Entry Point)</div>
                     <div class="data-grid" style="grid-template-columns: 1fr 1fr;">
-                        <div class="input-group"><label>Door X</label><input type="number" id="warehouse-door-x"
-                                value="0"></div>
-                        <div class="input-group"><label>Door Y</label><input type="number" id="warehouse-door-y"
-                                value="0"></div>
+                        <div class="input-group"><label>Door X (m)</label><input type="number" id="warehouse-door-x"
+                                step="0.5" value="0">
+                        </div>
+                        <div class="input-group"><label>Door Y (m)</label><input type="number" id="warehouse-door-y"
+                                step="0.5" value="0">
+                        </div>
                     </div>
                     <button class="btn" onclick="updateWarehouseConfig()">UPDATE CONFIG</button>
                     <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
@@ -378,19 +454,6 @@
                                 step="0.5" value="5"></div>
                     </div>
 
-                    <!-- Group: Layer Configuration -->
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 5px;">
-                        Layer Configuration</div>
-                    <div class="data-grid" style="grid-template-columns: 1fr;">
-                        <div class="input-group">
-                            <label>Total Layers (1 = Ground Only)</label>
-                            <input type="number" id="zone-levels" placeholder="1" value="1">
-                        </div>
-                        <div class="input-group">
-                            <label>Advanced: Custom Layer Heights (comma-sep)</label>
-                            <input type="text" id="zone-layer-heights" placeholder="e.g. 1.5, 2.0">
-                        </div>
-                    </div>
                     <div class="input-group">
                         <label>Type</label>
                         <select id="zone-type"
@@ -427,7 +490,7 @@
             </div>
         </div>
     </div>
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=3"></script>
 </body>
 
 </html>
