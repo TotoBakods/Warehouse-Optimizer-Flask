@@ -174,6 +174,22 @@ def repair_solution_compact(solution, items_props=None, warehouse_dims=None, all
             candidates.add((px, py + pdy))  # Back
             candidates.add((px, py))        # On top
         
+        # Add the gene's target position as a candidate to guide the heuristic
+        # We add candidates for both rotated and unrotated orientations to be safe
+        target_x = solution[idx, 0]
+        target_y = solution[idx, 1]
+        
+        # Candidate 1: Assuming unrotated (l, w)
+        cand1_x = target_x - items_props[idx, 0] / 2
+        cand1_y = target_y - items_props[idx, 1] / 2
+        candidates.add((cand1_x, cand1_y))
+        
+        # Candidate 2: Assuming rotated (w, l)
+        cand2_x = target_x - items_props[idx, 1] / 2
+        cand2_y = target_y - items_props[idx, 0] / 2
+        candidates.add((cand2_x, cand2_y))
+
+        
         # Filter valid candidates
         valid_candidates = []
         for (cx, cy) in candidates:
@@ -232,11 +248,14 @@ def repair_solution_compact(solution, items_props=None, warehouse_dims=None, all
                                 valid_z_found = True
                     
                 if valid_z_found:
-                    # Calculate final score (Z, Y, X)
-                    score = (final_z, min_y, min_x)
+                    # Calculate final score (Z, Dist to Target, Y, X)
+                    # We prioritize Z (gravity) then closeness to gene target, then Y/X as tiebreaker
+                    center_x = min_x + dx/2
+                    center_y = min_y + dy/2
+                    dist_to_target = (center_x - target_x)**2 + (center_y - target_y)**2
+                    
+                    score = (final_z, dist_to_target, min_y, min_x)
                     if best_pos is None or score < best_pos[7]:
-                         center_x = min_x + dx/2
-                         center_y = min_y + dy/2
                          best_pos = (center_x, center_y, final_z, rot, dx, dy, dz, score)
     
         # Apply placement
@@ -384,24 +403,20 @@ def create_random_solution_array(num_items, warehouse_dims=None, items_props=Non
                 if max_x < min_x: max_x = min_x
                 if max_y < min_y: max_y = min_y
                 
-                # Dense packing (global)
-                if attempt < 3:
-                        x = min_x
-                        y = min_y
-                elif attempt < 6 and i > 0:
-                        rand_idx = random.randint(0, i-1)
-                        ref_box = placed_bboxes[rand_idx]
-                        if random.random() < 0.5:
-                            x = ref_box[2] + dim_x / 2
-                            y = ref_box[1] + dim_y / 2
-                        else:
-                            x = ref_box[0] + dim_x / 2
-                            y = ref_box[3] + dim_y / 2
-                        x = max(min_x, min(max_x, x))
-                        y = max(min_y, min(max_y, y))
-                else:
-                        x = round(random.uniform(min_x, max_x))
-                        y = round(random.uniform(min_y, max_y))
+            # Random placement logic - removed deterministic corner bias to ensure population diversity
+            # Use strict random uniform placement for all attempts to prevent clones
+            if has_allocation_zones:
+                 # Zone logic... similar randomization needed
+                 # For brevity, let's assume global logic first or fix zone logic too
+                 # Actually, logic below handles both.
+                 # Just use random.uniform for the coordinates.
+                 pass
+
+            # Simplified Random Logic (Global & Zone)
+            # We already calculated min_x, max_x etc in previous lines
+            # Just use them.
+            x = random.uniform(min_x, max_x)
+            y = random.uniform(min_y, max_y)
             
             # Check Z immediately
             z = calculate_z_for_item(x, y, dim_x, dim_y, placed_bboxes[:i], placed_z[:i], placed_h[:i])
@@ -861,6 +876,12 @@ def fitness_function_numpy(solution, items_props=None, warehouse_dims=None, weig
     return fitness, space_util, accessibility, stability, grouping
 
 def create_and_repair(num_items, warehouse_dims, items_props, allocation_zones, valid_z):
+    # Robust seeding using OS entropy, time, and PID to ensure diversity
+    import os, time, threading
+    seed_val = (int(time.time() * 1000000) ^ os.getpid() ^ threading.get_ident() ^ random.randint(0, 1000000)) & 0xFFFFFFFF
+    random.seed(seed_val)
+    np.random.seed(seed_val)
+    
     sol = create_random_solution_array(num_items, warehouse_dims, items_props, allocation_zones)
     sol = repair_solution_compact(sol, items_props, warehouse_dims, allocation_zones, valid_z)
     return sol
@@ -885,23 +906,24 @@ def mutation_numpy(solution, warehouse_dims=None, items_props=None, valid_z=None
     if valid_z is None: valid_z = _pool_valid_z
     if allocation_zones is None: allocation_zones = _pool_allocation_zones
 
-    # Randomly mutate 1 item
-    if random.random() < mutation_rate:
-        idx = random.randint(0, len(solution) - 1)
-        
-        # Re-randomize this item
+    num_items = len(solution)
+    wh_len, wh_wid, wh_hgt = warehouse_dims[0], warehouse_dims[1], warehouse_dims[2]
+    
+    # Iterate over all items (genes) for mutation
+    for idx in range(num_items):
+        if random.random() >= mutation_rate:
+            continue
+            
+        # Mutate this item
         item_len = items_props[idx, 0]
         item_wid = items_props[idx, 1]
         item_hgt = items_props[idx, 2]
         can_rotate = items_props[idx, 3]
         
-        wh_len, wh_wid, wh_hgt = warehouse_dims[0], warehouse_dims[1], warehouse_dims[2]
-        
         # --- Gravity Calculation Prep ---
-        # Pre-calculate other items' bboxes ONCE
-        num_items = len(solution)
-        item_to_mutate = idx
-        mask = np.arange(num_items) != item_to_mutate
+        # We need bbox of ALL other items (current state of solution)
+        # Note: solution is being modified in-place, so we see previous mutations in this step
+        mask = np.arange(num_items) != idx
         other_solution = solution[mask]
         other_props = items_props[mask]
         
@@ -927,9 +949,9 @@ def mutation_numpy(solution, warehouse_dims=None, items_props=None, valid_z=None
         best_x, best_y, best_z = 0, 0, float('inf')
         best_rotation = 0
         
-        for attempt in range(50):
-            # Dynamic Rotation: Randomize orientation per attempt
-            rotation = solution[idx, 3] # Default to current
+        for attempt in range(20): # Reduced attempts per item since we mutate more items
+            # Dynamic Rotation
+            rotation = solution[idx, 3] 
             if can_rotate and random.random() > 0.5:
                  rotation = random.choice([0, 90, 180, 270])
             
@@ -937,33 +959,26 @@ def mutation_numpy(solution, warehouse_dims=None, items_props=None, valid_z=None
                 dim_x, dim_y = item_len, item_wid
             else:
                 dim_x, dim_y = item_wid, item_len
-            # Check if we should use allocation zones
+                
             has_allocation_zones = allocation_zones is not None and len(allocation_zones) > 0
             
             zone_z1 = 0
             zone_z2 = wh_hgt
+            
             if has_allocation_zones:
-                # Find zones that can fit this item
                 valid_zones = []
                 for zone in allocation_zones:
                     zone_width = zone['x2'] - zone['x1']
                     zone_depth = zone['y2'] - zone['y1']
                     zone_z1_val = zone.get('z1', 0)
-                    zone_z2 = zone.get('z2', wh_hgt)
+                    zone_z2_val = zone.get('z2', wh_hgt)
                     
-                    if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2 - zone_z1_val):
+                    if dim_x <= zone_width and dim_y <= zone_depth and item_hgt <= (zone_z2_val - zone_z1_val):
                         valid_zones.append(zone)
                 
                 if valid_zones:
-                    # Sort zones by Z height (Bottom Shelf First)
                     valid_zones.sort(key=lambda z: z.get('z1', 0))
-                    
-                    # Zone Selection Heuristic:
-                    # Strictly Sequential: 0, 1, 2, ... looping if needed
                     zone_idx = attempt % len(valid_zones)
-                    
-                    # Safety clamp
-                    zone_idx = min(zone_idx, len(valid_zones) - 1)
                     zone = valid_zones[zone_idx]
                     
                     zone_z1 = zone.get('z1', 0)
@@ -977,74 +992,30 @@ def mutation_numpy(solution, warehouse_dims=None, items_props=None, valid_z=None
                     if max_x < min_x: max_x = min_x = (zone['x1'] + zone['x2']) / 2
                     if max_y < min_y: max_y = min_y = (zone['y1'] + zone['y2']) / 2
                     
-                    # Dense Pact Heuristic (Zone)
-                    if attempt < 5:
-                        x = min_x
-                        y = min_y
-                    elif attempt < 45 and len(other_bbox) > 0:
-                        rand_idx = random.randint(0, len(other_bbox)-1)
-                        ref_box = other_bbox[rand_idx]
-                        if random.random() < 0.5:
-                            x = ref_box[2] + dim_x / 2
-                            y = ref_box[1] + dim_y / 2
-                        else:
-                            x = ref_box[0] + dim_x / 2
-                            y = ref_box[3] + dim_y / 2
-                        x += random.uniform(-1, 1)
-                        y += random.uniform(-1, 1)
-                        x = max(min_x, min(max_x, x))
-                        y = max(min_y, min(max_y, y))
-                    else:
-                        x = round(random.uniform(min_x, max_x))
-                        y = round(random.uniform(min_y, max_y))
+                    x = random.uniform(min_x, max_x)
+                    y = random.uniform(min_y, max_y)
                 else:
-                    min_x = dim_x / 2
-                    max_x = wh_len - dim_x / 2
-                    min_y = dim_y / 2
-                    max_y = wh_wid - dim_y / 2
-                    
+                    # Fallback if no zone fits
+                    min_x = dim_x/2; max_x = wh_len - dim_x/2
+                    min_y = dim_y/2; max_y = wh_wid - dim_y/2
                     if max_x < min_x: max_x = min_x
                     if max_y < min_y: max_y = min_y
-                    
-                    # Dense Pact Heuristic (Global)
-                    if attempt < 3:
-                         x = min_x
-                         y = min_y
-                    elif attempt < 6 and len(other_bbox) > 0:
-                         rand_idx = random.randint(0, len(other_bbox)-1)
-                         ref_box = other_bbox[rand_idx]
-                         if random.random() < 0.5:
-                             x = ref_box[2] + dim_x / 2
-                             y = ref_box[1] + dim_y / 2
-                         else:
-                             x = ref_box[0] + dim_x / 2
-                             y = ref_box[3] + dim_y / 2
-
-                         x = max(min_x, min(max_x, x))
-                         y = max(min_y, min(max_y, y))
-                    else:
-                         x = round(random.uniform(min_x, max_x))
-                         y = round(random.uniform(min_y, max_y))
+                    x = random.uniform(min_x, max_x)
+                    y = random.uniform(min_y, max_y)
             else:
-                min_x = dim_x / 2
-                max_x = wh_len - dim_x / 2
-                min_y = dim_y / 2
-                max_y = wh_wid - dim_y / 2
-                
+                min_x = dim_x / 2; max_x = wh_len - dim_x / 2
+                min_y = dim_y / 2; max_y = wh_wid - dim_y / 2
                 if max_x < min_x: max_x = min_x
                 if max_y < min_y: max_y = min_y
                 
-                x = round(random.uniform(min_x, max_x))
-                y = round(random.uniform(min_y, max_y))
+                x = random.uniform(min_x, max_x)
+                y = random.uniform(min_y, max_y)
             
             z = calculate_z_for_item(x, y, dim_x + 0.001, dim_y + 0.001, other_bbox, other_z, other_h)
-            
-            # Enforce Layer Floor
             z = max(z, zone_z1)
             
-            # Layer Snap: If item protrudes through ceiling of current layer, snap to next layer floor
             if z + item_hgt > zone_z2 and zone_z2 < wh_hgt:
-                z = zone_z2
+                z = zone_z2 # Snap to ceiling if no fit (will be penalized later or repaired)
             
             if z < best_z:
                 best_x, best_y, best_z, best_rotation = x, y, z, rotation
@@ -1052,16 +1023,16 @@ def mutation_numpy(solution, warehouse_dims=None, items_props=None, valid_z=None
             if z == zone_z1:
                 break
         
-        if best_z > 50000:
-            best_z -= 100000.0
+        if best_z > 50000: best_z -= 100000.0
         
-        x, y, z = best_x, best_y, best_z
-        rotation = best_rotation
-        solution[item_to_mutate] = [x, y, z, rotation]
-        
+        solution[idx] = [best_x, best_y, best_z, best_rotation]
+
     return solution
 
 def process_offspring_batch(parent1, parent2, crossover_rate, mutation_rate, wh_dims=None, items_props=None, valid_z=None, allocation_zones=None):
+    random.seed() 
+    np.random.seed(random.randint(0, 2**32 - 1))
+    
     c1, c2 = crossover_numpy(parent1, parent2, crossover_rate)
     
     # helper to repair with explicit args or None (which will pick up globals)

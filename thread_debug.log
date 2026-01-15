@@ -108,3 +108,35 @@ DEBUG: Unstackable Items Count: 1 / 5
 DEBUG: Unstackable Items Count: 27 / 50
 DEBUG: Unstackable Items Count: 27 / 50
 DEBUG: Unstackable Items Count: 27 / 50
+Starting thread...
+Thread started
+GA Init: pop_size=50, generations=100
+DEBUG: Unstackable Items Count: 27 / 50
+Finalizing optimization...
+Loaded items and warehouse config
+Converted list solution to numpy array (50 items)
+Running PyBullet Physics Settlement with Layers: [0.0, 3.0]...
+Skipping PyBullet Physics Settlement (Bypassed)...
+Calculated fitness: 0.161002856704086
+Saved solution to DB
+Starting thread...
+Thread started
+GA Init: pop_size=50, generations=100
+DEBUG: Unstackable Items Count: 118 / 200
+Finalizing optimization...
+Loaded items and warehouse config
+Converted list solution to numpy array (200 items)
+Running PyBullet Physics Settlement with Layers: [0.0, 3.0]...
+Skipping PyBullet Physics Settlement (Bypassed)...
+Calculated fitness: 0.02594626854511322
+Saved solution to DB
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
+DEBUG: Unstackable Items Count: 0 / 50
