@@ -140,3 +140,73 @@ DEBUG: Unstackable Items Count: 0 / 50
 DEBUG: Unstackable Items Count: 0 / 50
 DEBUG: Unstackable Items Count: 0 / 50
 DEBUG: Unstackable Items Count: 0 / 50
+Starting thread...
+Thread started
+GA Init: pop_size=50, generations=100
+DEBUG: Unstackable Items Count: 118 / 200
+Starting thread...
+Thread started
+GA Init: pop_size=50, generations=100
+DEBUG: Unstackable Items Count: 118 / 200
+Finalizing optimization...
+Loaded items and warehouse config
+Converted list solution to numpy array (200 items)
+Running PyBullet Physics Settlement with Layers: [0.0, 3.0]...
+Skipping PyBullet Physics Settlement (Bypassed)...
+Calculated fitness: 0.04277634752287205
+Saved solution to DB
+Finalizing optimization...
+Loaded items and warehouse config
+Converted list solution to numpy array (200 items)
+Running PyBullet Physics Settlement with Layers: [0.0, 3.0]...
+Skipping PyBullet Physics Settlement (Bypassed)...
+Calculated fitness: 0.043309809538229466
+Saved solution to DB
+DEBUG: Unstackable Items Count: 118 / 200
+Finalizing optimization...
+Loaded items and warehouse config
+Converted list solution to numpy array (200 items)
+Running PyBullet Physics Settlement with Layers: [0.0, 3.0]...
+Skipping PyBullet Physics Settlement (Bypassed)...
+Calculated fitness: 0.04156144639402845
+Saved solution to DB
+DEBUG: Unstackable Items Count: 118 / 200
+Finalizing optimization...
+Loaded items and warehouse config
+Converted list solution to numpy array (200 items)
+Running PyBullet Physics Settlement with Layers: [0.0, 3.0]...
+Skipping PyBullet Physics Settlement (Bypassed)...
+Calculated fitness: 0.042571907131983354
+Saved solution to DB
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 0 / 10
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 118 / 200
+DEBUG: Unstackable Items Count: 243 / 400
+DEBUG: Unstackable Items Count: 243 / 400
+DEBUG: Unstackable Items Count: 243 / 400

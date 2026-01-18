@@ -863,8 +863,11 @@ function startOptimization() {
         });
 }
 
+let currentOptimizationType = null;
+
 function startOptimizationRequest(algo, params) {
     let endpoint = `/api/optimize/${algo}`;
+    currentOptimizationType = algo;
 
     fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -895,7 +898,12 @@ function startOptimizationRequest(algo, params) {
 }
 
 function stopOptimization() {
-    fetch(`${API_BASE_URL}/api/optimize/stop`, { method: 'POST' })
+    let endpoint = '/api/optimize/stop';
+    if (currentOptimizationType === 'compare') {
+        endpoint = '/api/optimize/compare/stop';
+    }
+
+    fetch(`${API_BASE_URL}${endpoint}`, { method: 'POST' })
         .then(() => {
             isOptimizing = false;
             document.getElementById('start-btn').disabled = false;
@@ -904,8 +912,16 @@ function stopOptimization() {
 }
 
 function startPolling() {
+    // Clear any existing interval just in case
+    if (optimizationInterval) clearInterval(optimizationInterval);
+
     optimizationInterval = setInterval(() => {
-        fetch(`${API_BASE_URL}/api/optimize/status`)
+        let statusEndpoint = '/api/optimize/status';
+        if (currentOptimizationType === 'compare') {
+            statusEndpoint = '/api/optimize/compare/status';
+        }
+
+        fetch(`${API_BASE_URL}${statusEndpoint}`)
             .then(res => res.json())
             .then(status => {
                 if (!status.running) {
@@ -921,8 +937,20 @@ function startPolling() {
                     const statusDot = document.getElementById('status-dot');
                     if (statusText) statusText.textContent = "COMPLETED";
                     if (statusDot) statusDot.classList.remove('active');
+
                     loadAnalytics(); // Refresh stats
-                    updateVisualization(); // Reload items from DB to ensure view matches final result
+
+                    if (currentOptimizationType !== 'compare') {
+                        updateVisualization(); // Reload items from DB to ensure view matches final result
+                    } else {
+                        // For comparison, maybe show a summary modal or just the table update
+                        document.querySelector('.view-panel[id="view-analytics"]').style.display = 'block';
+                        switchView('analytics');
+                        // Reset progress bar
+                        const progBar = document.getElementById('progress-bar-fill');
+                        if (progBar) progBar.style.width = '100%';
+                        if (statusText) statusText.textContent = "COMPARISON DONE";
+                    }
                 }
 
                 // Update UI
@@ -933,14 +961,20 @@ function startPolling() {
 
                 if (progPct) progPct.textContent = Math.round(progress) + '%';
                 if (progBar) progBar.style.width = progress + '%';
-                if (bestFit) bestFit.textContent = (status.best_fitness || 0).toFixed(4);
+                // For compare, this might be misleading if it's jumping between algos
+
+                // Special handling for comparison status
+                if (currentOptimizationType === 'compare') {
+                    if (bestFit) bestFit.textContent = '-'; // Don't show global best fit for comparison
+                } else {
+                    if (bestFit) bestFit.textContent = (status.best_fitness || 0).toFixed(4);
+                }
 
                 // Update Status Text with detailed message
                 const statusText = document.getElementById('status-text');
                 if (statusText) {
                     if (status.message) {
                         statusText.textContent = status.message;
-                        // Optional: Add tooltip or title for very long messages
                         statusText.title = status.message;
                     } else {
                         statusText.textContent = "OPTIMIZING...";
@@ -953,40 +987,49 @@ function startPolling() {
                 const statusPlaced = document.getElementById('status-placed');
                 const statusElapsed = document.getElementById('status-elapsed');
 
-                if (statusAlgo) statusAlgo.textContent = status.algorithm || document.getElementById('algorithm-select')?.value?.toUpperCase() || '-';
+                if (statusAlgo) {
+                    if (currentOptimizationType === 'compare') {
+                        statusAlgo.textContent = status.current_algorithm || 'Comparing...';
+                    } else {
+                        statusAlgo.textContent = status.algorithm || document.getElementById('algorithm-select')?.value?.toUpperCase() || '-';
+                    }
+                }
+
                 if (statusGen) {
-                    const gen = status.generation || status.iteration || Math.round(progress);
-                    const total = status.total_generations || status.total_iterations || 100;
-                    statusGen.textContent = `${gen}/${total}`;
-                }
-                if (statusPlaced && status.best_solution) {
-                    const placed = status.best_solution.filter(s => s.z < 1000).length;
-                    const total = status.best_solution.length;
-                    statusPlaced.textContent = `${placed}/${total}`;
-                }
-                if (statusElapsed && status.elapsed_time) {
-                    statusElapsed.textContent = status.elapsed_time.toFixed(1) + 's';
+                    if (currentOptimizationType === 'compare') {
+                        statusGen.textContent = `${status.current_algorithm_index || 0}/${status.total_algorithms || 4}`;
+                    } else {
+                        const gen = status.generation || status.iteration || Math.round(progress);
+                        const total = status.total_generations || status.total_iterations || 100;
+                        statusGen.textContent = `${gen}/${total}`;
+                    }
                 }
 
-                if (status.best_solution && status.best_solution.length > 0) {
+                // Visual updates only for single mode
+                if (currentOptimizationType !== 'compare') {
+                    if (statusPlaced && status.best_solution) {
+                        const placed = status.best_solution.filter(s => s.z < 1000).length;
+                        const total = status.best_solution.length;
+                        statusPlaced.textContent = `${placed}/${total}`;
+                    }
+                    if (statusElapsed && status.elapsed_time) {
+                        statusElapsed.textContent = status.elapsed_time.toFixed(1) + 's';
+                    }
 
-                    // Map solution coordinates back to full item data
-                    const solutionItems = status.best_solution.map(sol => {
-                        const originalItem = allItemsData[sol.id];
-                        if (!originalItem) {
+                    if (status.best_solution && status.best_solution.length > 0) {
+                        // Map solution coordinates back to full item data
+                        const solutionItems = status.best_solution.map(sol => {
+                            const originalItem = allItemsData[sol.id];
+                            if (originalItem) {
+                                return { ...originalItem, ...sol };
+                            }
+                            return null;
+                        }).filter(item => item !== null);
 
+                        // Only re-render if we have items to show (prevents blank screen)
+                        if (solutionItems.length > 0) {
+                            renderItems(solutionItems);
                         }
-                        if (originalItem) {
-                            return { ...originalItem, ...sol };
-                        }
-                        return null;
-                    }).filter(item => item !== null);
-
-
-
-                    // Only re-render if we have items to show (prevents blank screen)
-                    if (solutionItems.length > 0) {
-                        renderItems(solutionItems);
                     }
                 }
             });
@@ -2118,4 +2161,44 @@ function countRenderedBoxes() {
     }
 
     return count;
+}
+
+function exportAlgoPerformance() {
+    fetch(`${API_BASE_URL}/api/metrics/algo-best?warehouse_id=${currentWarehouseId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                alert('No performance data to export.');
+                return;
+            }
+
+            // CSV Header
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Algorithm,Best Fitness,Time to Best (s),Achieved At,Execution Time (s)\n";
+
+            // CSV Body
+            data.forEach(row => {
+                const algo = row.algorithm;
+                const bestFit = row.best_fitness ? row.best_fitness.toFixed(6) : "0";
+                const timeBest = row.time_to_best ? row.time_to_best.toFixed(4) : "0";
+                const timestamp = row.timestamp ? new Date(row.timestamp).toLocaleString() : "-";
+                const execTime = row.execution_time ? row.execution_time.toFixed(4) : "0";
+
+                // Escape commas in fields if any (though these fields shouldn't have them)
+                csvContent += `"${algo}",${bestFit},${timeBest},"${timestamp}",${execTime}\n`;
+            });
+
+            // Trigger download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `algorithm_performance_warehouse_${currentWarehouseId}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        })
+        .catch(err => {
+            console.error('Export failed:', err);
+            alert('Failed to export data: ' + err);
+        });
 }

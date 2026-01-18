@@ -710,6 +710,9 @@ def optimize_compare():
     
     if comparison_state['running']:
         return jsonify({'success': False, 'error': 'Comparison already running'})
+
+    if optimization_state['running']:
+        return jsonify({'success': False, 'error': 'Standard optimization is currently running. Please wait.'})
     
     data = request.json
     weights = data.get('weights', {'space': 0.5, 'accessibility': 0.4, 'stability': 0.1})
@@ -722,8 +725,8 @@ def optimize_compare():
         algorithms = [
             {'name': 'GA', 'type': 'ga', 'params': {'population_size': 30, 'generations': 50}, 'description': 'Genetic Algorithm - Evolves population of solutions'},
             {'name': 'EO', 'type': 'eo', 'params': {'iterations': 100}, 'description': 'Extremal Optimization - Improves worst-performing items'},
-            {'name': 'Hybrid GA-EO', 'type': 'ga-eo', 'params': {'generations': 30, 'iterations': 50}, 'description': 'GA global search + EO local refinement'},
-            {'name': 'Hybrid EO-GA', 'type': 'eo-ga', 'params': {'generations': 30, 'iterations': 50}, 'description': 'EO exploration + GA refinement'},
+            {'name': 'Hybrid GA-EO', 'type': 'ga-eo', 'params': {'generations': 40, 'iterations': 100}, 'description': 'High Quality: Deep GA search + EO refinement'},
+            {'name': 'Hybrid EO-GA', 'type': 'eo-ga', 'params': {'generations': 10, 'iterations': 50}, 'description': 'Fast Mode: EO setup + Quick GA polish'},
         ]
     
     # Reset comparison state

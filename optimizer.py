@@ -1082,6 +1082,20 @@ def eo_evaluate_mutation(solution, item_to_mutate, items_props, wh_dims, valid_z
     return (mutated_sol, fitness, su, acc, sta)
 
 
+def mutate_seed_worker(seed, dims, props, vz, rate, alloc):
+    """
+    Helper for parallel init mutation (Global for pickling)
+    """
+    import random, numpy as np
+    # Re-seed RNG for workers
+    random.seed()
+    np.random.seed(random.randint(0, 2**32-1))
+    
+    mut = mutation_numpy(seed.copy(), dims, props, vz, rate, alloc)
+    mut = repair_solution_compact(mut, props, dims, alloc, vz)
+    return mut
+
+
 class GeneticAlgorithm:
     def __init__(self, population_size=100, generations=500, crossover_rate=0.8,
                  mutation_rate=0.1, selection_method='tournament'):
@@ -1092,12 +1106,45 @@ class GeneticAlgorithm:
         self.selection_method = selection_method
         self.initial_population_from_solution = None
 
-    def initialize_population(self, num_items, warehouse_dims, items_props, valid_z=None, allocation_zones=None):
+    def initialize_population(self, num_items, warehouse_dims, items_props, valid_z=None, allocation_zones=None, initial_solution=None):
         # Population shape: (pop_size, num_items, 4) -> x, y, z, rotation
         print(f"Initializing population of size {self.population_size}...", flush=True)
         
         population = []
         
+        # Use seeded initialization if provided (FASTER)
+        if initial_solution is not None:
+             print("Using seed solution for initialization (Fast Mode)...")
+             # First individual is the exact seed
+             population.append(initial_solution.copy())
+             
+             # Generate rest by mutating the seed (perturbation)
+             # This avoids the expensive create_random_solution_array calls
+             needed = self.population_size - 1
+             
+             if needed > 0:
+                 # Use singleton pool for parallel mutation if available
+                 pool = get_process_pool()
+                 process_count = pool._processes if hasattr(pool, '_processes') else multiprocessing.cpu_count()
+                 
+                 # Mutation rate for initialization diversity (higher than standard mutation)
+                 init_mutation_rate = 0.2 
+                 
+                 if process_count > 1:
+                     # Helper for parallel init mutation - MOVED TO GLOBAL mutate_seed_worker
+                         
+                     args = [(initial_solution, warehouse_dims, items_props, valid_z, init_mutation_rate, allocation_zones) for _ in range(needed)]
+                     mutants = pool.starmap(mutate_seed_worker, args)
+                     population.extend(mutants)
+                 else:
+                     for _ in range(needed):
+                         mut = mutation_numpy(initial_solution.copy(), warehouse_dims, items_props, valid_z, init_mutation_rate, allocation_zones)
+                         mut = repair_solution_compact(mut, items_props, warehouse_dims, allocation_zones, valid_z)
+                         population.append(mut)
+                         
+             return np.array(population)
+
+        # Standard Random Initialization
         # Use singleton pool
         pool = get_process_pool()
         process_count = pool._processes if hasattr(pool, '_processes') else multiprocessing.cpu_count()
@@ -1201,19 +1248,18 @@ class GeneticAlgorithm:
         if callback:
             callback(0, 0, 0, None, 0, 0, 0, message="Initializing population... (This may take a moment)")
         
-        population = self.initialize_population(num_items, wh_dims, items_props, valid_z, allocation_zones)
-        
+        # Prepare seed if provided
+        initial_sol_arr = None
         if initial_solution is not None:
              # Convert to numpy (N, 4)
-             sol_arr = np.zeros((num_items, 4), dtype=np.float32)
+             initial_sol_arr = np.zeros((num_items, 4), dtype=np.float32)
              item_map = {item['id']: i for i, item in enumerate(items)}
              for sol_item in initial_solution:
                  idx = item_map.get(sol_item['id'])
                  if idx is not None:
-                     sol_arr[idx] = [sol_item['x'], sol_item['y'], sol_item['z'], sol_item['rotation']]
-             
-             # Seed into population
-             population[0] = sol_arr
+                     initial_sol_arr[idx] = [sol_item['x'], sol_item['y'], sol_item['z'], sol_item['rotation']]
+
+        population = self.initialize_population(num_items, wh_dims, items_props, valid_z, allocation_zones, initial_solution=initial_sol_arr)
         
         best_solution = None
         best_fitness = -float('inf')
