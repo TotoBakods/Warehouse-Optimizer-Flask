@@ -210,3 +210,17 @@ DEBUG: Unstackable Items Count: 118 / 200
 DEBUG: Unstackable Items Count: 243 / 400
 DEBUG: Unstackable Items Count: 243 / 400
 DEBUG: Unstackable Items Count: 243 / 400
+Finalizing optimization...
+Loaded items and warehouse config
+Converted list solution to numpy array (400 items)
+Running PyBullet Physics Settlement with Layers: [0.0, 3.0]...
+Skipping PyBullet Physics Settlement (Bypassed)...
+Calculated fitness: 0.035754539407207686
+Saved solution to DB
+DEBUG: Unstackable Items Count: 243 / 400
+DEBUG: Unstackable Items Count: 347 / 600
+Zero Fit: Overlap=0.0000, Zone=0.0000, Stack=0.3850
+DEBUG: Unstackable Items Count: 347 / 600
+Zero Fit: Overlap=0.0000, Zone=0.0000, Stack=0.3817
+Zero Fit: Overlap=0.0000, Zone=0.0000, Stack=0.3700
+DEBUG: Unstackable Items Count: 347 / 600
